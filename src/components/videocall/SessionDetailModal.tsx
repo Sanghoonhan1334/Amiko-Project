@@ -1,139 +1,171 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useLanguage } from '@/context/LanguageContext'
-import { useAuth } from '@/context/AuthContext'
+import { useState, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  Star, Users, Clock, Globe, CalendarDays, MapPin, DollarSign,
-  Flag, Video, Loader2, AlertCircle, CheckCircle, User
-} from 'lucide-react'
-import { PayPalScriptProvider } from '@paypal/react-paypal-js'
-import { PAYPAL_CONFIG } from '@/lib/paypal'
-import PayPalPaymentButton from '@/components/payments/PayPalPaymentButton'
-import RatingModal from './RatingModal'
-import ReportModal from './ReportModal'
+  Star,
+  Users,
+  Clock,
+  Globe,
+  CalendarDays,
+  MapPin,
+  DollarSign,
+  Flag,
+  Video,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  User,
+} from "lucide-react";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { PAYPAL_CONFIG } from "@/lib/paypal";
+import PayPalPaymentButton from "@/components/payments/PayPalPaymentButton";
+import RatingModal from "./RatingModal";
+import ReportModal from "./ReportModal";
 
 interface SessionDetailModalProps {
-  session: any
-  open: boolean
-  onClose: () => void
-  onBookingComplete: () => void
+  session: any;
+  open: boolean;
+  onClose: () => void;
+  onBookingComplete: () => void;
 }
 
 function getLocalDateTime(utcDateStr: string) {
-  const d = new Date(utcDateStr)
+  const d = new Date(utcDateStr);
   return {
-    date: d.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-    time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  }
+    date: d.toLocaleDateString([], {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    time: d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  };
 }
 
 function getCategoryEmoji(category: string) {
   const emojis: Record<string, string> = {
-    general: '💬', language: '🗣️', food: '🍜', travel: '✈️',
-    music: '🎵', fashion: '👗', technology: '💻', sports: '⚽',
-    movies: '🎬', history: '📜', art: '🎨', business: '💼',
-  }
-  return emojis[category] || '💬'
+    general: "💬",
+    language: "🗣️",
+    food: "🍜",
+    travel: "✈️",
+    music: "🎵",
+    fashion: "👗",
+    technology: "💻",
+    sports: "⚽",
+    movies: "🎬",
+    history: "📜",
+    art: "🎨",
+    business: "💼",
+  };
+  return emojis[category] || "💬";
 }
 
 export default function SessionDetailModal({
-  session, open, onClose, onBookingComplete
+  session,
+  open,
+  onClose,
+  onBookingComplete,
 }: SessionDetailModalProps) {
-  const { t } = useLanguage()
-  const { user } = useAuth()
-  const [sessionDetail, setSessionDetail] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [booking, setBooking] = useState(false)
-  const [myBooking, setMyBooking] = useState<any>(null)
-  const [joining, setJoining] = useState(false)
-  const [showRating, setShowRating] = useState(false)
-  const [showReport, setShowReport] = useState(false)
-  const [showPaypal, setShowPaypal] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const { t } = useLanguage();
+  const { user } = useAuth();
+  const [sessionDetail, setSessionDetail] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [booking, setBooking] = useState(false);
+  const [myBooking, setMyBooking] = useState<any>(null);
+  const [joining, setJoining] = useState(false);
+  const [showRating, setShowRating] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showPaypal, setShowPaypal] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    if (!session?.id) return
-    setLoading(true)
+    if (!session?.id) return;
+    setLoading(true);
     fetch(`/api/videocall/sessions/${session.id}`)
-      .then(r => r.json())
-      .then(data => {
-        setSessionDetail(data.session || session)
+      .then((r) => r.json())
+      .then((data) => {
+        setSessionDetail(data.session || session);
         // Check if user has a booking for this session
         if (user?.id && data.session?.bookings) {
           const userBooking = data.session.bookings.find(
-            (b: any) => b.user_id === user.id && b.status === 'confirmed'
-          )
-          setMyBooking(userBooking || null)
+            (b: any) => b.user_id === user.id && b.status === "confirmed",
+          );
+          setMyBooking(userBooking || null);
         }
       })
       .catch(() => setSessionDetail(session))
-      .finally(() => setLoading(false))
-  }, [session?.id, user?.id])
+      .finally(() => setLoading(false));
+  }, [session?.id, user?.id]);
 
-  const s = sessionDetail || session
-  const host = s?.host
-  const { date, time } = getLocalDateTime(s?.scheduled_at || '')
-  const spotsLeft = (s?.max_participants || 0) - (s?.current_participants || 0)
-  const isHost = user?.id === host?.user_id
-  const canJoin = myBooking && s?.status === 'live'
-  const sessionEnded = s?.status === 'completed'
-  const hasRated = s?.ratings?.some((r: any) => r.user_id === user?.id)
+  const s = sessionDetail || session;
+  const host = s?.host;
+  const { date, time } = getLocalDateTime(s?.scheduled_at || "");
+  const spotsLeft = (s?.max_participants || 0) - (s?.current_participants || 0);
+  const isHost = user?.id === host?.user_id;
+  const canJoin = myBooking && s?.status === "live";
+  const sessionEnded = s?.status === "completed";
+  const hasRated = s?.ratings?.some((r: any) => r.user_id === user?.id);
 
   // Check if within 15 minutes of start
   const canJoinSoon = (() => {
-    if (!myBooking || !s?.scheduled_at) return false
-    const start = new Date(s.scheduled_at).getTime()
-    const now = Date.now()
-    return now >= start - 15 * 60 * 1000
-  })()
+    if (!myBooking || !s?.scheduled_at) return false;
+    const start = new Date(s.scheduled_at).getTime();
+    const now = Date.now();
+    return now >= start - 15 * 60 * 1000;
+  })();
 
   const handleFreeBooking = async () => {
     try {
-      setBooking(true)
-      setError('')
-      const res = await fetch('/api/videocall/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      setBooking(true);
+      setError("");
+      const res = await fetch("/api/videocall/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: s.id,
-          payment_method: 'free',
-        })
-      })
-      const data = await res.json()
+          payment_method: "free",
+        }),
+      });
+      const data = await res.json();
       if (!res.ok) {
-        setError(data.error || t('vcMarketplace.bookingError'))
-        return
+        setError(data.error || t("vcMarketplace.bookingError"));
+        return;
       }
-      setMyBooking(data.booking)
-      setSuccess(t('vcMarketplace.bookingSuccess'))
-      setTimeout(() => onBookingComplete(), 1500)
+      setMyBooking(data.booking);
+      setSuccess(t("vcMarketplace.bookingSuccess"));
+      setTimeout(() => onBookingComplete(), 1500);
     } catch {
-      setError(t('vcMarketplace.bookingError'))
+      setError(t("vcMarketplace.bookingError"));
     } finally {
-      setBooking(false)
+      setBooking(false);
     }
-  }
+  };
 
   const handleJoinSession = async () => {
     try {
-      setJoining(true)
-      setError('')
+      setJoining(true);
+      setError("");
       const res = await fetch(`/api/videocall/sessions/${s.id}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking_id: myBooking.id })
-      })
-      const data = await res.json()
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: myBooking.id }),
+      });
+      const data = await res.json();
       if (!res.ok) {
-        setError(data.error || t('vcMarketplace.joinError'))
-        return
+        setError(data.error || t("vcMarketplace.joinError"));
+        return;
       }
       // Open video room in new window or route
       const params = new URLSearchParams({
@@ -143,17 +175,22 @@ export default function SessionDetailModal({
         appId: data.appId,
         sessionId: s.id,
         title: s.title,
-      })
-      window.open(`/videocall/room?${params.toString()}`, '_blank')
+      });
+      window.open(`/videocall/room?${params.toString()}`, "_blank");
     } catch {
-      setError(t('vcMarketplace.joinError'))
+      setError(t("vcMarketplace.joinError"));
     } finally {
-      setJoining(false)
+      setJoining(false);
     }
-  }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose();
+      }}
+    >
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -164,12 +201,12 @@ export default function SessionDetailModal({
             <DialogHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{getCategoryEmoji(s.category)}</span>
-                  <DialogTitle className="text-base">
-                    {s.title}
-                  </DialogTitle>
+                  <span className="text-lg">
+                    {getCategoryEmoji(s.category)}
+                  </span>
+                  <DialogTitle className="text-base">{s.title}</DialogTitle>
                 </div>
-                {s.status === 'live' && (
+                {s.status === "live" && (
                   <Badge className="bg-red-500 text-white text-xs animate-pulse">
                     ● LIVE
                   </Badge>
@@ -220,10 +257,12 @@ export default function SessionDetailModal({
               <div className="flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
                   <Users className="w-4 h-4 text-green-500" />
-                  <span>{s.current_participants}/{s.max_participants}</span>
+                  <span>
+                    {s.current_participants}/{s.max_participants}
+                  </span>
                   {spotsLeft > 0 && spotsLeft <= 3 && (
                     <span className="text-xs text-orange-500">
-                      ({spotsLeft} {t('vcMarketplace.spotsLeft')})
+                      ({spotsLeft} {t("vcMarketplace.spotsLeft")})
                     </span>
                   )}
                 </div>
@@ -236,12 +275,16 @@ export default function SessionDetailModal({
               {/* Host Profile Section */}
               <div className="bg-gray-50 dark:bg-gray-750 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                  {t('vcMarketplace.hostInfo')}
+                  {t("vcMarketplace.hostInfo")}
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {host?.avatar_url ? (
-                      <img src={host.avatar_url} alt={host.display_name} className="w-full h-full object-cover rounded-full" />
+                      <img
+                        src={host.avatar_url}
+                        alt={host.display_name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     ) : (
                       <User className="w-5 h-5 text-white" />
                     )}
@@ -264,7 +307,8 @@ export default function SessionDetailModal({
                         </span>
                       )}
                       <span className="text-xs text-gray-400">
-                        {host?.total_sessions || 0} {t('vcMarketplace.sessions')}
+                        {host?.total_sessions || 0}{" "}
+                        {t("vcMarketplace.sessions")}
                       </span>
                     </div>
                   </div>
@@ -289,16 +333,25 @@ export default function SessionDetailModal({
               {s.ratings && s.ratings.length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                    {t('vcMarketplace.reviews')} ({s.ratings.length})
+                    {t("vcMarketplace.reviews")} ({s.ratings.length})
                   </p>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {s.ratings.slice(0, 3).map((r: any) => (
-                      <div key={r.id} className="bg-gray-50 dark:bg-gray-750 rounded-lg p-2 text-xs">
+                      <div
+                        key={r.id}
+                        className="bg-gray-50 dark:bg-gray-750 rounded-lg p-2 text-xs"
+                      >
                         <div className="flex items-center gap-1 mb-1">
                           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{r.overall_rating?.toFixed(1)}</span>
+                          <span className="font-medium">
+                            {r.overall_rating?.toFixed(1)}
+                          </span>
                         </div>
-                        {r.comment && <p className="text-gray-600 dark:text-gray-400">{r.comment}</p>}
+                        {r.comment && (
+                          <p className="text-gray-600 dark:text-gray-400">
+                            {r.comment}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -323,19 +376,21 @@ export default function SessionDetailModal({
               {showPaypal && s.price_usd > 0 && user && (
                 <div className="border border-purple-200 dark:border-purple-700 rounded-lg p-3">
                   <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    {t('vcMarketplace.payment.payWith')}
+                    {t("vcMarketplace.payment.payWith")}
                   </p>
-                  <PayPalScriptProvider options={{
-                    clientId: PAYPAL_CONFIG.clientId,
-                    currency: 'USD',
-                    intent: 'capture'
-                  }}>
+                  <PayPalScriptProvider
+                    options={{
+                      clientId: PAYPAL_CONFIG.clientId,
+                      currency: "USD",
+                      intent: "capture",
+                    }}
+                  >
                     <PayPalPaymentButton
                       amount={s.price_usd}
                       orderId={`vc-${s.id}-${Date.now()}`}
                       orderName={s.title}
-                      customerName={user.email || ''}
-                      customerEmail={user.email || ''}
+                      customerName={user.email || ""}
+                      customerEmail={user.email || ""}
                       userId={user.id}
                       bookingId={undefined}
                       productType="videocall_session"
@@ -346,18 +401,23 @@ export default function SessionDetailModal({
               )}
 
               {/* Price Display */}
-              {!myBooking && !isHost && s.status === 'upcoming' && spotsLeft > 0 && (
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {s.price_usd > 0 ? `$${s.price_usd.toFixed(2)} USD` : t('vcMarketplace.free')}
-                  </p>
-                  {s.price_usd > 0 && (
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {t('vcMarketplace.payment.securePaypal')}
+              {!myBooking &&
+                !isHost &&
+                (s.status === "scheduled" || s.status === "upcoming") &&
+                spotsLeft > 0 && (
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {s.price_usd > 0
+                        ? `$${s.price_usd.toFixed(2)} USD`
+                        : t("vcMarketplace.free")}
                     </p>
-                  )}
-                </div>
-              )}
+                    {s.price_usd > 0 && (
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        {t("vcMarketplace.payment.securePaypal")}
+                      </p>
+                    )}
+                  </div>
+                )}
             </div>
 
             <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -370,14 +430,14 @@ export default function SessionDetailModal({
                   className="text-xs text-gray-400 hover:text-red-500 mr-auto"
                 >
                   <Flag className="w-3 h-3 mr-1" />
-                  {t('vcMarketplace.report')}
+                  {t("vcMarketplace.report")}
                 </Button>
               )}
 
               {/* Action buttons */}
               {isHost ? (
                 <Badge variant="secondary" className="text-xs py-1 px-3">
-                  {t('vcMarketplace.youAreHost')}
+                  {t("vcMarketplace.youAreHost")}
                 </Badge>
               ) : myBooking ? (
                 <>
@@ -388,7 +448,7 @@ export default function SessionDetailModal({
                       className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs"
                     >
                       <Star className="w-3.5 h-3.5 mr-1" />
-                      {t('vcMarketplace.rateSession')}
+                      {t("vcMarketplace.rateSession")}
                     </Button>
                   ) : canJoin || canJoinSoon ? (
                     <Button
@@ -398,19 +458,29 @@ export default function SessionDetailModal({
                       className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-xs"
                     >
                       {joining ? (
-                        <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> {t('vcMarketplace.joining')}</>
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />{" "}
+                          {t("vcMarketplace.joining")}
+                        </>
                       ) : (
-                        <><Video className="w-3.5 h-3.5 mr-1" /> {t('vcMarketplace.joinSession')}</>
+                        <>
+                          <Video className="w-3.5 h-3.5 mr-1" />{" "}
+                          {t("vcMarketplace.joinSession")}
+                        </>
                       )}
                     </Button>
                   ) : (
-                    <Badge variant="secondary" className="text-xs py-1 px-3 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs py-1 px-3 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                    >
                       <CheckCircle className="w-3 h-3 mr-1" />
-                      {t('vcMarketplace.booked')}
+                      {t("vcMarketplace.booked")}
                     </Badge>
                   )}
                 </>
-              ) : s.status === 'upcoming' && spotsLeft > 0 ? (
+              ) : (s.status === "scheduled" || s.status === "upcoming") &&
+                spotsLeft > 0 ? (
                 s.price_usd > 0 ? (
                   <Button
                     size="sm"
@@ -419,7 +489,7 @@ export default function SessionDetailModal({
                     className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs"
                   >
                     <DollarSign className="w-3.5 h-3.5 mr-1" />
-                    {t('vcMarketplace.bookNow')} - ${s.price_usd.toFixed(2)}
+                    {t("vcMarketplace.bookNow")} - ${s.price_usd.toFixed(2)}
                   </Button>
                 ) : (
                   <Button
@@ -429,15 +499,21 @@ export default function SessionDetailModal({
                     className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-xs"
                   >
                     {booking ? (
-                      <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> {t('vcMarketplace.booking')}</>
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />{" "}
+                        {t("vcMarketplace.booking")}
+                      </>
                     ) : (
-                      <>{t('vcMarketplace.bookFree')}</>
+                      <>{t("vcMarketplace.bookFree")}</>
                     )}
                   </Button>
                 )
               ) : spotsLeft <= 0 ? (
-                <Badge variant="secondary" className="text-xs py-1 px-3 bg-yellow-50 text-yellow-600">
-                  {t('vcMarketplace.sessionFull')}
+                <Badge
+                  variant="secondary"
+                  className="text-xs py-1 px-3 bg-yellow-50 text-yellow-600"
+                >
+                  {t("vcMarketplace.sessionFull")}
                 </Badge>
               ) : null}
             </DialogFooter>
@@ -452,8 +528,8 @@ export default function SessionDetailModal({
             sessionId={s.id}
             hostId={host?.id}
             onRated={() => {
-              setShowRating(false)
-              setSuccess(t('vcMarketplace.ratingSuccess'))
+              setShowRating(false);
+              setSuccess(t("vcMarketplace.ratingSuccess"));
             }}
           />
         )}
@@ -464,12 +540,12 @@ export default function SessionDetailModal({
             reportedUserId={host?.user_id}
             sessionId={s.id}
             onReported={() => {
-              setShowReport(false)
-              setSuccess(t('vcMarketplace.reportSuccess'))
+              setShowReport(false);
+              setSuccess(t("vcMarketplace.reportSuccess"));
             }}
           />
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }
