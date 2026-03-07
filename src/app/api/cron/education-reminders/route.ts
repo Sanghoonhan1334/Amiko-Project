@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in24h.toISOString())
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in1h.toISOString())
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in15m.toISOString())
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
 
     if (sessions15m?.length) {
       for (const session of sessions15m) {
-        const sent = await sendReminders(session, '15m')
+        const sent = await sendReminders(session, '15min')
         results.reminders15m += sent
       }
     }
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
 
 async function sendReminders(
   session: any,
-  type: '24h' | '1h' | '15m'
+  type: '24h' | '1h' | '15min'
 ): Promise<number> {
   const courseId = session.course?.id
   if (!courseId) return 0
@@ -156,10 +156,11 @@ async function sendReminders(
     is_read: false
   }))
 
-  // 강사에게도 알림
-  if (session.course?.instructor_id) {
+  // Send notification to instructor using their auth user_id
+  const instructorUserIdFromProfile = (session.course?.instructor as { user_id?: string } | null)?.user_id
+  if (instructorUserIdFromProfile) {
     notifications.push({
-      user_id: session.course.instructor_id,
+      user_id: instructorUserIdFromProfile,
       type: 'education_reminder',
       title: type === '24h'
         ? `📚 Tu clase "${session.course.title}" es mañana`

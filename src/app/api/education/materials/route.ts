@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,10 +10,27 @@ const supabase = createClient(
 // POST /api/education/materials - Upload course material
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const { course_id, session_id, title, type, file_url, external_url, description, sort_order } = await request.json()
 
     if (!course_id || !title || !type) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Verify instructor ownership or admin
+    const { data: course } = await supabase
+      .from('education_courses')
+      .select('instructor:instructor_profiles(user_id)')
+      .eq('id', course_id)
+      .single()
+
+    const instructorUserId = (course?.instructor as { user_id?: string } | null)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Not authorized to add materials to this course' }, { status: 403 })
     }
 
     const { data, error } = await supabase

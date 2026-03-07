@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,9 +10,13 @@ const supabase = createClient(
 // POST /api/education/reviews - Submit a course review
 export async function POST(request: NextRequest) {
   try {
-    const { course_id, student_id, clarity_rating, content_rating, interaction_rating, usefulness_rating, comment } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const student_id = auth.user.id
 
-    if (!course_id || !student_id) {
+    const { course_id, clarity_rating, content_rating, interaction_rating, usefulness_rating, comment } = await request.json()
+
+    if (!course_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 

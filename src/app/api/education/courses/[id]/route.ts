@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,6 +92,27 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
+    // Verify ownership or admin
+    const { data: course } = await supabase
+      .from('education_courses')
+      .select('instructor_id, instructor:instructor_profiles(user_id)')
+      .eq('id', id)
+      .single()
+
+    if (!course) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+    }
+
+    const instructorUserId = (course.instructor as { user_id?: string } | null)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Not authorized to update this course' }, { status: 403 })
+    }
+
     const body = await request.json()
 
     const { data, error } = await supabase
@@ -119,15 +141,28 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
 
     // Only allow deletion of draft courses
     const { data: course } = await supabase
       .from('education_courses')
-      .select('status')
+      .select('status, instructor:instructor_profiles(user_id)')
       .eq('id', id)
       .single()
 
-    if (course?.status !== 'draft') {
+    if (!course) {
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+    }
+
+    const instructorUserId = (course.instructor as { user_id?: string } | null)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Not authorized to delete this course' }, { status: 403 })
+    }
+
+    if (course.status !== 'draft') {
       return NextResponse.json({ error: 'Only draft courses can be deleted' }, { status: 400 })
     }
 

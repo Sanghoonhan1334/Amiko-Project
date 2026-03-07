@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +13,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const admin = await isAdminUser(auth.user.id)
+    if (!admin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
     const { id } = await params
     const { reason } = await request.json()
 
@@ -23,8 +31,11 @@ export async function POST(
       .from('education_courses')
       .update({ status: 'rejected', rejection_reason: reason })
       .eq('id', id)
-      .eq('status', 'pending_review')
-      .select()
+      .in('status', ['pending_review', 'submitted_for_review'])
+      .select(`
+        id, title, slug,
+        instructor:instructor_profiles(user_id)
+      `)
       .single()
 
     if (error || !data) {
@@ -32,13 +43,7 @@ export async function POST(
     }
 
     // Notify the instructor their course was rejected
-    const { data: courseWithInstructor } = await supabase
-      .from('education_courses')
-      .select('id, title, slug, instructor:instructor_profiles(user_id)')
-      .eq('id', id)
-      .single()
-
-    const instructorUserId = (courseWithInstructor?.instructor as { user_id?: string } | null)?.user_id
+    const instructorUserId = (data.instructor as { user_id?: string } | null)?.user_id
     if (instructorUserId) {
       await supabase.from('notifications').insert({
         user_id: instructorUserId,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,9 +10,13 @@ const supabase = createClient(
 // POST /api/education/session/join - Student/Instructor joins a live class
 export async function POST(request: NextRequest) {
   try {
-    const { session_id, user_id } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const user_id = auth.user.id
 
-    if (!session_id || !user_id) {
+    const { session_id } = await request.json()
+
+    if (!session_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
         .upsert({
           session_id,
           student_id: user_id,
-          status: 'completed',
+          status: 'joined',
           joined_at: new Date().toISOString()
         }, { onConflict: 'session_id,student_id' })
     }

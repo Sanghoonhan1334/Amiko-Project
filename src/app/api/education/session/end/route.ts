@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,10 +10,14 @@ const supabase = createClient(
 // POST /api/education/session/end - Instructor ends a live class session
 export async function POST(request: NextRequest) {
   try {
-    const { session_id, user_id } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const user_id = auth.user.id
 
-    if (!session_id || !user_id) {
-      return NextResponse.json({ error: 'session_id and user_id required' }, { status: 400 })
+    const { session_id } = await request.json()
+
+    if (!session_id) {
+      return NextResponse.json({ error: 'session_id required' }, { status: 400 })
     }
 
     // Get session with course info
@@ -59,12 +64,12 @@ export async function POST(request: NextRequest) {
     if (enrollments?.length) {
       const studentIds = enrollments.map(e => e.student_id)
 
-      // Get who actually attended (already have 'completed' status from join)
+      // Get who actually attended (joined or completed status from join)
       const { data: attendanceRecords } = await supabase
         .from('education_attendance')
         .select('student_id')
         .eq('session_id', session_id)
-        .eq('status', 'completed')
+        .in('status', ['joined', 'attended', 'completed'])
 
       const attendedIds = new Set(attendanceRecords?.map(a => a.student_id) || [])
 
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
           .from('education_attendance')
           .select('*', { count: 'exact', head: true })
           .eq('student_id', studentId)
-          .eq('status', 'completed')
+          .in('status', ['joined', 'attended', 'completed'])
           .in('session_id',
             (await supabase.from('education_sessions')
               .select('id')

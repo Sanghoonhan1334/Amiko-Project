@@ -50,7 +50,7 @@ export async function sendEducationReminderEmail(
   sessionTitle: string,
   sessionNumber: number,
   scheduledAt: string,
-  reminderType: '24h' | '1h' | '15m'
+  reminderType: '24h' | '1h' | '15min'
 ): Promise<boolean> {
   const timeLabel = reminderType === '24h' ? '24 horas'
     : reminderType === '1h' ? '1 hora' : '15 minutos'

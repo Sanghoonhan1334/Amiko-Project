@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,7 +10,11 @@ const supabase = createClient(
 // POST /api/education/certificates - Issue a certificate for a completed enrollment
 export async function POST(request: NextRequest) {
   try {
-    const { enrollment_id, student_id } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
+    const { enrollment_id } = await request.json()
 
     if (!enrollment_id) {
       return NextResponse.json({ error: 'enrollment_id required' }, { status: 400 })
@@ -32,8 +37,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Enrollment not found' }, { status: 404 })
     }
 
-    // Verify ownership if student_id provided
-    if (student_id && enrollment.student_id !== student_id) {
+    // Verify ownership — only the enrolled student can request their certificate
+    if (enrollment.student_id !== userId) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
     }
 

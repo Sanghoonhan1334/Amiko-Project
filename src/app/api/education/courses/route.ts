@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -70,9 +71,12 @@ export async function GET(request: NextRequest) {
 // POST /api/education/courses - Create a new course
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const body = await request.json()
     const {
-      instructor_id,
       title,
       category,
       description,
@@ -89,20 +93,22 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!instructor_id || !title || !category || !description || !level || !teaching_language || !total_classes || !price_usd) {
+    if (!title || !category || !description || !level || !teaching_language || !total_classes || !price_usd) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Verify instructor exists
+    // Look up instructor profile for authenticated user
     const { data: instructor, error: instructorError } = await supabase
       .from('instructor_profiles')
       .select('id, user_id')
-      .eq('id', instructor_id)
+      .eq('user_id', userId)
       .single()
 
     if (instructorError || !instructor) {
-      return NextResponse.json({ error: 'Instructor not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Instructor profile not found. Please create your instructor profile first.' }, { status: 404 })
     }
+
+    const instructor_id = instructor.id
 
     // Determine start/end dates from sessions
     let start_date = null
@@ -130,7 +136,7 @@ export async function POST(request: NextRequest) {
         max_students: max_students || 20,
         thumbnail_url: thumbnail_url || null,
         allow_recording: allow_recording || false,
-        status: 'pending_review',
+        status: 'draft',
         start_date,
         end_date
       })

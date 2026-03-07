@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,10 +10,14 @@ const supabase = createClient(
 // POST /api/education/chat - Send a chat message in a live class
 export async function POST(request: NextRequest) {
   try {
-    const { session_id, user_id, message, message_type } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const user_id = auth.user.id
 
-    if (!session_id || !user_id || !message) {
-      return NextResponse.json({ error: 'session_id, user_id, and message required' }, { status: 400 })
+    const { session_id, message, message_type } = await request.json()
+
+    if (!session_id || !message) {
+      return NextResponse.json({ error: 'session_id and message required' }, { status: 400 })
     }
 
     // Get user profile for name/avatar
