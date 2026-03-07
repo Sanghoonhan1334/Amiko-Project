@@ -140,9 +140,11 @@ export const translations = {
       paypalProcessingComplete: "💡 결제 처리는 PayPal로 완료되었습니다.",
       returnHome: "홈으로 돌아가기",
       paymentSystemUnavailable: "결제 시스템을 사용할 수 없습니다",
-      paypalNotConfigured: "PayPal이 설정되지 않았습니다. 관리자에게 문의하세요.",
+      paypalNotConfigured:
+        "PayPal이 설정되지 않았습니다. 관리자에게 문의하세요.",
       loadingPaypal: "PayPal 로딩 중...",
-      paypalLoadFailed: "PayPal을 로드할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
+      paypalLoadFailed:
+        "PayPal을 로드할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
       reloadPage: "페이지 새로고침",
       processingPaymentShort: "결제 처리 중...",
     },
@@ -1230,7 +1232,16 @@ export const translations = {
       ratingSuccess: "평가가 제출되었습니다!",
       reportSuccess: "신고가 접수되었습니다!",
       youAreHost: "당신이 호스트입니다",
+      startSession: "세션 시작",
+      starting: "시작 중...",
+      sessionStarted: "세션이 시작되었습니다!",
+      startError: "세션 시작에 실패했습니다",
       hostInfo: "호스트 정보",
+      notifications: {
+        title: "알림",
+        markAllRead: "모두 읽음",
+        empty: "알림이 없습니다",
+      },
       past: "지난 세션",
       noPastBookings: "지난 예약이 없습니다",
       untitled: "제목 없음",
@@ -1319,6 +1330,7 @@ export const translations = {
       payment: {
         payWith: "결제 수단",
         securePaypal: "PayPal 안전 결제",
+        failed: "결제에 실패했습니다",
       },
       // Days of week (by name)
       days: {
@@ -1350,6 +1362,35 @@ export const translations = {
         slotAdded: "시간대가 추가되었습니다",
         slotRemoved: "시간대가 삭제되었습니다",
       },
+    },
+
+    // 화상통화 테스트 랩
+    vcTestLab: {
+      title: "Agora 테스트 랩",
+      badge: "테스트",
+      info: "카메라, 마이크, 네트워크를 테스트하세요. 채널 코드를 공유하면 다른 사람도 같은 채널에 참여할 수 있습니다.",
+      checkMic: "마이크",
+      checkCamera: "카메라",
+      checkNetwork: "네트워크",
+      channelName: "채널 이름",
+      channelPlaceholder: "채널 이름 입력",
+      generateRandom: "랜덤 생성",
+      copyChannel: "복사",
+      shareHint:
+        "이 코드를 공유하면 다른 사용자가 같은 채널에 참여할 수 있습니다",
+      startTest: "테스트 시작",
+      connecting: "연결 중...",
+      testRoom: "테스트 룸",
+      noDevices:
+        "카메라와 마이크가 감지되지 않았습니다. 채팅 전용으로 참여할 수 있습니다.",
+      permissionDenied:
+        "기기 접근이 거부되었습니다. 브라우저 설정에서 카메라/마이크 권한을 허용해주세요.",
+      startAudioOnly: "채팅 전용으로 시작",
+      createRoom: "방 만들기",
+      joinRoom: "방 참여하기",
+      joinCode: "방 코드",
+      joinCodePlaceholder: "예: blue-tiger-123",
+      joinCodeHint: "다른 사용자가 공유한 방 코드를 입력하세요",
     },
 
     // 커뮤니티 탭
@@ -1456,7 +1497,8 @@ export const translations = {
       idolMemesUploadTitle: "아이돌 사진",
       idolMemesUploadTitlePlaceholder: "사진 제목을 입력하세요",
       idolMemesUploadPhotoLabel: "사진 업로드",
-      idolMemesUploadClickToUpload: "이미지 또는 영상을 업로드하려면 클릭하세요",
+      idolMemesUploadClickToUpload:
+        "이미지 또는 영상을 업로드하려면 클릭하세요",
       idolMemesUploadDescPlaceholder: "사진에 대한 설명을 입력하세요",
       // FanartUploadModal
       fanartUploadTitle: "팬아트 업로드",
@@ -4029,9 +4071,11 @@ export const translations = {
         "💡 El procesamiento del pago se completó con PayPal.",
       returnHome: "Volver al inicio",
       paymentSystemUnavailable: "Sistema de pagos no disponible",
-      paypalNotConfigured: "PayPal no está configurado. Contacta al administrador.",
+      paypalNotConfigured:
+        "PayPal no está configurado. Contacta al administrador.",
       loadingPaypal: "Cargando PayPal...",
-      paypalLoadFailed: "No se pudo cargar PayPal. Verifica tu conexión e inténtalo de nuevo.",
+      paypalLoadFailed:
+        "No se pudo cargar PayPal. Verifica tu conexión e inténtalo de nuevo.",
       reloadPage: "Recargar página",
       processingPaymentShort: "Procesando pago...",
     },
@@ -4641,7 +4685,8 @@ export const translations = {
       send: "Enviar",
       cancel: "Cancelar",
       replyPlaceholder: "Escribe tu respuesta...",
-      profileRequired: "Por favor, completa tu perfil con un nombre de usuario para poder comentar.",
+      profileRequired:
+        "Por favor, completa tu perfil con un nombre de usuario para poder comentar.",
       confirmDelete: "¿Estás seguro de que quieres eliminar este comentario?",
       deleteError: "Error al eliminar el comentario.",
     },
@@ -4808,7 +4853,8 @@ export const translations = {
       sessionTopic: "Tema",
       sessionTopicPlaceholder: "¿Qué tema tratarás?",
       sessionDescription: "Descripción",
-      sessionDescriptionPlaceholder: "Describe el contenido de tu sesión en detalle",
+      sessionDescriptionPlaceholder:
+        "Describe el contenido de tu sesión en detalle",
       sessionCategory: "Categoría",
       sessionLanguage: "Idioma de la Sesión",
       sessionLevel: "Nivel",
@@ -4987,7 +5033,16 @@ export const translations = {
       ratingSuccess: "¡Calificación enviada!",
       reportSuccess: "¡Reporte enviado!",
       youAreHost: "Eres el Host",
+      startSession: "Iniciar Sesión",
+      starting: "Iniciando...",
+      sessionStarted: "¡Sesión iniciada!",
+      startError: "Error al iniciar la sesión",
       hostInfo: "Información del Host",
+      notifications: {
+        title: "Notificaciones",
+        markAllRead: "Marcar todo leído",
+        empty: "No hay notificaciones",
+      },
       past: "Pasadas",
       noPastBookings: "No hay reservas pasadas",
       untitled: "Sin Título",
@@ -5076,6 +5131,7 @@ export const translations = {
       payment: {
         payWith: "Pagar con",
         securePaypal: "Pago seguro con PayPal",
+        failed: "Error en el pago",
       },
       // Days of week (by name)
       days: {
@@ -5107,6 +5163,35 @@ export const translations = {
         slotAdded: "Horario agregado",
         slotRemoved: "Horario eliminado",
       },
+    },
+
+    // Lab de Pruebas de Videollamada
+    vcTestLab: {
+      title: "Lab de Pruebas Agora",
+      badge: "TEST",
+      info: "Prueba tu cámara, micrófono y conexión. Comparte el código del canal para que otra persona se una a la misma sala.",
+      checkMic: "Micrófono",
+      checkCamera: "Cámara",
+      checkNetwork: "Red",
+      channelName: "Nombre del Canal",
+      channelPlaceholder: "Ingresa un nombre de canal",
+      generateRandom: "Generar aleatorio",
+      copyChannel: "Copiar",
+      shareHint:
+        "Comparte este código para que otros usuarios puedan unirse al mismo canal",
+      startTest: "Iniciar Prueba",
+      connecting: "Conectando...",
+      testRoom: "Sala de Prueba",
+      noDevices:
+        "No se detectaron cámara ni micrófono. Puedes unirte en modo solo-chat.",
+      permissionDenied:
+        "Se denegó el acceso a los dispositivos. Permite el acceso a cámara/micrófono en la configuración del navegador.",
+      startAudioOnly: "Iniciar en modo chat",
+      createRoom: "Crear sala",
+      joinRoom: "Unirme a sala",
+      joinCode: "Código de sala",
+      joinCodePlaceholder: "Ej: blue-tiger-123",
+      joinCodeHint: "Ingresa el código que alguien compartió contigo",
     },
 
     // 커뮤니티 탭
@@ -5238,7 +5323,8 @@ export const translations = {
       pollTitleLabel: "Título",
       pollTitlePlaceholder: "¿Cuál es tu canción favorita de BTS?",
       pollDescriptionLabel: "Descripción (Opcional)",
-      pollDescriptionPlaceholder: "ej: Por favor selecciona tu canción favorita",
+      pollDescriptionPlaceholder:
+        "ej: Por favor selecciona tu canción favorita",
       pollDatesLabel: "Fechas para elegir",
       pollOptionAvsB: "Opción A vs Opción B",
       pollOptionsLabel: "Opciones",
@@ -5922,7 +6008,8 @@ export const translations = {
 
     // 푸터
     footer: {
-      bridgeDescription: "Plataforma Global de Intercambio entre Corea del Sur e Hispanohablantes, AMIKO",
+      bridgeDescription:
+        "Plataforma Global de Intercambio entre Corea del Sur e Hispanohablantes, AMIKO",
       officialSns: "SNS Oficial de AMIKO",
       support: "Soporte al Cliente",
       help: "Ayuda",
