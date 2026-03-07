@@ -27,9 +27,15 @@ export async function GET(request: NextRequest) {
         instructor:instructor_profiles(*)
       `, { count: 'exact' })
 
-    // Filter by status (default: published for public, allow others for instructor/admin)
+    // Filter by status:
+    // - 'all' + instructorId  → return all statuses for that instructor (dashboard)
+    // - 'all' alone          → public marketplace: only published/in_progress/completed
+    // - any other value      → exact status match
     if (status === 'all') {
-      query = query.in('status', ['published', 'in_progress', 'completed'])
+      if (!instructorId) {
+        query = query.in('status', ['published', 'in_progress', 'completed'])
+      }
+      // with instructorId: no status filter – instructor sees all their own courses
     } else {
       query = query.eq('status', status)
     }
@@ -157,22 +163,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update instructor course count
-    await supabase.rpc('', {}).catch(() => {})
-    const { error: updateError } = await supabase
-      .from('instructor_profiles')
-      .update({ total_courses: instructor.user_id ? undefined : 0 })
-      .eq('id', instructor_id)
-
-    // Recount
-    const { count } = await supabase
+    // Update instructor course count (recount from DB for accuracy)
+    const { count: courseCount } = await supabase
       .from('education_courses')
       .select('*', { count: 'exact', head: true })
       .eq('instructor_id', instructor_id)
 
     await supabase
       .from('instructor_profiles')
-      .update({ total_courses: count || 0 })
+      .update({ total_courses: courseCount || 0 })
       .eq('id', instructor_id)
 
     return NextResponse.json({ course }, { status: 201 })

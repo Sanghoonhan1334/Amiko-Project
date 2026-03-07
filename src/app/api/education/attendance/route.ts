@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const updateData: Record<string, unknown> = { status }
 
     if (status === 'completed') {
-      updateData.joined_at = updateData.joined_at || now
+      updateData.joined_at = now
     }
 
     const { data, error } = await supabase

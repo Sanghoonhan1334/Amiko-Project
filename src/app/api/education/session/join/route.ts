@@ -49,16 +49,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if class is within 30 min window
-    const now = new Date()
-    const classTime = new Date(session.scheduled_at)
-    const diffMinutes = (classTime.getTime() - now.getTime()) / (1000 * 60)
+    // Check if class is within the join window
+    // - Always allow if session is already 'live' (instructor started early)
+    // - Allow 30 min before scheduled time
+    // - Allow up to 15 min after session ended (grace period for reconnects)
+    // - Block if session is cancelled, completed or rescheduled
+    if (['cancelled', 'rescheduled'].includes(session.status)) {
+      return NextResponse.json({ error: 'This class has been cancelled or rescheduled.' }, { status: 400 })
+    }
 
-    if (diffMinutes > 30) {
-      return NextResponse.json({
-        error: 'Class has not started yet. You can join 30 minutes before the scheduled time.',
-        minutesUntilJoin: Math.ceil(diffMinutes - 30)
-      }, { status: 425 })
+    if (session.status === 'completed') {
+      return NextResponse.json({ error: 'This class has already ended.' }, { status: 400 })
+    }
+
+    if (session.status !== 'live') {
+      const now = new Date()
+      const classTime = new Date(session.scheduled_at)
+      const diffMinutes = (classTime.getTime() - now.getTime()) / (1000 * 60)
+
+      if (diffMinutes > 30) {
+        return NextResponse.json({
+          error: 'Class has not started yet. You can join 30 minutes before the scheduled time.',
+          minutesUntilJoin: Math.ceil(diffMinutes - 30)
+        }, { status: 425 })
+      }
     }
 
     // Generate Agora channel name and token

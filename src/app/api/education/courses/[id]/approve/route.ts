@@ -29,7 +29,18 @@ export async function POST(
       return NextResponse.json({ error: 'Course not found or not pending review' }, { status: 404 })
     }
 
-    // TODO: Send notification to instructor about approval
+    // Notify the instructor their course was approved
+    const instructorUserId = data.instructor?.user_id
+    if (instructorUserId) {
+      await supabase.from('notifications').insert({
+        user_id: instructorUserId,
+        type: 'education_course_approved',
+        title: '✅ ¡Curso aprobado!',
+        message: `Tu curso "${data.title}" ha sido aprobado y publicado en el marketplace.`,
+        link: `/education/course/${data.slug || data.id}`,
+        is_read: false
+      })
+    }
 
     return NextResponse.json({ course: data })
   } catch (err) {

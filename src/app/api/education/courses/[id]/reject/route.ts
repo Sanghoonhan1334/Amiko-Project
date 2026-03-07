@@ -31,6 +31,25 @@ export async function POST(
       return NextResponse.json({ error: 'Course not found or not pending review' }, { status: 404 })
     }
 
+    // Notify the instructor their course was rejected
+    const { data: courseWithInstructor } = await supabase
+      .from('education_courses')
+      .select('id, title, slug, instructor:instructor_profiles(user_id)')
+      .eq('id', id)
+      .single()
+
+    const instructorUserId = (courseWithInstructor?.instructor as { user_id?: string } | null)?.user_id
+    if (instructorUserId) {
+      await supabase.from('notifications').insert({
+        user_id: instructorUserId,
+        type: 'education_course_rejected',
+        title: '❌ Curso rechazado',
+        message: `Tu curso "${data.title}" fue rechazado. Motivo: ${reason}`,
+        link: `/education?tab=instructor`,
+        is_read: false
+      })
+    }
+
     return NextResponse.json({ course: data })
   } catch (err) {
     console.error('[Education] reject error:', err)
