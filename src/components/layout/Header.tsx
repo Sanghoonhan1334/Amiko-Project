@@ -272,7 +272,8 @@ function HeaderContent() {
   const isMainPage =
     pathname.startsWith("/main") ||
     pathname.startsWith("/lounge") ||
-    pathname.startsWith("/community");
+    pathname.startsWith("/community") ||
+    pathname.startsWith("/education");
 
   // pathname 변경 시 activeNavItem 업데이트
   useEffect(() => {
@@ -1022,11 +1023,12 @@ function HeaderContent() {
                     >
                       {t("headerNav.videoCall")}
                     </button>
+                    {/* HIDDEN: Dance tab - functionality preserved but not shown
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log("Educación 버튼 클릭됨");
+                        console.log("Dance 버튼 클릭됨");
                         handleMainNavClick("dance");
                       }}
                       className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
@@ -1040,6 +1042,25 @@ function HeaderContent() {
                       }}
                     >
                       {t("headerNav.dance")}
+                    </button>
+                    */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push("/education");
+                      }}
+                      className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
+                        pathname.startsWith("/education")
+                          ? "text-purple-500"
+                          : "text-gray-800 dark:!text-white hover:text-purple-500"
+                      }`}
+                      style={{
+                        backgroundColor: "transparent",
+                        pointerEvents: "auto",
+                      }}
+                    >
+                      {language === "ko" ? "교육" : "Educación"}
                     </button>
                   </div>
                 ) : null}
@@ -1272,6 +1293,18 @@ function HeaderContent() {
                 <span className="text-base">❓</span>
                 <span className="text-sm font-medium">
                   {language === "ko" ? "FAQ / 도움말" : "FAQ / Ayuda"}
+                </span>
+              </Link>
+
+              {/* 교육 / Educación */}
+              <Link
+                href="/education"
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300"
+                onClick={toggleMobileMenu}
+              >
+                <span className="text-base">🎓</span>
+                <span className="text-sm font-medium">
+                  {language === "ko" ? "교육" : "Educación"}
                 </span>
               </Link>
 

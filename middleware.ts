@@ -21,6 +21,7 @@ const publicPaths = [
   '/api/auth',
   '/api/webhooks',
   '/api/fanzone',
+  '/education',
   '/_next',
   '/favicon.ico',
   '/sw.js',
@@ -38,7 +39,10 @@ const protectedPaths = [
   '/lounge',
   '/consultants',
   '/checkout',
-  '/chat-test'
+  '/chat-test',
+  '/education/checkout',
+  '/education/class',
+  '/education/instructor'
 ]
 
 // 관리자 전용 경로
@@ -53,7 +57,8 @@ const protectedApiPaths = [
   '/api/payments',
   '/api/notifications',
   '/api/community',
-  '/api/admin'
+  '/api/admin',
+  '/api/education'
 ]
 
 export async function middleware(request: NextRequest) {

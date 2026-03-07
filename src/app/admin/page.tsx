@@ -183,6 +183,20 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
+      {/* 교육 모듈 관리 */}
+      <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/admin/education'}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <span className="text-2xl">🎓</span>
+            교육 모듈 관리
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">교육 과정 승인, 강사 관리 및 교육 통계 확인</p>
+          <Button variant="outline" className="w-full">교육 관리하기</Button>
+        </CardContent>
+      </Card>
+
       {/* 최근 결제 및 예약 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 최근 결제 */}

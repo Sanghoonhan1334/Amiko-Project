@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Calendar,
   Music,
+  GraduationCap,
 } from "lucide-react";
 
 export default function BottomTabNavigation() {
@@ -52,6 +53,9 @@ export default function BottomTabNavigation() {
     } else if (pathname.startsWith("/community")) {
       // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
       setActiveTab("community");
+    } else if (pathname.startsWith("/education")) {
+      // 교육 페이지에서는 education 탭을 활성화
+      setActiveTab("education");
     } else if (pathname.startsWith("/quiz")) {
       // 퀴즈 페이지에서는 홈 탭을 활성화 (또는 적절한 탭)
       setActiveTab("home");
@@ -94,11 +98,18 @@ export default function BottomTabNavigation() {
       icon: Home,
       path: "/main?tab=home",
     },
+    // HIDDEN: Dance tab - functionality preserved but not shown
+    // {
+    //   id: "dance",
+    //   label: t("headerNav.dance"),
+    //   icon: Music,
+    //   path: "/main?tab=dance",
+    // },
     {
-      id: "dance",
-      label: t("headerNav.dance"),
-      icon: Music,
-      path: "/main?tab=dance",
+      id: "education",
+      label: t("language") === "ko" ? "교육" : "Educación",
+      icon: GraduationCap,
+      path: "/education",
     },
     {
       id: "me",
@@ -116,6 +127,12 @@ export default function BottomTabNavigation() {
     }
 
     setActiveTab(tab.id);
+
+    // 교육 탭은 독립 라우트로 이동
+    if (tab.id === "education") {
+      router.push("/education");
+      return;
+    }
 
     // 커뮤니티 탭 클릭 시 cTab 파라미터 제거하여 홈으로 이동
     if (tab.id === "community") {
@@ -176,7 +193,7 @@ export default function BottomTabNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
-      <div className="grid grid-cols-5 py-1.5">
+      <div className="grid grid-cols-6 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

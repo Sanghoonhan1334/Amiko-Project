@@ -3267,13 +3267,6 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
       </Dialog>
 
       {/* Events 탭 제거 - 이벤트 카테고리 완전 제거 */}
-      
-      {/* 디버깅: currentView 상태 확인 (개발 환경에서만) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-20 right-4 bg-black/80 text-white text-xs p-2 rounded z-50 pointer-events-none">
-          currentView: {currentView} | cTab: {searchParams.get('cTab') || 'none'}
-        </div>
-      )}
 
       {/* Tests 탭 */}
       {currentView === 'tests' && (
