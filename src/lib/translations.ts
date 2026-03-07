@@ -159,7 +159,7 @@ export const translations = {
       navigation: {
         home: "홈",
         community: "커뮤니티",
-        videoCall: "화상채팅",
+        videoCall: "Amiko Mentor",
         chargingStation: "충전소",
         event: "이벤트",
         payments: "결제",
@@ -848,7 +848,7 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: "홈",
-      videoCall: "화상채팅",
+      videoCall: "Amiko Mentor",
       community: "커뮤니티",
       chargingStation: "충전소",
       chargingStationShort: "충전소",
@@ -946,7 +946,7 @@ export const translations = {
 
     // 메인 화상채팅 섹션
     main: {
-      meet: "AI 화상 채팅",
+      meet: "한국 전문가 컨설팅",
       meetDescription:
         "한국인 친구와 AI 화상 채팅을 통해 한국 문화를 배워보세요",
       community: "커뮤니티",
@@ -2103,7 +2103,7 @@ export const translations = {
 
     // 푸터
     footer: {
-      bridgeDescription: "한국과 남미를 잇는 다리, AMIKO",
+      bridgeDescription: "한국과 스페인어권을 잇는 글로벌 교류 플랫폼, AMIKO",
       officialSns: "AMIKO 공식 SNS",
       support: "고객지원",
       help: "도움말",
@@ -3843,7 +3843,7 @@ export const translations = {
       navigation: {
         home: "Inicio",
         community: "Comunidad",
-        videoCall: "Videollamada",
+        videoCall: "Amiko Mentor",
         chargingStation: "Estación de Carga",
         event: "Eventos",
         me: "Mi",
@@ -4598,7 +4598,7 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: "Inicio",
-      videoCall: "Videochat",
+      videoCall: "Amiko Mentor",
       community: "Comunidad",
       chargingStation: "Estación de Carga",
       chargingStationShort: "Carga",
@@ -4700,7 +4700,7 @@ export const translations = {
 
     // 메인 화상채팅 섹션
     main: {
-      meet: "AI Video Call",
+      meet: "Consultoría con expertos Coreanos",
       meetDescription: "Conoce a coreanos reales a través de videollamadas",
       community: "Comunidad",
       communityDescription: "",
@@ -5922,7 +5922,7 @@ export const translations = {
 
     // 푸터
     footer: {
-      bridgeDescription: "Puente entre Corea del Sur y América del Sur, AMIKO",
+      bridgeDescription: "Plataforma Global de Intercambio entre Corea del Sur e Hispanohablantes, AMIKO",
       officialSns: "SNS Oficial de AMIKO",
       support: "Soporte al Cliente",
       help: "Ayuda",
