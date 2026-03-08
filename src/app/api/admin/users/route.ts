@@ -1,88 +1,43 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/admin-auth'
+import { supabaseServer } from '@/lib/supabaseServer'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // 서비스 롤 키 권한 문제로 인해 더미 데이터 반환
-    // 실제 운영 환경에서는 서비스 롤 키를 사용해야 합니다
-    
-    console.log('[ADMIN USERS] 더미 데이터 반환 (권한 문제)')
-    
-    const dummyUsers = [
-      {
-        id: 'dummy-user-1',
-        email: 'user1@example.com',
-        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        last_sign_in_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        email_confirmed_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'dummy-user-2',
-        email: 'user2@example.com',
-        created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        last_sign_in_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        email_confirmed_at: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'dummy-user-3',
-        email: 'user3@example.com',
-        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        last_sign_in_at: null,
-        email_confirmed_at: null
-      },
-      {
-        id: 'dummy-user-4',
-        email: 'user4@example.com',
-        created_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-        last_sign_in_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        email_confirmed_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'dummy-user-5',
-        email: 'user5@example.com',
-        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        last_sign_in_at: null,
-        email_confirmed_at: null
-      }
-    ]
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
 
-    return NextResponse.json({
-      success: true,
-      users: dummyUsers,
-      message: '더미 데이터 (서비스 롤 키 권한 필요)'
-    })
-
-    // 아래 코드는 서비스 롤 키가 있을 때 사용
-    /*
-    const { data: users, error } = await supabase.auth.admin.listUsers()
-
-    if (error) {
-      console.error('[ADMIN USERS] 조회 실패:', error)
+    if (!supabaseServer) {
       return NextResponse.json(
-        { success: false, error: '사용자 목록 조회에 실패했습니다.' },
+        { success: false, error: 'Database not configured' },
         { status: 500 }
       )
     }
 
-    // 사용자 데이터 정리
-    const formattedUsers = users.users.map(user => ({
-      id: user.id,
-      email: user.email,
-      created_at: user.created_at,
-      last_sign_in_at: user.last_sign_in_at,
-      email_confirmed_at: user.email_confirmed_at
-    }))
+    // Query users table for real data
+    const { data: users, error } = await supabaseServer
+      .from('users')
+      .select('id, email, full_name, nickname, avatar_url, created_at, last_login_at, is_admin')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error) {
+      console.error('[ADMIN USERS] Query error:', error)
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch users' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      users: formattedUsers,
-      message: '사용자 목록 조회 성공'
+      users: users || [],
     })
-    */
 
   } catch (error) {
-    console.error('사용자 목록 조회 실패:', error)
+    console.error('[ADMIN USERS] Error:', error)
     return NextResponse.json(
-      { success: false, error: '사용자 목록 조회에 실패했습니다.' },
+      { success: false, error: 'Failed to fetch users' },
       { status: 500 }
     )
   }

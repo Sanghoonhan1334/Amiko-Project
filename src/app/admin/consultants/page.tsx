@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ConsultantScheduleEditor from '@/components/admin/ConsultantScheduleEditor'
+import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 
 interface TimeSlot {
   start: string
@@ -67,6 +69,10 @@ const DEFAULT_SCHEDULE: WeeklySchedule = {
 }
 
 export default function AdminConsultantsPage() {
+  const { language } = useLanguage()
+  const { token } = useAuth()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
+
   const [consultants, setConsultants] = useState<Consultant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -89,14 +95,16 @@ export default function AdminConsultantsPage() {
 
   const fetchConsultants = async () => {
     try {
-      const response = await fetch('/api/admin/consultants')
+      const response = await fetch('/api/admin/consultants', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       if (!response.ok) {
-        throw new Error('상담사 목록을 불러올 수 없습니다.')
+        throw new Error(t('상담사 목록을 불러올 수 없습니다.', 'No se pudo cargar la lista de consultores.'))
       }
       const data = await response.json()
       setConsultants(data.consultants || [])
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('알 수 없는 오류가 발생했습니다.', 'Ocurrió un error desconocido.'))
     } finally {
       setLoading(false)
     }
@@ -129,19 +137,19 @@ export default function AdminConsultantsPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(formData)
       })
 
       if (!response.ok) {
-        throw new Error('상담사 저장에 실패했습니다.')
+        throw new Error(t('상담사 저장에 실패했습니다.', 'Error al guardar el consultor.'))
       }
 
       setIsDialogOpen(false)
       resetForm()
       fetchConsultants()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('알 수 없는 오류가 발생했습니다.', 'Ocurrió un error desconocido.'))
     }
   }
 
@@ -162,20 +170,21 @@ export default function AdminConsultantsPage() {
 
   // 상담사 삭제
   const handleDelete = async (id: string) => {
-    if (!confirm('정말로 이 상담사를 삭제하시겠습니까?')) return
+    if (!confirm(t('정말로 이 상담사를 삭제하시겠습니까?', '¿Está seguro de eliminar este consultor?'))) return
     
     try {
       const response = await fetch(`/api/admin/consultants/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
       })
 
       if (!response.ok) {
-        throw new Error('상담사 삭제에 실패했습니다.')
+        throw new Error(t('상담사 삭제에 실패했습니다.', 'Error al eliminar el consultor.'))
       }
 
       fetchConsultants()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('알 수 없는 오류가 발생했습니다.', 'Ocurrió un error desconocido.'))
     }
   }
 
@@ -184,7 +193,7 @@ export default function AdminConsultantsPage() {
     try {
       const response = await fetch(`/api/admin/consultants/${consultant.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ...consultant,
           is_active: !consultant.is_active
@@ -192,12 +201,12 @@ export default function AdminConsultantsPage() {
       })
 
       if (!response.ok) {
-        throw new Error('상담사 상태 변경에 실패했습니다.')
+        throw new Error(t('상담사 상태 변경에 실패했습니다.', 'Error al cambiar el estado del consultor.'))
       }
 
       fetchConsultants()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : t('알 수 없는 오류가 발생했습니다.', 'Ocurrió un error desconocido.'))
     }
   }
 
@@ -213,7 +222,7 @@ export default function AdminConsultantsPage() {
   const getScheduleSummary = (schedule: WeeklySchedule | undefined) => {
     // schedule이 undefined인 경우 기본값 반환
     if (!schedule) {
-      return '일정 미설정'
+      return t('일정 미설정', 'Sin horario')
     }
     
     const workingDays = Object.values(schedule).filter(day => day?.isWorking).length
@@ -224,11 +233,11 @@ export default function AdminConsultantsPage() {
       return sum
     }, 0)
     
-    if (workingDays === 0) return '휴무'
-    if (workingDays === 7) return '매일 근무'
-    if (workingDays === 5 && !schedule.saturday?.isWorking && !schedule.sunday?.isWorking) return '평일 근무'
+    if (workingDays === 0) return t('휴무', 'Descanso')
+    if (workingDays === 7) return t('매일 근무', 'Trabajo diario')
+    if (workingDays === 5 && !schedule.saturday?.isWorking && !schedule.sunday?.isWorking) return t('평일 근무', 'Días hábiles')
     
-    return `${workingDays}일 근무 (${totalSlots}개 시간)`
+    return t(`${workingDays}일 근무 (${totalSlots}개 시간)`, `${workingDays} días de trabajo (${totalSlots} horarios)`)
   }
 
   if (loading) {
@@ -244,8 +253,8 @@ export default function AdminConsultantsPage() {
       {/* 페이지 헤더 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">상담사 관리</h1>
-          <p className="text-gray-600">상담사 정보와 예약 가능 시간을 관리할 수 있습니다.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('상담사 관리', 'Gestión de Consultores')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('상담사 정보와 예약 가능 시간을 관리할 수 있습니다.', 'Gestione la información y horarios disponibles de los consultores.')}</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -253,30 +262,30 @@ export default function AdminConsultantsPage() {
               resetForm()
               setIsDialogOpen(true)
             }}>
-              상담사 추가
+              {t('상담사 추가', 'Agregar Consultor')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingConsultant ? '상담사 수정' : '상담사 추가'}
+                {editingConsultant ? t('상담사 수정', 'Editar Consultor') : t('상담사 추가', 'Agregar Consultor')}
               </DialogTitle>
               <DialogDescription>
-                상담사의 기본 정보와 예약 가능 시간을 설정하세요.
+                {t('상담사의 기본 정보와 예약 가능 시간을 설정하세요.', 'Configure la información básica y horarios disponibles del consultor.')}
               </DialogDescription>
             </DialogHeader>
             
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="basic">기본 정보</TabsTrigger>
-                <TabsTrigger value="schedule">일정 설정</TabsTrigger>
+                <TabsTrigger value="basic">{t('기본 정보', 'Información Básica')}</TabsTrigger>
+                <TabsTrigger value="schedule">{t('일정 설정', 'Configuración de Horario')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic" className="space-y-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">이름 *</Label>
+                      <Label htmlFor="name">{t('이름', 'Nombre')} *</Label>
                       <Input
                         id="name"
                         value={formData.name}
@@ -285,7 +294,7 @@ export default function AdminConsultantsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">이메일 *</Label>
+                      <Label htmlFor="email">{t('이메일', 'Email')} *</Label>
                       <Input
                         id="email"
                         type="email"
@@ -298,16 +307,16 @@ export default function AdminConsultantsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="specialty">전문 분야</Label>
+                      <Label htmlFor="specialty">{t('전문 분야', 'Especialidad')}</Label>
                       <Input
                         id="specialty"
                         value={formData.specialty}
                         onChange={(e) => setFormData(prev => ({ ...prev, specialty: e.target.value }))}
-                        placeholder="예: 웹 개발, UI/UX 디자인"
+                        placeholder={t('예: 웹 개발, UI/UX 디자인', 'Ej: Desarrollo web, Diseño UI/UX')}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="hourly_rate">시간당 요금 (원) *</Label>
+                      <Label htmlFor="hourly_rate">{t('시간당 요금 (원)', 'Tarifa por hora (₩)')} *</Label>
                       <Input
                         id="hourly_rate"
                         type="number"
@@ -319,17 +328,17 @@ export default function AdminConsultantsPage() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="timezone">시간대</Label>
+                    <Label htmlFor="timezone">{t('시간대', 'Zona Horaria')}</Label>
                     <Select value={formData.timezone} onValueChange={(value) => setFormData(prev => ({ ...prev, timezone: value }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Asia/Seoul">한국 (UTC+9)</SelectItem>
-                        <SelectItem value="America/New_York">미국 동부 (UTC-5)</SelectItem>
-                        <SelectItem value="America/Los_Angeles">미국 서부 (UTC-8)</SelectItem>
-                        <SelectItem value="Europe/London">영국 (UTC+0)</SelectItem>
-                        <SelectItem value="Europe/Paris">프랑스 (UTC+1)</SelectItem>
+                        <SelectItem value="Asia/Seoul">{t('한국 (UTC+9)', 'Corea (UTC+9)')}</SelectItem>
+                        <SelectItem value="America/New_York">{t('미국 동부 (UTC-5)', 'EE.UU. Este (UTC-5)')}</SelectItem>
+                        <SelectItem value="America/Los_Angeles">{t('미국 서부 (UTC-8)', 'EE.UU. Oeste (UTC-8)')}</SelectItem>
+                        <SelectItem value="Europe/London">{t('영국 (UTC+0)', 'Reino Unido (UTC+0)')}</SelectItem>
+                        <SelectItem value="Europe/Paris">{t('프랑스 (UTC+1)', 'Francia (UTC+1)')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -341,7 +350,7 @@ export default function AdminConsultantsPage() {
                       checked={formData.is_active}
                       onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
                     />
-                    <Label htmlFor="is_active">활성 상태</Label>
+                    <Label htmlFor="is_active">{t('활성 상태', 'Estado Activo')}</Label>
                   </div>
                 </form>
               </TabsContent>
@@ -357,10 +366,10 @@ export default function AdminConsultantsPage() {
             
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                취소
+                {t('취소', 'Cancelar')}
               </Button>
               <Button onClick={handleSubmit}>
-                {editingConsultant ? '수정' : '추가'}
+                {editingConsultant ? t('저장', 'Guardar') : t('추가', 'Agregar')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -369,55 +378,55 @@ export default function AdminConsultantsPage() {
 
       {/* 에러 메시지 */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">{error}</p>
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* 상담사 목록 */}
       <Card>
         <CardHeader>
-          <CardTitle>상담사 목록</CardTitle>
+          <CardTitle>{t('상담사 목록', 'Lista de Consultores')}</CardTitle>
           <CardDescription>
-            {consultants.length}명의 상담사가 등록되어 있습니다.
+            {t(`${consultants.length}명의 상담사가 등록되어 있습니다.`, `${consultants.length} consultores registrados.`)}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {consultants.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              등록된 상담사가 없습니다.
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              {t('등록된 상담사가 없습니다.', 'No hay consultores registrados.')}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium">이름</th>
-                    <th className="text-left py-3 px-4 font-medium">이메일</th>
-                    <th className="text-left py-3 px-4 font-medium">전문 분야</th>
-                    <th className="text-left py-3 px-4 font-medium">시간당 요금</th>
-                    <th className="text-left py-3 px-4 font-medium">시간대</th>
-                    <th className="text-left py-3 px-4 font-medium">예약 가능 시간</th>
-                    <th className="text-left py-3 px-4 font-medium">상태</th>
-                    <th className="text-left py-3 px-4 font-medium">작업</th>
+                  <tr className="border-b dark:border-gray-700">
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('이름', 'Nombre')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('이메일', 'Email')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('전문 분야', 'Especialidad')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('시간당 요금', 'Tarifa/hora')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('시간대', 'Zona Horaria')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('예약 가능 시간', 'Horario Disponible')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('상태', 'Estado')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">{t('작업', 'Acciones')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {consultants.map((consultant) => (
-                    <tr key={consultant.id} className="border-b hover:bg-gray-50">
+                    <tr key={consultant.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="py-3 px-4">
-                        <div className="font-medium">{consultant.name}</div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{consultant.name}</div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                         {consultant.email}
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                         {consultant.specialty || '-'}
                       </td>
-                      <td className="py-3 px-4 text-sm">
+                      <td className="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">
                         ₩{consultant.hourly_rate.toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
+                      <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                         {consultant.timezone}
                       </td>
                       <td className="py-3 px-4 text-sm">
@@ -426,15 +435,15 @@ export default function AdminConsultantsPage() {
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        <Badge className={consultant.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                          {consultant.is_active ? '활성' : '비활성'}
+                        <Badge className={consultant.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}>
+                          {consultant.is_active ? t('활성', 'Activo') : t('비활성', 'Inactivo')}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                                                          <Link href={`/admin/consultants/${consultant.id}/bookings`}>
                                  <Button variant="outline" size="sm">
-                                   예약 관리
+                                   {t('예약 관리', 'Gestión de Reservas')}
                                  </Button>
                                </Link>
                                <Button
@@ -442,22 +451,22 @@ export default function AdminConsultantsPage() {
                                  size="sm"
                                  onClick={() => handleEdit(consultant)}
                                >
-                                 수정
+                                 {t('수정', 'Editar')}
                                </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleToggleStatus(consultant)}
                           >
-                            {consultant.is_active ? '비활성화' : '활성화'}
+                            {consultant.is_active ? t('비활성화', 'Desactivar') : t('활성화', 'Activar')}
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleDelete(consultant.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                           >
-                            삭제
+                            {t('삭제', 'Eliminar')}
                           </Button>
                         </div>
                       </td>

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // 화상 채팅 파트너 목록 조회
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     console.log('[PARTNERS API] 조회 시작')
     const supabase = createAdminClient()
     console.log('[PARTNERS API] Supabase 클라이언트 생성 완료')
@@ -37,6 +41,9 @@ export async function GET() {
 // 화상 채팅 파트너 추가
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     const supabase = createAdminClient()
     const body = await request.json()
 

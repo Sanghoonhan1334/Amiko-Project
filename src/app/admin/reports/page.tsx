@@ -32,11 +32,11 @@ type Report = {
   } | null
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: '처리 대기',
-  reviewing: '검토 중',
-  resolved: '조치 완료',
-  dismissed: '기각됨'
+const STATUS_LABELS: Record<string, { ko: string; es: string }> = {
+  pending: { ko: '처리 대기', es: 'Pendiente' },
+  reviewing: { ko: '검토 중', es: 'En Revisión' },
+  resolved: { ko: '조치 완료', es: 'Resuelto' },
+  dismissed: { ko: '기각됨', es: 'Rechazado' }
 }
 
 const REASON_LABELS: Record<string, { ko: string; es: string }> = {
@@ -49,6 +49,7 @@ const REASON_LABELS: Record<string, { ko: string; es: string }> = {
 export default function AdminReportsPage() {
   const { token } = useAuth()
   const { language } = useLanguage()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,7 +59,7 @@ export default function AdminReportsPage() {
 
   useEffect(() => {
     if (!token) {
-      setError('관리자 권한이 필요합니다.')
+      setError(t('관리자 권한이 필요합니다.', 'Se requieren permisos de administrador.'))
       setLoading(false)
       return
     }
@@ -76,14 +77,14 @@ export default function AdminReportsPage() {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}))
-          throw new Error(data.error || '신고 목록을 불러오지 못했습니다.')
+          throw new Error(data.error || t('신고 목록을 불러오지 못했습니다.', 'No se pudo cargar la lista de reportes.'))
         }
 
         const data = await response.json()
         setReports(data.reports || [])
       } catch (err) {
         console.error('[AdminReportsPage] fetch error:', err)
-        setError('신고 목록을 불러오는 중 오류가 발생했습니다.')
+        setError(t('신고 목록을 불러오는 중 오류가 발생했습니다.', 'No se pudo cargar la lista de reportes.'))
       } finally {
         setLoading(false)
       }
@@ -112,7 +113,7 @@ export default function AdminReportsPage() {
 
   const handleUpdateStatus = async (reportId: string, nextStatus: 'resolved' | 'dismissed') => {
     if (!token) {
-      setError('관리자 권한이 필요합니다.')
+      setError(t('관리자 권한이 필요합니다.', 'Se requieren permisos de administrador.'))
       return
     }
 
@@ -134,7 +135,7 @@ export default function AdminReportsPage() {
       const result = await response.json()
 
       if (!response.ok || result.error) {
-        throw new Error(result.error || '상태 업데이트에 실패했습니다.')
+        throw new Error(result.error || t('상태 업데이트에 실패했습니다.', 'Error al actualizar el estado.'))
       }
 
       setReports((prev) =>
@@ -144,7 +145,7 @@ export default function AdminReportsPage() {
       )
     } catch (err) {
       console.error('[AdminReportsPage] update error:', err)
-      setError('상태를 변경하는 중 문제가 발생했습니다.')
+      setError(t('상태를 변경하는 중 문제가 발생했습니다.', 'Error al actualizar el estado.'))
     } finally {
       setUpdatingReportId(null)
     }
@@ -157,8 +158,8 @@ export default function AdminReportsPage() {
 
   if (!token) {
     return (
-      <div className="py-16 text-center text-gray-600">
-        <p>관리자 권한이 있는 계정으로 로그인해주세요.</p>
+      <div className="py-16 text-center text-gray-600 dark:text-gray-400">
+        <p>{t('관리자 권한이 있는 계정으로 로그인해주세요.', 'Inicie sesión con una cuenta con permisos de administrador.')}</p>
       </div>
     )
   }
@@ -167,12 +168,12 @@ export default function AdminReportsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">신고 관리</h1>
-          <p className="text-gray-600 text-sm">사용자 간 신고를 검토하고 조치할 수 있습니다.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('신고 관리', 'Gestión de Reportes')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">{t('사용자 간 신고를 검토하고 조치할 수 있습니다.', 'Revise y tome acción sobre los reportes entre usuarios.')}</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
           <Input
-            placeholder="신고 ID, 사용자 이름으로 검색..."
+            placeholder={t('신고 ID, 사용자 이름으로 검색...', 'Buscar por ID de reporte, nombre de usuario...')}
             className="w-full md:w-64"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
@@ -184,7 +185,7 @@ export default function AdminReportsPage() {
                 variant={statusFilter === status ? 'default' : 'outline'}
                 onClick={() => setStatusFilter(status)}
               >
-                {STATUS_LABELS[status]}
+                {STATUS_LABELS[status]?.[language] || status}
               </Button>
             ))}
           </div>
@@ -192,57 +193,56 @@ export default function AdminReportsPage() {
       </div>
 
       {error && (
-        <div className="p-4 border border-red-200 bg-red-50 rounded-lg text-sm text-red-600">{error}</div>
+        <div className="p-4 border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 rounded-lg text-sm text-red-600 dark:text-red-400">{error}</div>
       )}
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold">
-            {STATUS_LABELS[statusFilter]} ({filteredReports.length})
+            {STATUS_LABELS[statusFilter]?.[language] || statusFilter} ({filteredReports.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="h-10 w-10 border-2 border-b-transparent border-gray-400 rounded-full animate-spin" />
+              <div className="h-10 w-10 border-2 border-b-transparent border-gray-400 dark:border-gray-500 rounded-full animate-spin" />
             </div>
           ) : filteredReports.length === 0 ? (
-            <p className="text-center text-gray-500 text-sm py-6">해당 상태의 신고가 없습니다.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 text-sm py-6">{t('해당 상태의 신고가 없습니다.', 'No hay reportes con este estado.')}</p>
           ) : (
             filteredReports.map((report) => (
               <div
                 key={report.id}
-                className="rounded-lg border border-gray-200 p-4 bg-white shadow-sm hover:shadow transition-shadow"
+                className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-sm hover:shadow transition-shadow"
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="space-y-1">
                     <div className="flex gap-2 items-center">
                       <Badge variant="outline" className="border-blue-300 text-blue-600">
-                        {reasonOptions.find((item) => item.key === report.reason)?.label ||
-                          REASON_LABELS[report.reason || 'other']?.[language === 'ko' ? 'ko' : 'es'] ||
-                          '신고'}
+                        {REASON_LABELS[report.reason || 'other']?.[language === 'ko' ? 'ko' : 'es'] ||
+                          t('신고', 'Reporte')}
                       </Badge>
-                      <Badge variant="outline">{STATUS_LABELS[report.status] || report.status}</Badge>
+                      <Badge variant="outline">{STATUS_LABELS[report.status]?.[language] || report.status}</Badge>
                     </div>
-                    <p className="text-sm text-gray-700">
-                      신고자:{' '}
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {t('신고자:', 'Reportado por:')}{' '}
                       <span className="font-semibold">
-                        {report.reporter?.name || report.reporter_id || '익명'}
+                        {report.reporter?.name || report.reporter_id || t('익명', 'Anónimo')}
                       </span>
                     </p>
-                    <p className="text-sm text-gray-700">
-                      신고 대상:{' '}
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {t('신고 대상:', 'Reportado:')}{' '}
                       <span className="font-semibold">
-                        {report.reportedUser?.name || report.reported_user_id || '알 수 없음'}
+                        {report.reportedUser?.name || report.reported_user_id || t('알 수 없음', 'Desconocido')}
                       </span>
                     </p>
                     {report.details && (
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap mt-2">{report.details}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap mt-2">{report.details}</p>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 text-right">
-                    <p>신고일: {formatDateTime(report.created_at)}</p>
-                    {report.reviewed_at && <p>처리일: {formatDateTime(report.reviewed_at)}</p>}
+                  <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                    <p>{t('신고일:', 'Fecha de reporte:')} {formatDateTime(report.created_at)}</p>
+                    {report.reviewed_at && <p>{t('처리일:', 'Fecha de resolución:')} {formatDateTime(report.reviewed_at)}</p>}
                   </div>
                 </div>
 
@@ -255,8 +255,8 @@ export default function AdminReportsPage() {
                       onClick={() => handleUpdateStatus(report.id, 'dismissed')}
                     >
                       {updatingReportId === report.id && statusFilter === 'dismissed'
-                        ? '처리 중...'
-                        : '기각'}
+                        ? t('처리 중...', 'Procesando...')
+                        : t('기각', 'Rechazar')}
                     </Button>
                   )}
                   {report.status !== 'resolved' && (
@@ -268,8 +268,8 @@ export default function AdminReportsPage() {
                       onClick={() => handleUpdateStatus(report.id, 'resolved')}
                     >
                       {updatingReportId === report.id && statusFilter === 'resolved'
-                        ? '처리 중...'
-                        : '조치 완료'}
+                        ? t('처리 중...', 'Procesando...')
+                        : t('조치 완료', 'Resolver')}
                     </Button>
                   )}
                 </div>

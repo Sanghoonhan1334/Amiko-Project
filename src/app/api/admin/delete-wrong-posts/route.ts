@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     console.log('[ADMIN] 잘못된 위치의 게시물들 삭제 시작')
     
     if (!supabaseServer) {

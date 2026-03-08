@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 
 interface UserRanking {
   userId: string
@@ -15,6 +17,9 @@ interface UserRanking {
 }
 
 export default function PointsRanking() {
+  const { language } = useLanguage()
+  const { token } = useAuth()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
   const [loading, setLoading] = useState(true)
   const [totalRanking, setTotalRanking] = useState<UserRanking[]>([])
   const [monthlyRanking, setMonthlyRanking] = useState<UserRanking[]>([])
@@ -27,8 +32,12 @@ export default function PointsRanking() {
     setLoading(true)
     try {
       const [totalRes, monthlyRes] = await Promise.all([
-        fetch('/api/admin/points/total-ranking'),
-        fetch('/api/admin/points/monthly-ranking')
+        fetch('/api/admin/points/total-ranking', {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch('/api/admin/points/monthly-ranking', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ])
       
       const totalData = await totalRes.json()
@@ -54,21 +63,21 @@ export default function PointsRanking() {
   return (
     <Tabs defaultValue="total" className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-4">
-        <TabsTrigger value="total">누적 점수</TabsTrigger>
-        <TabsTrigger value="monthly">월별 점수</TabsTrigger>
+        <TabsTrigger value="total">{t('누적 점수', 'Acumulado')}</TabsTrigger>
+        <TabsTrigger value="monthly">{t('월별 점수', 'Mensual')}</TabsTrigger>
       </TabsList>
       
       <TabsContent value="total" className="space-y-2">
         {totalRanking.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">데이터가 없습니다.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('데이터가 없습니다.', 'No hay datos.')}</p>
         ) : (
           totalRanking.slice(0, 10).map((user) => (
             <div
               key={user.userId}
               className={`p-4 rounded-lg border ${
                 user.rank <= 3
-                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
-                  : 'bg-white border-gray-200'
+                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 dark:from-yellow-900/20 dark:to-orange-900/20 dark:border-yellow-800'
+                  : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -82,8 +91,8 @@ export default function PointsRanking() {
                     {user.rank}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{user.userName}</div>
-                    <div className="text-xs text-gray-600">{user.userEmail}</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{user.userName}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{user.userEmail}</div>
                   </div>
                 </div>
                 <Badge variant="outline">
@@ -97,15 +106,15 @@ export default function PointsRanking() {
       
       <TabsContent value="monthly" className="space-y-2">
         {monthlyRanking.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">데이터가 없습니다.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('데이터가 없습니다.', 'No hay datos.')}</p>
         ) : (
           monthlyRanking.slice(0, 10).map((user) => (
             <div
               key={user.userId}
               className={`p-4 rounded-lg border ${
                 user.rank <= 3
-                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'
-                  : 'bg-white border-gray-200'
+                  ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 dark:from-blue-900/20 dark:to-purple-900/20 dark:border-blue-800'
+                  : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -119,11 +128,11 @@ export default function PointsRanking() {
                     {user.rank}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{user.userName}</div>
-                    <div className="text-xs text-gray-600">{user.userEmail}</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{user.userName}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{user.userEmail}</div>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-blue-50">
+                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20">
                   {user.monthlyPoints.toLocaleString()} pts
                 </Badge>
               </div>

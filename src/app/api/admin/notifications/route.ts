@@ -1,37 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from '@/lib/supabase/server';
 import { adminNotificationService } from '@/lib/admin-notification-service';
+import { requireAdmin } from '@/lib/admin-auth';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+    if (!auth.authenticated) return auth.response;
+
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const userId = auth.user.id;
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      );
-    }
-
-    // 사용자 권한 확인
-    const supabase = createClient();
-    const { data: userRole, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .in('role', ['admin', 'manager'])
-      .single();
-
-    if (roleError || !userRole) {
-      return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 403 }
-      );
-    }
 
     // 알림 목록 조회
     const notifications = await adminNotificationService.getNotifications(
@@ -70,32 +51,13 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { action, notificationId, userId, notificationTypes } = await req.json();
+    const auth = await requireAdmin(req);
+    if (!auth.authenticated) return auth.response;
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      );
-    }
-
-    // 사용자 권한 확인
-    const supabase = createClient();
-    const { data: userRole, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .in('role', ['admin', 'manager'])
-      .single();
-
-    if (roleError || !userRole) {
-      return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 403 }
-      );
-    }
+    const { action, notificationId, notificationTypes } = await req.json();
+    const userId = auth.user.id;
 
     let result: boolean | number = false;
 

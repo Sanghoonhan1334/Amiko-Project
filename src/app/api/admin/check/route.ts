@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -84,6 +85,9 @@ export async function GET(request: NextRequest) {
 // 운영진 추가 (서비스 계정에서만 사용)
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     const body = await request.json()
     const { user_id, email, role = 'admin', permissions = {} } = body
 
@@ -134,6 +138,9 @@ export async function POST(request: NextRequest) {
 // 운영진 권한 수정
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     const body = await request.json()
     const { admin_id, role, permissions, is_active } = body
 

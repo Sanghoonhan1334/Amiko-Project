@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 
 interface AdminNotification {
@@ -22,13 +24,16 @@ interface AdminNotification {
 }
 
 export default function AdminNotificationsPage() {
+  const { language } = useLanguage();
+  const { token } = useAuth();
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es;
+
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const [userId, setUserId] = useState<string>(''); // 실제로는 인증에서 가져와야 함
+  const [userId, setUserId] = useState<string>('');
 
-  // 알림 목록 조회
   const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
     if (!userId) return;
 
@@ -36,7 +41,7 @@ export default function AdminNotificationsPage() {
       setLoading(true);
       const response = await fetch(
         `/api/admin/notifications?userId=${userId}&unreadOnly=${unreadOnly}&limit=100`,
-        { method: 'GET' }
+        { method: 'GET', headers: { Authorization: `Bearer ${token}` } }
       );
 
       const result = await response.json();
@@ -45,23 +50,22 @@ export default function AdminNotificationsPage() {
         setNotifications(result.data.notifications);
         setUnreadCount(result.data.unreadCount);
       } else {
-        setError(result.error || '알림 조회에 실패했습니다.');
+        setError(result.error || t('알림 조회에 실패했습니다.', 'Error al cargar notificaciones.'));
       }
     } catch {
-      setError('알림을 가져오는 중 오류가 발생했습니다.')
+      setError(t('알림을 가져오는 중 오류가 발생했습니다.', 'Error al obtener notificaciones.'));
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
-  // 알림 읽음 처리
   const markAsRead = async (notificationId: string) => {
     if (!userId) return;
 
     try {
       const response = await fetch('/api/admin/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           action: 'mark_read',
           notificationId,
@@ -70,7 +74,6 @@ export default function AdminNotificationsPage() {
       });
 
       if (response.ok) {
-        // 로컬 상태 업데이트
         setNotifications(prev => 
           prev.map(notif => 
             notif.id === notificationId 
@@ -81,18 +84,17 @@ export default function AdminNotificationsPage() {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {
-      console.error('알림 읽음 처리 실패:', err);
+      console.error('Mark as read failed:', err);
     }
   };
 
-  // 모든 알림 읽음 처리
   const markAllAsRead = async () => {
     if (!userId) return;
 
     try {
       const response = await fetch('/api/admin/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           action: 'mark_all_read',
           userId
@@ -100,18 +102,16 @@ export default function AdminNotificationsPage() {
       });
 
       if (response.ok) {
-        // 로컬 상태 업데이트
         setNotifications(prev => 
           prev.map(notif => ({ ...notif, is_read: true }))
         );
         setUnreadCount(0);
       }
     } catch (err) {
-      console.error('모든 알림 읽음 처리 실패:', err);
+      console.error('Mark all as read failed:', err);
     }
   };
 
-  // 우선순위별 색상
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-500 text-white';
@@ -122,7 +122,6 @@ export default function AdminNotificationsPage() {
     }
   };
 
-  // 타입별 아이콘
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'new_booking': return '🎉';
@@ -134,17 +133,16 @@ export default function AdminNotificationsPage() {
     }
   };
 
-  // 날짜 포맷팅
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-    if (diffInHours < 1) return '방금 전';
-    if (diffInHours < 24) return `${diffInHours}시간 전`;
-    if (diffInHours < 48) return '어제';
+    if (diffInHours < 1) return t('방금 전', 'Justo ahora');
+    if (diffInHours < 24) return `${diffInHours}${t('시간 전', ' horas atrás')}`;
+    if (diffInHours < 48) return t('어제', 'Ayer');
     
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString(language === 'ko' ? 'ko-KR' : 'es-ES', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -153,7 +151,6 @@ export default function AdminNotificationsPage() {
   };
 
   useEffect(() => {
-    // 임시로 하드코딩된 사용자 ID (실제로는 인증에서 가져와야 함)
     setUserId('temp-admin-user-id');
   }, []);
 
@@ -165,29 +162,29 @@ export default function AdminNotificationsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">로딩 중...</div>
+      <div className="container mx-auto p-6 dark:bg-gray-900">
+        <div className="text-center dark:text-gray-200">{t('로딩 중...', 'Cargando...')}</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-6 max-w-6xl dark:bg-gray-900">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">🔔 관리자 알림</h1>
-            <p className="text-gray-600 mt-2">
-              시스템 알림과 중요한 이벤트를 확인하세요.
+            <h1 className="text-3xl font-bold dark:text-white">🔔 {t('관리자 알림', 'Notificaciones del Administrador')}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              {t('시스템 알림과 중요한 이벤트를 확인하세요.', 'Revise las notificaciones del sistema y eventos importantes.')}
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              읽지 않음: {unreadCount}건
+            <Badge variant="secondary" className="text-lg px-4 py-2 dark:bg-gray-700 dark:text-gray-200">
+              {t(`읽지 않음: ${unreadCount}건`, `${unreadCount} sin leer`)}
             </Badge>
             {unreadCount > 0 && (
-              <Button onClick={markAllAsRead} variant="outline">
-                모두 읽음 처리
+              <Button onClick={markAllAsRead} variant="outline" className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                {t('모두 읽음 처리', 'Marcar todo como leído')}
               </Button>
             )}
           </div>
@@ -195,38 +192,40 @@ export default function AdminNotificationsPage() {
       </div>
 
       {error && (
-        <Card className="mb-6 border-red-200 bg-red-50">
+        <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/30 dark:border-red-800">
           <CardHeader>
-            <CardTitle className="text-red-600">❌ 오류 발생</CardTitle>
+            <CardTitle className="text-red-600 dark:text-red-400">❌ {t('오류 발생', 'Error')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700 dark:text-red-300">{error}</p>
           </CardContent>
         </Card>
       )}
 
-      {/* 필터 버튼 */}
+      {/* Filter buttons */}
       <div className="mb-6 flex gap-2">
         <Button 
           onClick={() => fetchNotifications(false)} 
           variant="outline"
+          className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
         >
-          전체 알림
+          {t('전체 알림', 'Todas las Notificaciones')}
         </Button>
         <Button 
           onClick={() => fetchNotifications(true)} 
           variant="outline"
+          className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
         >
-          읽지 않은 알림
+          {t('읽지 않은 알림', 'No Leídas')}
         </Button>
       </div>
 
-      {/* 알림 목록 */}
+      {/* Notification list */}
       <div className="space-y-4">
         {notifications.length === 0 ? (
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardContent className="text-center py-12">
-              <p className="text-gray-500">알림이 없습니다.</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('알림이 없습니다.', 'No hay notificaciones.')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -235,27 +234,27 @@ export default function AdminNotificationsPage() {
               key={notification.id} 
               className={`transition-all duration-200 ${
                 notification.is_read 
-                  ? 'opacity-75 bg-gray-50' 
-                  : 'border-l-4 border-l-blue-500 bg-white'
-              }`}
+                  ? 'opacity-75 bg-gray-50 dark:bg-gray-800/50' 
+                  : 'border-l-4 border-l-blue-500 bg-white dark:bg-gray-800'
+              } dark:border-gray-700`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getTypeIcon(notification.type)}</span>
                     <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
+                      <CardTitle className="text-lg flex items-center gap-2 dark:text-white">
                         {notification.title}
                         <Badge className={getPriorityColor(notification.priority)}>
                           {notification.priority.toUpperCase()}
                         </Badge>
                         {!notification.is_read && (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                            새로움
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {t('새로움', 'Nuevo')}
                           </Badge>
                         )}
                       </CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-1 dark:text-gray-400">
                         {formatDate(notification.created_at)}
                       </CardDescription>
                     </div>
@@ -265,29 +264,30 @@ export default function AdminNotificationsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => markAsRead(notification.id)}
+                      className="dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                     >
-                      읽음 처리
+                      {t('읽음 처리', 'Marcar como leído')}
                     </Button>
                   )}
                 </div>
               </CardHeader>
               
               <CardContent>
-                <p className="text-gray-700 mb-3">{notification.message}</p>
+                <p className="text-gray-700 dark:text-gray-300 mb-3">{notification.message}</p>
                 
                 {notification.data && (
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <h4 className="font-medium text-sm text-gray-600 mb-2">📋 상세 정보</h4>
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
+                    <h4 className="font-medium text-sm text-gray-600 dark:text-gray-300 mb-2">📋 {t('상세 정보', 'Detalles')}</h4>
+                    <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap overflow-x-auto">
                       {JSON.stringify(notification.data, null, 2)}
                     </pre>
                   </div>
                 )}
                 
-                <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-                  <span>대상 역할: {notification.target_roles.join(', ')}</span>
+                <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                  <span>{t('대상 역할', 'Rol objetivo')}: {notification.target_roles.join(', ')}</span>
                   {notification.read_by && (
-                    <span>읽음: {notification.read_at}</span>
+                    <span>{t('읽음', 'Leído')}: {notification.read_at}</span>
                   )}
                 </div>
               </CardContent>
@@ -296,32 +296,32 @@ export default function AdminNotificationsPage() {
         )}
       </div>
 
-      {/* 알림 통계 */}
-      <Card className="mt-8">
+      {/* Notification statistics */}
+      <Card className="mt-8 dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
-          <CardTitle>📊 알림 통계</CardTitle>
+          <CardTitle className="dark:text-white">📊 {t('알림 통계', 'Estadísticas de Notificaciones')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{notifications.length}</div>
-              <div className="text-sm text-gray-600">전체 알림</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{notifications.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('전체 알림', 'Total')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{unreadCount}</div>
-              <div className="text-sm text-gray-600">읽지 않음</div>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{unreadCount}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('읽지 않음', 'Sin leer')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {notifications.filter(n => n.priority === 'high' || n.priority === 'urgent').length}
               </div>
-              <div className="text-sm text-gray-600">중요 알림</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('중요 알림', 'Importantes')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {notifications.filter(n => n.type === 'new_booking').length}
               </div>
-              <div className="text-sm text-gray-600">새 예약</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('새 예약', 'Nuevas Reservas')}</div>
             </div>
           </div>
         </CardContent>
