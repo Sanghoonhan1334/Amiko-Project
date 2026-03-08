@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         .from('education_attendance')
         .select('*', { count: 'exact', head: true })
         .eq('student_id', student_id)
-        .eq('status', 'completed')
+        .in('status', ['attended', 'completed', 'late'])
         .in('session_id',
           (await supabase.from('education_sessions').select('id').eq('course_id', session.course_id)).data?.map(s => s.id) || []
         )

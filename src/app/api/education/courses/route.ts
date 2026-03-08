@@ -157,7 +157,9 @@ export async function POST(request: NextRequest) {
         description: s.description || null,
         scheduled_at: s.scheduled_at,
         duration_minutes: class_duration_minutes || 60,
-        agora_channel: `edu_${course.id}_${idx + 1}`
+        // Naming format: edu_{course_id_first8}_{session_number}
+        // Must match the fallback in access-token and access-status routes
+        agora_channel: `edu_${course.id.slice(0, 8)}_${s.session_number || idx + 1}`
       }))
 
       const { error: sessionsError } = await supabase

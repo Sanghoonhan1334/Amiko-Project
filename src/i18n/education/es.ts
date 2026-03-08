@@ -76,12 +76,15 @@ export const educationEs = {
       status: {
         draft: 'Borrador',
         pending_review: 'En revisión',
+        submitted_for_review: 'Enviado a revisión',
+        changes_requested: 'Cambios solicitados',
         approved: 'Aprobado',
         rejected: 'Rechazado',
         published: 'Publicado',
         in_progress: 'En progreso',
         completed: 'Completado',
-        cancelled: 'Cancelado'
+        cancelled: 'Cancelado',
+        archived: 'Archivado'
       }
     },
 
@@ -90,7 +93,9 @@ export const educationEs = {
       title: 'Clase',
       classNumber: 'Clase {number}',
       scheduled: 'Programada',
+      ready: 'Lista',
       live: 'En vivo',
+      ending: 'Finalizando',
       completed: 'Completada',
       cancelled: 'Cancelada',
       rescheduled: 'Reprogramada',
@@ -103,7 +108,7 @@ export const educationEs = {
       recording: 'Grabación',
       viewRecording: 'Ver grabación',
       noRecording: 'Sin grabación',
-      minutesBefore: '{minutes} min antes del inicio',
+      minutesBefore: 'Acceso en {minutes} min',
       classStartsSoon: 'La clase comienza pronto',
       classInProgress: 'Clase en progreso'
     },
@@ -207,9 +212,14 @@ export const educationEs = {
 
     // Attendance
     attendance: {
-      completed: 'Completada',
       pending: 'Pendiente',
-      absent: 'Ausente'
+      not_joined: 'No se conectó',
+      joined: 'Conectado',
+      attended: 'Asistió',
+      late: 'Tardanza',
+      left_early: 'Salió antes',
+      absent: 'Ausente',
+      completed: 'Completada'
     },
 
     // Materials
@@ -242,7 +252,10 @@ export const educationEs = {
       classEnded: 'La clase ha terminado',
       connecting: 'Conectando...',
       connected: 'Conectado',
-      disconnected: 'Desconectado'
+      disconnected: 'Desconectado',
+      closingIn10min: 'La clase termina en 10 minutos',
+      closingIn5min: 'La clase termina en 5 minutos',
+      closingIn1min: '¡La clase termina en 1 minuto!'
     },
 
     // Calendar

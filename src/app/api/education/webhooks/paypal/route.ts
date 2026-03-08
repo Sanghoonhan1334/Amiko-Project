@@ -133,7 +133,7 @@ async function handleCaptureDenied(resource: Record<string, unknown>) {
 
   const query = supabase
     .from('education_enrollments')
-    .update({ payment_status: 'failed', enrollment_status: 'payment_failed' })
+    .update({ payment_status: 'failed', enrollment_status: 'cancelled' })
 
   if (orderId) {
     await query.eq('paypal_order_id', orderId)

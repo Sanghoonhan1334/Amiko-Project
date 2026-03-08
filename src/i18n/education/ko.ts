@@ -76,12 +76,15 @@ export const educationKo = {
       status: {
         draft: '초안',
         pending_review: '검토 대기',
+        submitted_for_review: '검토 요청 제출',
+        changes_requested: '수정 요청',
         approved: '승인됨',
         rejected: '거절됨',
         published: '게시됨',
         in_progress: '진행 중',
         completed: '완료',
-        cancelled: '취소됨'
+        cancelled: '취소됨',
+        archived: '보관됨'
       }
     },
 
@@ -90,7 +93,9 @@ export const educationKo = {
       title: '수업',
       classNumber: '수업 {number}',
       scheduled: '예정',
+      ready: '준비 완료',
       live: '실시간',
+      ending: '종료 중',
       completed: '완료',
       cancelled: '취소',
       rescheduled: '일정 변경',
@@ -103,7 +108,7 @@ export const educationKo = {
       recording: '녹화',
       viewRecording: '녹화 보기',
       noRecording: '녹화 없음',
-      minutesBefore: '시작 {minutes}분 전',
+      minutesBefore: '액세스 {minutes}분 전',
       classStartsSoon: '곧 수업이 시작됩니다',
       classInProgress: '수업 진행 중'
     },
@@ -207,9 +212,14 @@ export const educationKo = {
 
     // Attendance
     attendance: {
-      completed: '출석',
       pending: '미정',
-      absent: '결석'
+      not_joined: '미참여',
+      joined: '접속됨',
+      attended: '출석',
+      late: '지각',
+      left_early: '조기 퇴장',
+      absent: '결석',
+      completed: '도달'
     },
 
     // Materials
@@ -242,7 +252,10 @@ export const educationKo = {
       classEnded: '수업이 종료되었습니다',
       connecting: '연결 중...',
       connected: '연결됨',
-      disconnected: '연결 끊김'
+      disconnected: '연결 끊김',
+      closingIn10min: '수업이 10분 후 종료됩니다',
+      closingIn5min: '수업이 5분 후 종료됩니다',
+      closingIn1min: '수업이 1분 후 종료됩니다!'
     },
 
     // Calendar

@@ -82,11 +82,14 @@ export async function POST(
     }
 
     // Guardar fecha anterior y actualizar
+    // Status goes back to 'scheduled' so the session remains accessible at the new time.
+    // The rescheduled_to field preserves audit trail, and the status history trigger
+    // will log the intermediate state change.
     const previousScheduledAt = session.scheduled_at
     const { data: updated, error: updateError } = await supabase
       .from('education_sessions')
       .update({
-        status: 'rescheduled',
+        status: 'scheduled',
         rescheduled_to: new_scheduled_at,
         scheduled_at: new_scheduled_at,
         timezone_origin: timezone || null

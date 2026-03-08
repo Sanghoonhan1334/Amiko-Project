@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth } from '@/lib/education-auth'
+import { RtcTokenBuilder, RtcRole } from 'agora-token'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,7 +28,7 @@ export async function POST(
       .from('education_sessions')
       .select(`
         id, session_number, status, scheduled_at, duration_minutes, agora_channel,
-        course_id,
+        agora_uid_instructor, course_id,
         course:education_courses(
           id, status, allow_recording,
           instructor:instructor_profiles(user_id)
@@ -91,31 +92,58 @@ export async function POST(
     }
 
     // Generar UID numérico único para Agora basado en user_id (determinístico)
-    const uid = Math.abs(
+    // Compute a deterministic UID from user_id (stable across reconnects)
+    const computedUid = Math.abs(
       user_id.split('-').reduce((acc: number, part: string) => acc ^ parseInt(part, 16), 0)
     ) % 100000 || Math.floor(Math.random() * 100000)
 
+    // For instructor: use stored UID if available, otherwise store the computed one
+    const storedInstructorUid = (session as { agora_uid_instructor?: number | null }).agora_uid_instructor
+    let uid = computedUid
+
+    if (isInstructor) {
+      if (storedInstructorUid) {
+        uid = storedInstructorUid
+      } else {
+        // Persist deterministic UID for future reconnects (non-critical, swallow errors)
+        await supabase
+          .from('education_sessions')
+          .update({ agora_uid_instructor: computedUid })
+          .eq('id', id)
+          .is('agora_uid_instructor', null)
+      }
+    }
+
     const channelName = session.agora_channel || `edu_${session.course_id.slice(0, 8)}_${session.session_number}`
 
-    // Solicitar token al endpoint Agora existente
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const tokenResponse = await fetch(`${appUrl}/api/agora/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channelName, uid })
-    })
+    // Generar token Agora directamente (no HTTP interno — evita problemas de auth)
+    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || process.env.AGORA_APP_ID
+    const appCertificate = process.env.AGORA_APP_CERTIFICATE
 
-    const tokenData = await tokenResponse.json()
+    if (!appId || !appCertificate) {
+      return NextResponse.json({ error: 'Agora credentials not configured' }, { status: 500 })
+    }
 
-    // Duración del token: hasta que termine la clase + 10 min de gracia
+    // Token expira al final de la clase + 10 min de gracia
     const expiresAt = new Date(windowClosesAt.getTime() + 10 * 60 * 1000)
+    const privilegeExpiredTs = Math.floor(expiresAt.getTime() / 1000)
+
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      appId,
+      appCertificate,
+      channelName,
+      uid,
+      RtcRole.PUBLISHER,
+      privilegeExpiredTs,
+      0
+    )
 
     return NextResponse.json({
-      app_id: process.env.NEXT_PUBLIC_AGORA_APP_ID,
+      app_id: appId,
       channel: channelName,
       uid,
-      token: tokenData.token,
-      role: isInstructor ? 'publisher' : 'publisher',
+      token,
+      role: 'publisher',
       is_instructor: isInstructor,
       allow_recording: (session.course as { allow_recording?: boolean } | null)?.allow_recording || false,
       expires_at: expiresAt.toISOString(),
