@@ -273,7 +273,8 @@ function HeaderContent() {
     pathname.startsWith("/main") ||
     pathname.startsWith("/lounge") ||
     pathname.startsWith("/community") ||
-    pathname.startsWith("/education");
+    pathname.startsWith("/education") ||
+    pathname.startsWith("/admin");
 
   // pathname 변경 시 activeNavItem 업데이트
   useEffect(() => {
@@ -1159,19 +1160,7 @@ function HeaderContent() {
                   </div>
 
                   {/* 하단: 인증 상태 표시 */}
-                  {isAdmin ? (
-                    <button
-                      onClick={() => router.push("/admin")}
-                      className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors cursor-pointer"
-                    >
-                      <span className="text-purple-600 dark:text-purple-400 text-sm">
-                        👑
-                      </span>
-                      <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
-                        {language === "ko" ? "관리자" : "Admin"}
-                      </span>
-                    </button>
-                  ) : verificationStatus === "verified" ? (
+                  {verificationStatus === "verified" ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <span className="text-green-600 dark:text-green-400 text-sm">
                         ✅

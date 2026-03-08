@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   LayoutDashboard,
@@ -24,7 +24,6 @@ import {
   Settings,
   Menu,
   X,
-  ArrowLeft,
   ChevronDown,
   ChevronRight,
   UserCheck,
@@ -204,7 +203,6 @@ const navSections: NavSection[] = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { language } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
@@ -241,20 +239,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Close button - mobile only */}
         <button
           onClick={() => setSidebarOpen(false)}
-          className="lg:hidden p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="md:hidden p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>
-
-      {/* Back to app */}
-      <button
-        onClick={() => router.push('/main?tab=home')}
-        className="flex items-center gap-2 mx-3 mt-3 mb-1 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        {lang === 'ko' ? '앱으로 돌아가기' : 'Volver a la app'}
-      </button>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
@@ -319,58 +308,56 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen body-gradient bg-white dark:bg-transparent pb-20 md:pb-0">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24 py-0 sm:py-2 md:py-6 relative z-0">
+        {/* Top padding to clear fixed header */}
+        <div className="pt-16 md:pt-28">
 
-      {/* Sidebar - mobile (overlay) */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <SidebarContent />
-      </div>
-
-      {/* Sidebar - desktop (static) */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
-          <SidebarContent />
-        </div>
-      </div>
-
-      {/* Main content area */}
-      <div className="lg:pl-64">
-        {/* Top bar - mobile */}
-        <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 lg:hidden">
-          <div className="flex items-center justify-between px-4 h-14">
+          {/* Mobile: admin menu toggle button */}
+          <div className="md:hidden mb-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="flex items-center gap-2 px-4 py-2.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl text-sm text-purple-700 dark:text-purple-300 font-medium w-full hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
             >
-              <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-            </button>
-            <h1 className="text-sm font-semibold text-gray-900 dark:text-white">
-              👑 {lang === 'ko' ? '관리자' : 'Administración'}
-            </h1>
-            <button
-              onClick={() => router.push('/main?tab=home')}
-              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <Menu className="w-4 h-4" />
+              <span>👑 {lang === 'ko' ? '관리 메뉴 열기' : 'Abrir menú admin'}</span>
+              <ChevronRight className="w-4 h-4 ml-auto" />
             </button>
           </div>
-        </header>
 
-        {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+          {/* Mobile sidebar overlay */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/50 md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar - mobile (overlay) */}
+          <div
+            className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
+              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <SidebarContent />
+          </div>
+
+          <div className="flex gap-6">
+            {/* Sidebar - desktop (in-flow) */}
+            <aside className="hidden md:block w-60 flex-shrink-0">
+              <div className="card dark:bg-gray-800 dark:border-gray-700 p-0 overflow-hidden sticky top-32">
+                <SidebarContent />
+              </div>
+            </aside>
+
+            {/* Main content area */}
+            <div className="flex-1 min-w-0">
+              <div className="card dark:bg-gray-800 dark:border-gray-700 p-4 sm:p-6 md:p-8">
+                {children}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
