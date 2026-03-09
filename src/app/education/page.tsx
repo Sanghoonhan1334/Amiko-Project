@@ -110,7 +110,11 @@ function EducationContent() {
               {/* Tabs */}
               <div className="mt-4 mb-4">
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                  <TabsList className={cn('w-full h-9', `grid grid-cols-${tabs.filter(t => !t.requireAuth || user).length}`)}>
+                  <TabsList className={cn('w-full h-9', 'grid', {
+                    'grid-cols-1': tabs.filter(t => !t.requireAuth || user).length === 1,
+                    'grid-cols-2': tabs.filter(t => !t.requireAuth || user).length === 2,
+                    'grid-cols-3': tabs.filter(t => !t.requireAuth || user).length >= 3,
+                  })}>
                     {tabs.map(tab => {
                       if (tab.requireAuth && !user) return null
                       const Icon = tab.icon
@@ -160,7 +164,11 @@ function EducationContent() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className={cn('w-full h-9', `grid grid-cols-${tabs.filter(t => !t.requireAuth || user).length}`)}>
+              <TabsList className={cn('w-full h-9', 'grid', {
+                    'grid-cols-1': tabs.filter(t => !t.requireAuth || user).length === 1,
+                    'grid-cols-2': tabs.filter(t => !t.requireAuth || user).length === 2,
+                    'grid-cols-3': tabs.filter(t => !t.requireAuth || user).length >= 3,
+                  })}>
                 {tabs.map(tab => {
                   if (tab.requireAuth && !user) return null
                   const Icon = tab.icon

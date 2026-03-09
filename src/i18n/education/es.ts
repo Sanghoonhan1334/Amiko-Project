@@ -186,7 +186,9 @@ export const educationEs = {
       totalAmount: 'Monto total',
       refund: 'Reembolso',
       refundRequested: 'Reembolso solicitado',
-      refundProcessed: 'Reembolso procesado'
+      refundProcessed: 'Reembolso procesado',
+      cancelled: 'Pago cancelado',
+      cancelledDescription: 'Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando quieras.'
     },
 
     // Admin
@@ -327,7 +329,41 @@ export const educationEs = {
       instructorName: 'Instructor',
       completionDate: 'Fecha de finalización',
       download: 'Descargar certificado',
-      generated: 'Certificado generado'
-    }
+      generated: 'Certificado generado',
+      back: 'Volver',
+      print: 'Imprimir',
+      platformSubtitle: 'Plataforma Educativa de Intercambio Cultural',
+      completionTitle: 'Certificado de Finalización',
+      certifyThat: 'Se certifica que',
+      hasCompleted: 'ha completado satisfactoriamente el curso',
+      classes: 'clases',
+      hours: 'horas',
+      level: 'Nivel',
+      levelBasic: 'Básico',
+      levelIntermediate: 'Intermedio',
+      levelAdvanced: 'Avanzado',
+      dateLabel: 'Fecha de finalización',
+      instructorLabel: 'Instructor',
+      verified: 'Verificado',
+      platform: 'Plataforma educativa',
+      notFound: 'Certificado no encontrado',
+      loadError: 'Error al cargar el certificado'
+    },
+
+    // Material upload form
+    materialForm: {
+      namePlaceholder: 'Nombre del material',
+      type: 'Tipo',
+      descriptionOptional: 'Descripción (opcional)',
+      descriptionPlaceholder: 'Breve descripción del material',
+      file: 'Archivo',
+      uploading: 'Subiendo...'
+    },
+
+    // Misc
+    securePayment: 'Pago seguro vía PayPal',
+    stopRecording: 'Detener grabación',
+    viewSchedule: 'Ver horario',
+    goToCourse: 'Ir al curso'
   }
 }

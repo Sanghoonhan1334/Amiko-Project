@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useEducationTranslation } from '@/hooks/useEducationTranslation'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,12 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   GraduationCap, BookOpen, Clock, Users, CheckCircle,
-  ArrowLeft, ShieldCheck
+  ArrowLeft, ShieldCheck, XCircle
 } from 'lucide-react'
 import type { EducationCourse } from '@/types/education'
 
 export default function EducationCheckoutPage() {
   const { courseId } = useParams<{ courseId: string }>()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useAuth()
   const { te } = useEducationTranslation()
@@ -22,13 +23,54 @@ export default function EducationCheckoutPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [cancelled, setCancelled] = useState(false)
   const [error, setError] = useState('')
+
+  // Capture payment after PayPal redirect
+  const capturePayment = useCallback(async (paypalOrderId: string, cId: string) => {
+    setProcessing(true)
+    setError('')
+    try {
+      const captureRes = await fetch(`/api/education/courses/${cId}/payments/paypal/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paypal_order_id: paypalOrderId })
+      })
+
+      if (captureRes.ok) {
+        setSuccess(true)
+      } else {
+        const captureData = await captureRes.json()
+        setError(captureData.error || te('education.payment.failed'))
+      }
+    } catch {
+      setError(te('education.payment.failed'))
+    } finally {
+      setProcessing(false)
+    }
+  }, [te])
 
   useEffect(() => {
     if (!user?.id) {
       router.push('/sign-in?redirectTo=/education/checkout/' + courseId)
       return
     }
+
+    // Check if returning from PayPal approval
+    const status = searchParams.get('status')
+    const token = searchParams.get('token') // PayPal appends token=ORDER_ID
+
+    if (status === 'cancel') {
+      setCancelled(true)
+      setLoading(false)
+      return
+    }
+
+    if (status === 'success' && token) {
+      // User approved on PayPal — capture the payment
+      capturePayment(token, courseId)
+    }
+
     const fetchCourse = async () => {
       try {
         const res = await fetch(`/api/education/courses/${courseId}`)
@@ -41,7 +83,7 @@ export default function EducationCheckoutPage() {
       }
     }
     fetchCourse()
-  }, [courseId, user?.id, router])
+  }, [courseId, user?.id, router, searchParams, capturePayment])
 
   const handlePayPalPayment = async () => {
     if (!course || !user) return
@@ -49,17 +91,13 @@ export default function EducationCheckoutPage() {
     setError('')
 
     try {
-      // Create PayPal order
-      const createRes = await fetch('/api/paypal/create-order', {
+      // Create PayPal order — returns approve_url for redirect
+      const createRes = await fetch(`/api/education/courses/${course.id}/payments/paypal/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: course.price_usd,
-          currency: 'USD',
-          description: `AMIKO Education: ${course.title}`,
-          userId: user.id,
-          itemType: 'education_course',
-          itemId: course.id
+          customer_name: user.user_metadata?.display_name,
+          customer_email: user.email
         })
       })
 
@@ -67,47 +105,20 @@ export default function EducationCheckoutPage() {
 
       if (!createRes.ok) {
         setError(createData.error || te('education.payment.failed'))
+        setProcessing(false)
         return
       }
 
-      // For sandbox: simulate approval
-      const approveRes = await fetch('/api/paypal/approve-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: createData.orderId,
-          purchaseId: createData.purchaseId
-        })
-      })
-
-      if (approveRes.ok) {
-        // Create enrollment
-        const enrollRes = await fetch('/api/education/enroll', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            course_id: course.id,
-            student_id: user.id,
-            paypal_order_id: createData.orderId,
-            amount_paid: course.price_usd
-          })
-        })
-
-        if (enrollRes.ok) {
-          setSuccess(true)
-          setTimeout(() => {
-            router.push(`/education/course/${course.slug || course.id}`)
-          }, 2000)
-        } else {
-          const enrollData = await enrollRes.json()
-          setError(enrollData.error || te('education.payment.failed'))
-        }
+      // Redirect to PayPal for user approval
+      if (createData.approve_url) {
+        window.location.href = createData.approve_url
+        // Don't setProcessing(false) — page will navigate away
       } else {
         setError(te('education.payment.failed'))
+        setProcessing(false)
       }
-    } catch (err) {
+    } catch {
       setError(te('education.payment.failed'))
-    } finally {
       setProcessing(false)
     }
   }
@@ -138,9 +149,31 @@ export default function EducationCheckoutPage() {
         <h2 className="text-2xl font-bold text-foreground mb-2">
           {te('education.payment.success')}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground mb-6">
           {te('education.course.enrolled')}
         </p>
+        <Button onClick={() => router.push(`/education/course/${course?.slug || course?.id || courseId}`)}>
+          {te('education.course.goToCourse')}
+        </Button>
+      </div>
+    )
+  }
+
+  if (cancelled) {
+    return (
+      <div className="container max-w-xl mx-auto px-4 py-20 text-center">
+        <div className="w-20 h-20 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mx-auto mb-6">
+          <XCircle className="w-10 h-10 text-yellow-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          {te('education.payment.cancelled')}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {te('education.payment.cancelledDescription')}
+        </p>
+        <Button variant="outline" onClick={() => router.push(`/education/course/${courseId}`)}>
+          {te('education.certificate.back')}
+        </Button>
       </div>
     )
   }
@@ -226,7 +259,7 @@ export default function EducationCheckoutPage() {
 
         <p className="text-[11px] text-muted-foreground text-center mt-3">
           <ShieldCheck className="w-3 h-3 inline mr-1" />
-          Secure payment via PayPal
+          {te('education.securePayment')}
         </p>
       </div>
     </div>

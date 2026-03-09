@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
 
 // Lazy singleton for auth validation — reuses the service-role client
@@ -14,7 +15,11 @@ type AuthSuccess = { user: User; error: null }
 type AuthFailure = { user: null; error: NextResponse }
 
 /**
- * Validates `Authorization: Bearer <token>` for education API routes.
+ * Validates authentication for education API routes.
+ * Supports two strategies (in order):
+ *   1. `Authorization: Bearer <token>` header (for programmatic/external callers)
+ *   2. Supabase session cookie (for browser fetch calls from the same origin)
+ *
  * Returns `{ user }` on success or `{ error: NextResponse(401) }` on failure.
  *
  * Usage in a route handler:
@@ -25,28 +30,49 @@ type AuthFailure = { user: null; error: NextResponse }
 export async function requireEducationAuth(
   request: NextRequest
 ): Promise<AuthSuccess | AuthFailure> {
+  // Strategy 1: Bearer token header
   const authHeader =
     request.headers.get('Authorization') || request.headers.get('authorization')
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return {
-      user: null,
-      error: NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = decodeURIComponent(authHeader.replace('Bearer ', '').trim())
+    const { data: { user }, error } = await getAdminClient().auth.getUser(token)
+
+    if (!error && user) {
+      return { user, error: null }
     }
   }
 
-  const token = decodeURIComponent(authHeader.replace('Bearer ', '').trim())
+  // Strategy 2: Cookie-based session (browser fetch from same origin)
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll() {
+            // Read-only in API routes — cookies are managed by middleware
+          },
+        },
+      }
+    )
 
-  const { data: { user }, error } = await getAdminClient().auth.getUser(token)
+    const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (error || !user) {
-    return {
-      user: null,
-      error: NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+    if (!error && user) {
+      return { user, error: null }
     }
+  } catch {
+    // Cookie parsing failed — fall through to 401
   }
 
-  return { user, error: null }
+  return {
+    user: null,
+    error: NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  }
 }
 
 /**

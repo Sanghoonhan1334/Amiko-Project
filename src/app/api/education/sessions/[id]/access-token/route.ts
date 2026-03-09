@@ -126,7 +126,11 @@ export async function POST(
 
     // Token expira al final de la clase + 10 min de gracia
     const expiresAt = new Date(windowClosesAt.getTime() + 10 * 60 * 1000)
-    const privilegeExpiredTs = Math.floor(expiresAt.getTime() / 1000)
+    // agora-token v2 expects relative seconds from now, not absolute timestamps
+    const tokenExpireSeconds = Math.max(
+      Math.floor((expiresAt.getTime() - Date.now()) / 1000),
+      300 // minimum 5 min
+    )
 
     const token = RtcTokenBuilder.buildTokenWithUid(
       appId,
@@ -134,8 +138,8 @@ export async function POST(
       channelName,
       uid,
       RtcRole.PUBLISHER,
-      privilegeExpiredTs,
-      0
+      tokenExpireSeconds,
+      tokenExpireSeconds
     )
 
     return NextResponse.json({

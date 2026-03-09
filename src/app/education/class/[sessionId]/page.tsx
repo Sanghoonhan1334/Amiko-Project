@@ -850,6 +850,52 @@ export default function LiveClassPage() {
             </div>
           </div>
         )}
+
+        {/* Participants Panel */}
+        {showParticipants && (
+          <div className="w-80 border-l border-gray-800 flex flex-col bg-gray-900/50">
+            <div className="flex items-center justify-between p-3 border-b border-gray-800">
+              <h4 className="text-white text-sm font-medium">{te('education.liveClass.participants')} ({participantCount})</h4>
+              <button onClick={() => setShowParticipants(false)} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {/* Current user (self) */}
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800/50">
+                <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                  {(user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm truncate">
+                    {user?.email?.split('@')[0] || 'You'}
+                    {joinData?.isInstructor && <span className="ml-1 text-xs text-purple-400">🎓</span>}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {joinData?.isInstructor ? te('education.instructor.title') : te('education.student.title')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {audioMuted ? <MicOff className="w-3 h-3 text-red-400" /> : <Mic className="w-3 h-3 text-green-400" />}
+                  {videoMuted ? <VideoOff className="w-3 h-3 text-red-400" /> : <Video className="w-3 h-3 text-green-400" />}
+                </div>
+              </div>
+
+              {/* Remote participants */}
+              {participantCount > 1 && Array.from({ length: participantCount - 1 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800/30">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white text-xs font-medium">
+                    P{i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm truncate">{te('education.liveClass.participants')} {i + 2}</p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-400" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
@@ -881,7 +927,7 @@ export default function LiveClassPage() {
             size="icon"
             className="rounded-full w-12 h-12"
             onClick={toggleRecording}
-            title={recording ? 'Detener grabación' : te('education.session.recording')}
+            title={recording ? te('education.stopRecording') : te('education.session.recording')}
           >
             <Circle className={cn('w-5 h-5', recording && 'fill-current animate-pulse')} />
           </Button>

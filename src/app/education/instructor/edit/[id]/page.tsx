@@ -639,11 +639,11 @@ export default function InstructorCourseEditPage({
               <Input
                 value={uploadTitle}
                 onChange={e => setUploadTitle(e.target.value)}
-                placeholder="Nombre del material"
+                placeholder={te('education.materialForm.namePlaceholder')}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Tipo</label>
+              <label className="text-sm font-medium">{te('education.materialForm.type')}</label>
               <Select value={uploadType} onValueChange={(v: 'pdf' | 'presentation' | 'vocabulary' | 'other') => setUploadType(v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -657,15 +657,15 @@ export default function InstructorCourseEditPage({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Descripción (opcional)</label>
+              <label className="text-sm font-medium">{te('education.materialForm.descriptionOptional')}</label>
               <Input
                 value={uploadDescription}
                 onChange={e => setUploadDescription(e.target.value)}
-                placeholder="Breve descripción del material"
+                placeholder={te('education.materialForm.descriptionPlaceholder')}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Archivo</label>
+              <label className="text-sm font-medium">{te('education.materialForm.file')}</label>
               <Input
                 type="file"
                 accept=".pdf,.ppt,.pptx,.csv,.xlsx,.json,.txt,.zip,.mp4,.mp3,.wav,.jpg,.jpeg,.png,.webp"
@@ -686,7 +686,7 @@ export default function InstructorCourseEditPage({
                 onClick={handleUploadMaterial}
                 disabled={!uploadFile || !uploadTitle || uploadingMaterial}
               >
-                {uploadingMaterial ? 'Subiendo...' : te('education.material.upload')}
+                {uploadingMaterial ? te('education.materialForm.uploading') : te('education.material.upload')}
               </Button>
             </div>
           </div>
