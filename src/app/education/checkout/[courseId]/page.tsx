@@ -17,7 +17,7 @@ export default function EducationCheckoutPage() {
   const { courseId } = useParams<{ courseId: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { te } = useEducationTranslation()
   const [course, setCourse] = useState<EducationCourse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,7 +33,7 @@ export default function EducationCheckoutPage() {
     try {
       const captureRes = await fetch(`/api/education/courses/${cId}/payments/paypal/capture`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ paypal_order_id: paypalOrderId })
       })
 
@@ -48,7 +48,7 @@ export default function EducationCheckoutPage() {
     } finally {
       setProcessing(false)
     }
-  }, [te])
+  }, [te, token])
 
   useEffect(() => {
     if (!user?.id) {
@@ -58,7 +58,7 @@ export default function EducationCheckoutPage() {
 
     // Check if returning from PayPal approval
     const status = searchParams.get('status')
-    const token = searchParams.get('token') // PayPal appends token=ORDER_ID
+    const paypalToken = searchParams.get('token') // PayPal appends token=ORDER_ID
 
     if (status === 'cancel') {
       setCancelled(true)
@@ -66,9 +66,9 @@ export default function EducationCheckoutPage() {
       return
     }
 
-    if (status === 'success' && token) {
+    if (status === 'success' && paypalToken) {
       // User approved on PayPal — capture the payment
-      capturePayment(token, courseId)
+      capturePayment(paypalToken, courseId)
     }
 
     const fetchCourse = async () => {
@@ -94,7 +94,7 @@ export default function EducationCheckoutPage() {
       // Create PayPal order — returns approve_url for redirect
       const createRes = await fetch(`/api/education/courses/${course.id}/payments/paypal/create-order`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           customer_name: user.user_metadata?.display_name,
           customer_email: user.email

@@ -34,10 +34,10 @@ export async function POST(
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
-    // Solo se puede enviar si está en draft o changes_requested
-    if (!['draft', 'changes_requested'].includes(course.status)) {
+    // Solo se puede enviar si está en draft, changes_requested o rejected
+    if (!['draft', 'changes_requested', 'rejected'].includes(course.status)) {
       return NextResponse.json({
-        error: `Cannot submit course with status "${course.status}". Only draft or changes_requested courses can be submitted.`
+        error: `Cannot submit course with status "${course.status}". Only draft, changes_requested, or rejected courses can be submitted.`
       }, { status: 400 })
     }
 

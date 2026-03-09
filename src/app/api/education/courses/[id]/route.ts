@@ -115,9 +115,25 @@ export async function PUT(
 
     const body = await request.json()
 
+    // Whitelist editable fields — prevent arbitrary column injection
+    const allowedFields = [
+      'title', 'description', 'objectives', 'category', 'level',
+      'teaching_language', 'total_classes', 'class_duration_minutes',
+      'price_usd', 'max_students', 'allow_recording', 'thumbnail_url',
+      'start_date', 'end_date'
+    ]
+    const sanitized: Record<string, unknown> = {}
+    for (const key of allowedFields) {
+      if (key in body) sanitized[key] = body[key]
+    }
+
+    if (Object.keys(sanitized).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+
     const { data, error } = await supabase
       .from('education_courses')
-      .update(body)
+      .update(sanitized)
       .eq('id', id)
       .select()
       .single()

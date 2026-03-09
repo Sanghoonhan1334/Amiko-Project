@@ -200,8 +200,15 @@ export const educationKo = {
       approve: '승인',
       reject: '거절',
       rejectionReason: '거절 사유',
+      rejectionPlaceholder: '거절 사유를 입력하세요...',
       approved: '과정이 승인되었습니다',
       rejected: '과정이 거절되었습니다',
+      preview: '미리보기',
+      requestChanges: '수정 요청',
+      changesDescription: '수정 요청 사항',
+      changesPlaceholder: '강사가 수정해야 할 사항을 설명하세요...',
+      changesRequested: '수정 요청이 완료되었습니다',
+      noPending: '승인 대기 중인 과정이 없습니다',
       stats: {
         totalCourses: '전체 과정',
         activeCourses: '활성 과정',
@@ -316,8 +323,10 @@ export const educationKo = {
         descriptionRequired: '설명은 필수입니다',
         categoryRequired: '카테고리를 선택하세요',
         levelRequired: '레벨을 선택하세요',
+        languageRequired: '언어를 선택하세요',
         priceRequired: '가격은 필수입니다',
-        sessionsRequired: '최소 1개의 수업이 필요합니다'
+        sessionsRequired: '최소 1개의 수업이 필요합니다',
+        requiredFields: '빨간색으로 표시된 필수 항목을 입력하세요'
       }
     },
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import { useEducationTranslation } from '@/hooks/useEducationTranslation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -49,6 +50,7 @@ export default function InstructorCourseEditPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const { token } = useAuth()
   const { te } = useEducationTranslation()
   const [course, setCourse] = useState<EducationCourse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -118,7 +120,10 @@ export default function InstructorCourseEditPage({
     try {
       const res = await fetch(`/api/education/courses/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           title,
           description,
@@ -147,7 +152,10 @@ export default function InstructorCourseEditPage({
     try {
       await fetch(`/api/education/courses/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ status: 'pending_review' })
       })
       router.push('/education?tab=instructor')
@@ -164,7 +172,10 @@ export default function InstructorCourseEditPage({
       const scheduled_at = `${newSessionDate}T${newSessionTime}:00`
       const res = await fetch('/api/education/sessions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           course_id: id,
           session_number: sessions.length + 1,
@@ -187,7 +198,10 @@ export default function InstructorCourseEditPage({
 
   const handleDeleteMaterial = async (materialId: string) => {
     try {
-      await fetch(`/api/education/materials?id=${materialId}`, { method: 'DELETE' })
+      await fetch(`/api/education/materials?id=${materialId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
       setMaterials(prev => prev.filter(m => m.id !== materialId))
     } catch (err) {
       console.error('Error:', err)

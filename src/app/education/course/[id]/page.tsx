@@ -28,7 +28,7 @@ import { es, ko } from 'date-fns/locale'
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { te, language } = useEducationTranslation()
   const dateLocale = language === 'ko' ? ko : es
 
@@ -47,7 +47,9 @@ export default function CourseDetailPage() {
 
         // Check enrollment
         if (user?.id && data.course?.id) {
-          const enrollRes = await fetch(`/api/education/enroll?studentId=${user.id}&courseId=${data.course.id}`)
+          const enrollRes = await fetch(`/api/education/enroll?courseId=${data.course.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
           const enrollData = await enrollRes.json()
           if (enrollData.enrollments?.length > 0) {
             setEnrollment(enrollData.enrollments[0])
@@ -65,7 +67,7 @@ export default function CourseDetailPage() {
       }
     }
     if (id) fetchCourse()
-  }, [id, user?.id])
+  }, [id, user?.id, token])
 
   if (loading) {
     return (
@@ -577,6 +579,7 @@ function ReviewForm({
   te: (key: string) => string
   onSubmitted: () => void
 }) {
+  const { token } = useAuth()
   const [ratings, setRatings] = useState({
     clarity_rating: 5,
     content_rating: 5,
@@ -598,10 +601,9 @@ function ReviewForm({
     try {
       await fetch('/api/education/reviews', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           course_id: courseId,
-          student_id: studentId,
           ...ratings,
           comment
         })

@@ -50,6 +50,15 @@ export async function POST(
       })
     }
 
+    // Record in status history for audit trail
+    await supabase.from('course_status_history').insert({
+      course_id: id,
+      previous_status: 'submitted_for_review',
+      new_status: 'published',
+      changed_by: auth.user.id,
+      notes: 'Course approved by admin'
+    }) // silently ignore if table not yet created
+
     return NextResponse.json({ course: data })
   } catch (err) {
     console.error('[Education] approve error:', err)

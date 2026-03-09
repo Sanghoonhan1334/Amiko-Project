@@ -200,8 +200,15 @@ export const educationEs = {
       approve: 'Aprobar',
       reject: 'Rechazar',
       rejectionReason: 'Motivo del rechazo',
+      rejectionPlaceholder: 'Describe el motivo del rechazo...',
       approved: 'Curso aprobado exitosamente',
       rejected: 'Curso rechazado',
+      preview: 'Vista previa',
+      requestChanges: 'Solicitar cambios',
+      changesDescription: 'Cambios solicitados',
+      changesPlaceholder: 'Describe los cambios que el instructor debe realizar...',
+      changesRequested: 'Cambios solicitados exitosamente',
+      noPending: 'No hay cursos pendientes de aprobación',
       stats: {
         totalCourses: 'Total cursos',
         activeCourses: 'Cursos activos',
@@ -316,8 +323,10 @@ export const educationEs = {
         descriptionRequired: 'La descripción es requerida',
         categoryRequired: 'Selecciona una categoría',
         levelRequired: 'Selecciona un nivel',
+        languageRequired: 'Selecciona un idioma',
         priceRequired: 'El precio es requerido',
-        sessionsRequired: 'Se requiere al menos 1 clase'
+        sessionsRequired: 'Se requiere al menos 1 clase',
+        requiredFields: 'Completa los campos obligatorios marcados en rojo'
       }
     },
 

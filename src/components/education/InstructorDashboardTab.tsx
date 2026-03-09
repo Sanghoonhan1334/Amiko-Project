@@ -43,7 +43,7 @@ interface Props {
 
 export default function InstructorDashboardTab({ instructorId, onProfileCreated }: Props) {
   const { te } = useEducationTranslation()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<InstructorProfile | null>(null)
   const [courses, setCourses] = useState<EducationCourse[]>([])  
@@ -200,11 +200,21 @@ export default function InstructorDashboardTab({ instructorId, onProfileCreated 
               onView={() => router.push(`/education/course/${course.slug || course.id}`)}
               onEdit={() => router.push(`/education/instructor/edit/${course.id}`)}
               onSubmit={async () => {
-                await fetch(`/api/education/courses/${course.id}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ status: 'pending_review' })
-                })
+                try {
+                  const res = await fetch(`/api/education/courses/${course.id}/submit-for-review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                  })
+                  const data = await res.json()
+                  if (!res.ok) {
+                    alert(data.error || 'Error submitting course')
+                    return
+                  }
+                } catch (err) {
+                  console.error('Error submitting course:', err)
+                  alert('Error submitting course')
+                  return
+                }
                 // Refresh courses list
                 try {
                   const res = await fetch(`/api/education/courses?instructorId=${currentInstructorId}&status=all`)
@@ -264,6 +274,7 @@ function InstructorProfileForm({
     photo_url: profile?.photo_url || ''
   })
   const [saving, setSaving] = useState(false)
+  const { token } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -272,9 +283,8 @@ function InstructorProfileForm({
     try {
       const res = await fetch('/api/education/instructor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-          user_id: userId,
           ...form,
           languages: form.languages.split(',').map(l => l.trim()).filter(Boolean)
         })
@@ -385,7 +395,8 @@ function InstructorCourseCard({
 }) {
   const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-    pending_review: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    submitted_for_review: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    changes_requested: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
     approved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
     published: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -441,7 +452,7 @@ function InstructorCourseCard({
                 <Eye className="w-3 h-3 mr-1" />
                 {te('education.course.viewDetails')}
               </Button>
-              {(course.status === 'draft' || course.status === 'rejected') && (
+              {(course.status === 'draft' || course.status === 'rejected' || course.status === 'changes_requested') && (
                 <>
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onEdit}>
                     <Edit className="w-3 h-3 mr-1" />
@@ -491,6 +502,8 @@ function CreateCourseDialog({
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const { token } = useAuth()
 
   const addSession = () => {
     setForm(f => ({
@@ -527,9 +540,18 @@ function CreateCourseDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    const errors: Record<string, string> = {}
 
-    if (!form.title || !form.category || !form.description || !form.level || !form.teaching_language) {
-      setError(te('education.form.validation.titleRequired'))
+    if (!form.title) errors.title = te('education.form.validation.titleRequired')
+    if (!form.category) errors.category = te('education.form.validation.categoryRequired')
+    if (!form.description) errors.description = te('education.form.validation.descriptionRequired')
+    if (!form.level) errors.level = te('education.form.validation.levelRequired')
+    if (!form.teaching_language) errors.teaching_language = te('education.form.validation.languageRequired')
+    if (!form.price_usd) errors.price_usd = te('education.form.validation.priceRequired')
+
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      setError(te('education.form.validation.requiredFields'))
       return
     }
 
@@ -537,9 +559,8 @@ function CreateCourseDialog({
     try {
       const res = await fetch('/api/education/courses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-          instructor_id: instructorId,
           ...form,
           sessions: form.sessions.filter(s => s.scheduled_at)
         })
@@ -578,23 +599,25 @@ function CreateCourseDialog({
 
           {/* Basic Info */}
           <div className="space-y-1.5">
-            <Label>{te('education.course.title')} *</Label>
+            <Label className={fieldErrors.title ? 'text-red-500' : ''}>{te('education.course.title')} *</Label>
             <Input
               value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => { const { title, ...rest } = fe; return rest }) }}
               placeholder={te('education.form.enterTitle')}
+              className={fieldErrors.title ? 'border-red-500 ring-red-500/20 ring-2' : ''}
               required
             />
+            {fieldErrors.title && <p className="text-xs text-red-500">{fieldErrors.title}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label>{te('education.course.category')} *</Label>
+              <Label className={fieldErrors.category ? 'text-red-500' : ''}>{te('education.course.category')} *</Label>
               <Select
                 value={form.category}
-                onValueChange={v => setForm(f => ({ ...f, category: v as CourseCategory }))}
+                onValueChange={v => { setForm(f => ({ ...f, category: v as CourseCategory })); setFieldErrors(fe => { const { category, ...rest } = fe; return rest }) }}
               >
-                <SelectTrigger>
+                <SelectTrigger className={fieldErrors.category ? 'border-red-500 ring-red-500/20 ring-2' : ''}>
                   <SelectValue placeholder={te('education.form.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -603,14 +626,15 @@ function CreateCourseDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.category && <p className="text-xs text-red-500">{fieldErrors.category}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>{te('education.course.level')} *</Label>
+              <Label className={fieldErrors.level ? 'text-red-500' : ''}>{te('education.course.level')} *</Label>
               <Select
                 value={form.level}
-                onValueChange={v => setForm(f => ({ ...f, level: v as CourseLevel }))}
+                onValueChange={v => { setForm(f => ({ ...f, level: v as CourseLevel })); setFieldErrors(fe => { const { level, ...rest } = fe; return rest }) }}
               >
-                <SelectTrigger>
+                <SelectTrigger className={fieldErrors.level ? 'border-red-500 ring-red-500/20 ring-2' : ''}>
                   <SelectValue placeholder={te('education.form.selectLevel')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -619,14 +643,15 @@ function CreateCourseDialog({
                   <SelectItem value="advanced">{te('education.levels.advanced')}</SelectItem>
                 </SelectContent>
               </Select>
+              {fieldErrors.level && <p className="text-xs text-red-500">{fieldErrors.level}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>{te('education.course.teachingLanguage')} *</Label>
+              <Label className={fieldErrors.teaching_language ? 'text-red-500' : ''}>{te('education.course.teachingLanguage')} *</Label>
               <Select
                 value={form.teaching_language}
-                onValueChange={v => setForm(f => ({ ...f, teaching_language: v as TeachingLanguage }))}
+                onValueChange={v => { setForm(f => ({ ...f, teaching_language: v as TeachingLanguage })); setFieldErrors(fe => { const { teaching_language, ...rest } = fe; return rest }) }}
               >
-                <SelectTrigger>
+                <SelectTrigger className={fieldErrors.teaching_language ? 'border-red-500 ring-red-500/20 ring-2' : ''}>
                   <SelectValue placeholder={te('education.form.selectLanguage')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -635,18 +660,21 @@ function CreateCourseDialog({
                   <SelectItem value="bilingual">{te('education.languages.bilingual')}</SelectItem>
                 </SelectContent>
               </Select>
+              {fieldErrors.teaching_language && <p className="text-xs text-red-500">{fieldErrors.teaching_language}</p>}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label>{te('education.course.description')} *</Label>
+            <Label className={fieldErrors.description ? 'text-red-500' : ''}>{te('education.course.description')} *</Label>
             <Textarea
               value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => { const { description, ...rest } = fe; return rest }) }}
               placeholder={te('education.form.enterDescription')}
+              className={fieldErrors.description ? 'border-red-500 ring-red-500/20 ring-2' : ''}
               rows={3}
               required
             />
+            {fieldErrors.description && <p className="text-xs text-red-500">{fieldErrors.description}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -680,14 +708,16 @@ function CreateCourseDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>{te('education.course.price')} (USD)</Label>
+              <Label className={fieldErrors.price_usd ? 'text-red-500' : ''}>{te('education.course.price')} (USD) *</Label>
               <Input
                 type="number"
                 min={0}
                 step={0.01}
                 value={form.price_usd}
-                onChange={e => setForm(f => ({ ...f, price_usd: parseFloat(e.target.value) || 0 }))}
+                onChange={e => { setForm(f => ({ ...f, price_usd: parseFloat(e.target.value) || 0 })); setFieldErrors(fe => { const { price_usd, ...rest } = fe; return rest }) }}
+                className={fieldErrors.price_usd ? 'border-red-500 ring-red-500/20 ring-2' : ''}
               />
+              {fieldErrors.price_usd && <p className="text-xs text-red-500">{fieldErrors.price_usd}</p>}
             </div>
             <div className="space-y-1.5">
               <Label>{te('education.course.maxStudents')}</Label>

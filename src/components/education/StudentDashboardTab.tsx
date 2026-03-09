@@ -16,7 +16,7 @@ import type { Enrollment } from '@/types/education'
 
 export default function StudentDashboardTab() {
   const { te, language } = useEducationTranslation()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const router = useRouter()
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,7 +26,9 @@ export default function StudentDashboardTab() {
     if (!user?.id) return
     const fetchEnrollments = async () => {
       try {
-        const res = await fetch(`/api/education/enroll?studentId=${user.id}`)
+        const res = await fetch('/api/education/enroll', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
         const data = await res.json()
         setEnrollments(data.enrollments || [])
       } catch (err) {
@@ -36,7 +38,7 @@ export default function StudentDashboardTab() {
       }
     }
     fetchEnrollments()
-  }, [user?.id])
+  }, [user?.id, token])
 
   const filteredEnrollments = enrollments.filter(e => {
     if (activeFilter === 'all') return true
@@ -79,11 +81,8 @@ export default function StudentDashboardTab() {
     try {
       const res = await fetch('/api/education/refund', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          enrollment_id: enrollmentId,
-          student_id: user?.id
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ enrollment_id: enrollmentId })
       })
       const data = await res.json()
       if (res.ok) {

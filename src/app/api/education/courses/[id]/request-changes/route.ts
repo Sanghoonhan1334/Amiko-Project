@@ -7,7 +7,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// POST /api/education/courses/[id]/reject - Admin rejects course
+// POST /api/education/courses/[id]/request-changes
+// Admin requests changes from the instructor before approving
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -24,14 +25,17 @@ export async function POST(
     const { reason } = await request.json()
 
     if (!reason) {
-      return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Reason for changes is required' }, { status: 400 })
     }
 
     const { data, error } = await supabase
       .from('education_courses')
-      .update({ status: 'rejected', rejection_reason: reason })
+      .update({
+        status: 'changes_requested',
+        rejection_reason: reason
+      })
       .eq('id', id)
-      .in('status', ['pending_review', 'submitted_for_review'])
+      .in('status', ['submitted_for_review'])
       .select(`
         id, title, slug,
         instructor:instructor_profiles(user_id)
@@ -42,31 +46,33 @@ export async function POST(
       return NextResponse.json({ error: 'Course not found or not pending review' }, { status: 404 })
     }
 
-    // Notify the instructor their course was rejected
+    // Notify the instructor
     const instructorUserId = (data.instructor as { user_id?: string } | null)?.user_id
     if (instructorUserId) {
       await supabase.from('notifications').insert({
         user_id: instructorUserId,
-        type: 'education_course_rejected',
-        title: '❌ Curso rechazado',
-        message: `Tu curso "${data.title}" fue rechazado. Motivo: ${reason}`,
+        type: 'education_course_changes_requested',
+        title: '📝 Cambios solicitados en tu curso',
+        message: `El administrador ha solicitado cambios en tu curso "${data.title}": ${reason}`,
         link: `/education?tab=instructor`,
         is_read: false
       })
     }
 
-    // Record in status history for audit trail
-    await supabase.from('course_status_history').insert({
-      course_id: id,
-      previous_status: 'submitted_for_review',
-      new_status: 'rejected',
-      changed_by: auth.user.id,
-      notes: `Rejected: ${reason}`
-    }) // silently ignore if table not yet created
+    // Record in status history
+    try {
+      await supabase.from('course_status_history').insert({
+        course_id: id,
+        previous_status: 'submitted_for_review',
+        new_status: 'changes_requested',
+        changed_by: auth.user.id,
+        notes: `Changes requested: ${reason}`
+      })
+    } catch { /* table may not exist yet */ }
 
     return NextResponse.json({ course: data })
   } catch (err) {
-    console.error('[Education] reject error:', err)
+    console.error('[Education] request-changes error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

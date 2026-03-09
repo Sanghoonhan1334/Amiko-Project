@@ -44,7 +44,7 @@ interface ChatMessage {
 export default function LiveClassPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { te } = useEducationTranslation()
 
   // Pre-room: access status
@@ -100,7 +100,7 @@ export default function LiveClassPage() {
       setStatusError('')
       try {
         const res = await fetch(`/api/education/sessions/${sessionId}/access-status`, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         })
         const data: SessionAccessStatus = await res.json()
 
@@ -136,7 +136,9 @@ export default function LiveClassPage() {
           clearInterval(tick)
           // Re-check access when countdown expires
           if (user?.id && sessionId) {
-            fetch(`/api/education/sessions/${sessionId}/access-status`)
+            fetch(`/api/education/sessions/${sessionId}/access-status`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            })
               .then(r => r.json())
               .then((d: SessionAccessStatus) => setAccessStatus(d))
               .catch(() => null)
@@ -159,7 +161,7 @@ export default function LiveClassPage() {
     try {
       const res = await fetch(`/api/education/sessions/${sessionId}/access-token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
       })
       const data: SessionAccessToken = await res.json()
 
@@ -190,7 +192,7 @@ export default function LiveClassPage() {
       setJoining(false)
       return null
     }
-  }, [user?.id, sessionId, accessStatus, te])
+  }, [user?.id, sessionId, accessStatus, te, token])
 
   // ────────────────────────────────────────────────────────────────────────
   // STEP 3 — Initialize Agora RTC and register presence
@@ -264,7 +266,7 @@ export default function LiveClassPage() {
       // Register presence (non-blocking — don't fail the call if this fails)
       fetch(`/api/education/sessions/${data.session.id}/presence/join`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
       }).catch(err => console.warn('[Education] presence/join failed:', err))
 
       setJoined(true)
@@ -310,7 +312,7 @@ export default function LiveClassPage() {
             // Register departure
             fetch(`/api/education/sessions/${sessionId}/presence/leave`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
             }).catch(() => null)
             // Navigate back to the course page
             setTimeout(() => {
@@ -352,7 +354,7 @@ export default function LiveClassPage() {
     if (joinData?.session.id) {
       fetch(`/api/education/sessions/${joinData.session.id}/presence/leave`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
       }).catch(err => console.warn('[Education] presence/leave failed:', err))
     }
     // If instructor, stop recording first
@@ -381,21 +383,17 @@ export default function LiveClassPage() {
     try {
       const res = await fetch('/api/education/session/end', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          user_id: user.id
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ session_id: sessionId })
       })
 
       if (res.ok) {
         // Send system message to chat
         await fetch('/api/education/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
             session_id: sessionId,
-            user_id: user.id,
             message: '📢 La clase ha terminado. ¡Gracias por participar!',
             message_type: 'system'
           })
@@ -416,7 +414,7 @@ export default function LiveClassPage() {
       const action = recording ? 'stop' : 'start'
       const res = await fetch('/api/education/recording', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           action,
           session_id: sessionId,
@@ -529,10 +527,9 @@ export default function LiveClassPage() {
     try {
       await fetch('/api/education/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           session_id: sessionId,
-          user_id: user.id,
           message: messageText,
           message_type: 'text'
         })
@@ -548,7 +545,9 @@ export default function LiveClassPage() {
 
     const loadMessages = async () => {
       try {
-        const res = await fetch(`/api/education/chat?sessionId=${sessionId}`)
+        const res = await fetch(`/api/education/chat?sessionId=${sessionId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
         const data = await res.json()
         if (data.messages) {
           const lastMsg = data.messages[data.messages.length - 1]
@@ -577,7 +576,9 @@ export default function LiveClassPage() {
         const url = after
           ? `/api/education/chat?sessionId=${sessionId}&after=${after}`
           : `/api/education/chat?sessionId=${sessionId}`
-        const res = await fetch(url)
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
         const data = await res.json()
         if (data.messages?.length > 0) {
           const newMsgs = data.messages

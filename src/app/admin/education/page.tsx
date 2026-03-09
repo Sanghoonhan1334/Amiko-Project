@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useEducationTranslation } from '@/hooks/useEducationTranslation'
 import { useAuth } from '@/context/AuthContext'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,11 +16,14 @@ import {
 } from '@/components/ui/dialog'
 import {
   GraduationCap, BookOpen, Users, DollarSign, Clock,
-  CheckCircle, XCircle, Eye, AlertTriangle, BarChart3
+  CheckCircle, XCircle, Eye, AlertTriangle, BarChart3,
+  MessageSquare, Calendar, Globe, Star
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { EducationCourse, EducationAdminStats } from '@/types/education'
 import { format } from 'date-fns'
+
+type ReviewAction = 'reject' | 'changes'
 
 export default function AdminEducationPage() {
   const { te } = useEducationTranslation()
@@ -29,8 +32,9 @@ export default function AdminEducationPage() {
   const [pendingCourses, setPendingCourses] = useState<EducationCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<EducationCourse | null>(null)
-  const [showRejectDialog, setShowRejectDialog] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState('')
+  const [previewCourse, setPreviewCourse] = useState<EducationCourse | null>(null)
+  const [reviewAction, setReviewAction] = useState<ReviewAction | null>(null)
+  const [reasonText, setReasonText] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
@@ -39,9 +43,7 @@ export default function AdminEducationPage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/education/admin/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await fetch('/api/education/admin/stats')
       const data = await res.json()
       setStats(data.stats)
       setPendingCourses(data.pendingCourses || [])
@@ -57,10 +59,11 @@ export default function AdminEducationPage() {
     try {
       const res = await fetch(`/api/education/courses/${courseId}/approve`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json' }
       })
       if (res.ok) {
         setPendingCourses(prev => prev.filter(c => c.id !== courseId))
+        setPreviewCourse(null)
         fetchData()
       }
     } catch (err) {
@@ -71,19 +74,17 @@ export default function AdminEducationPage() {
   }
 
   const handleReject = async () => {
-    if (!selectedCourse || !rejectionReason) return
+    if (!selectedCourse || !reasonText) return
     setActionLoading(true)
     try {
       const res = await fetch(`/api/education/courses/${selectedCourse.id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reason: rejectionReason })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reasonText })
       })
       if (res.ok) {
         setPendingCourses(prev => prev.filter(c => c.id !== selectedCourse.id))
-        setShowRejectDialog(false)
-        setRejectionReason('')
-        setSelectedCourse(null)
+        closeReviewDialog()
         fetchData()
       }
     } catch (err) {
@@ -93,9 +94,36 @@ export default function AdminEducationPage() {
     }
   }
 
+  const handleRequestChanges = async () => {
+    if (!selectedCourse || !reasonText) return
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/education/courses/${selectedCourse.id}/request-changes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reasonText })
+      })
+      if (res.ok) {
+        setPendingCourses(prev => prev.filter(c => c.id !== selectedCourse.id))
+        closeReviewDialog()
+        fetchData()
+      }
+    } catch (err) {
+      console.error('Error:', err)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const closeReviewDialog = () => {
+    setReviewAction(null)
+    setReasonText('')
+    setSelectedCourse(null)
+  }
+
   if (loading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
@@ -106,7 +134,7 @@ export default function AdminEducationPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-xl bg-primary/10">
@@ -121,50 +149,19 @@ export default function AdminEducationPage() {
       {/* Stats Grid */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatCard
-            icon={BookOpen}
-            label={te('education.admin.stats.totalCourses')}
-            value={stats.totalCourses}
-            color="text-primary"
-          />
-          <StatCard
-            icon={BarChart3}
-            label={te('education.admin.stats.activeCourses')}
-            value={stats.activeCourses}
-            color="text-mint-500"
-          />
-          <StatCard
-            icon={Users}
-            label={te('education.admin.stats.totalStudents')}
-            value={stats.totalStudents}
-            color="text-sky-500"
-          />
-          <StatCard
-            icon={GraduationCap}
-            label={te('education.admin.stats.totalInstructors')}
-            value={stats.totalInstructors}
-            color="text-purple-500"
-          />
-          <StatCard
-            icon={DollarSign}
-            label={te('education.admin.stats.totalRevenue')}
-            value={`$${stats.totalRevenue.toFixed(0)}`}
-            color="text-green-500"
-          />
-          <StatCard
-            icon={AlertTriangle}
-            label={te('education.admin.stats.pendingApprovals')}
-            value={stats.pendingApprovals}
-            color="text-banana-500"
-            highlight={stats.pendingApprovals > 0}
-          />
+          <StatCard icon={BookOpen} label={te('education.admin.stats.totalCourses')} value={stats.totalCourses} color="text-primary" />
+          <StatCard icon={BarChart3} label={te('education.admin.stats.activeCourses')} value={stats.activeCourses} color="text-green-500" />
+          <StatCard icon={Users} label={te('education.admin.stats.totalStudents')} value={stats.totalStudents} color="text-sky-500" />
+          <StatCard icon={GraduationCap} label={te('education.admin.stats.totalInstructors')} value={stats.totalInstructors} color="text-purple-500" />
+          <StatCard icon={DollarSign} label={te('education.admin.stats.totalRevenue')} value={`$${stats.totalRevenue.toFixed(0)}`} color="text-green-500" />
+          <StatCard icon={AlertTriangle} label={te('education.admin.stats.pendingApprovals')} value={stats.pendingApprovals} color="text-yellow-500" highlight={stats.pendingApprovals > 0} />
         </div>
       )}
 
       {/* Pending Approvals */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-banana-500" />
+          <Clock className="w-5 h-5 text-yellow-500" />
           {te('education.admin.pendingApprovals')}
           {pendingCourses.length > 0 && (
             <Badge variant="destructive" className="text-xs">{pendingCourses.length}</Badge>
@@ -176,109 +173,299 @@ export default function AdminEducationPage() {
             <CardContent className="p-8 text-center">
               <CheckCircle className="w-12 h-12 text-green-500/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">
-                {te('education.course.noCoursesFound')}
+                {te('education.admin.noPending')}
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {pendingCourses.map(course => (
-              <Card key={course.id} className="border-border/50 border-l-4 border-l-banana-500">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
-                      {course.thumbnail_url ? (
-                        <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <BookOpen className="w-6 h-6 text-primary/30" />
+            {pendingCourses.map(course => {
+              const instructor = (course as EducationCourse & { instructor?: { display_name: string; photo_url?: string } }).instructor
+              return (
+                <Card key={course.id} className="border-border/50 border-l-4 border-l-yellow-500">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      {/* Thumbnail */}
+                      <div className="w-full sm:w-24 h-20 sm:h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
+                        {course.thumbnail_url ? (
+                          <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <BookOpen className="w-8 h-8 text-primary/30" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{course.title}</h3>
+                          <Badge className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 flex-shrink-0">
+                            {te('education.course.status.submitted_for_review')}
+                          </Badge>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground">{course.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {course.description}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
-                        <span>{(course as EducationCourse & { instructor?: { display_name: string } }).instructor?.display_name || '—'}</span>
-                        <span>{te(`education.categories.${course.category}`)}</span>
-                        <span>{te(`education.levels.${course.level}`)}</span>
-                        <span>{course.total_classes} {te('education.session.title')}</span>
-                        <span>${course.price_usd}</span>
-                        <span>{format(new Date(course.created_at), 'PP')}</span>
+
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                          {course.description}
+                        </p>
+
+                        {/* Meta info */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1">
+                            <GraduationCap className="w-3 h-3" />
+                            {instructor?.display_name || '—'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3 h-3" />
+                            {te(`education.categories.${course.category}`)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BarChart3 className="w-3 h-3" />
+                            {te(`education.levels.${course.level}`)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            {course.total_classes} {te('education.session.title')}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {course.class_duration_minutes}min
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="w-3 h-3" />
+                            ${course.price_usd}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {te('education.course.maxStudents')}: {course.max_students}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3" />
+                            {course.teaching_language}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(course.created_at), 'dd/MM/yyyy')}
+                          </span>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() => setPreviewCourse(course)}
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            {te('education.admin.preview')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
+                            onClick={() => handleApprove(course.id)}
+                            disabled={actionLoading}
+                          >
+                            <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                            {te('education.admin.approve')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                            onClick={() => {
+                              setSelectedCourse(course)
+                              setReviewAction('changes')
+                            }}
+                            disabled={actionLoading}
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 mr-1" />
+                            {te('education.admin.requestChanges')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="h-8 text-xs"
+                            onClick={() => {
+                              setSelectedCourse(course)
+                              setReviewAction('reject')
+                            }}
+                            disabled={actionLoading}
+                          >
+                            <XCircle className="w-3.5 h-3.5 mr-1" />
+                            {te('education.admin.reject')}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white h-8"
-                        onClick={() => handleApprove(course.id)}
-                        disabled={actionLoading}
-                      >
-                        <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                        {te('education.admin.approve')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-8"
-                        onClick={() => {
-                          setSelectedCourse(course)
-                          setShowRejectDialog(true)
-                        }}
-                        disabled={actionLoading}
-                      >
-                        <XCircle className="w-3.5 h-3.5 mr-1" />
-                        {te('education.admin.reject')}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
 
-      {/* Reject Dialog */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+      {/* Course Preview Dialog */}
+      <Dialog open={!!previewCourse} onOpenChange={() => setPreviewCourse(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              {te('education.admin.preview')}: {previewCourse?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {previewCourse && (
+            <div className="space-y-4">
+              {/* Course Info */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">{te('education.form.category')}:</span>
+                  <span className="ml-2 font-medium">{te(`education.categories.${previewCourse.category}`)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{te('education.form.level')}:</span>
+                  <span className="ml-2 font-medium">{te(`education.levels.${previewCourse.level}`)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{te('education.form.price')}:</span>
+                  <span className="ml-2 font-medium">${previewCourse.price_usd} USD</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{te('education.form.language')}:</span>
+                  <span className="ml-2 font-medium">{previewCourse.teaching_language}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{te('education.form.totalClasses')}:</span>
+                  <span className="ml-2 font-medium">{previewCourse.total_classes}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{te('education.course.maxStudents')}:</span>
+                  <span className="ml-2 font-medium">{previewCourse.max_students}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="font-medium text-sm text-foreground mb-1">{te('education.form.description')}</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-3">
+                  {previewCourse.description}
+                </p>
+              </div>
+
+              {/* Objectives */}
+              {previewCourse.objectives && (
+                <div>
+                  <h4 className="font-medium text-sm text-foreground mb-1">{te('education.form.objectives')}</h4>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-3">
+                    {previewCourse.objectives}
+                  </p>
+                </div>
+              )}
+
+              {/* Action buttons inside preview */}
+              <div className="flex gap-2 pt-2 border-t border-border">
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => handleApprove(previewCourse.id)}
+                  disabled={actionLoading}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {te('education.admin.approve')}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                  onClick={() => {
+                    setSelectedCourse(previewCourse)
+                    setPreviewCourse(null)
+                    setReviewAction('changes')
+                  }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {te('education.admin.requestChanges')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedCourse(previewCourse)
+                    setPreviewCourse(null)
+                    setReviewAction('reject')
+                  }}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {te('education.admin.reject')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject / Request Changes Dialog */}
+      <Dialog open={!!reviewAction} onOpenChange={() => closeReviewDialog()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-red-500" />
-              {te('education.admin.reject')}: {selectedCourse?.title}
+              {reviewAction === 'reject' ? (
+                <XCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <MessageSquare className="w-5 h-5 text-orange-500" />
+              )}
+              {reviewAction === 'reject'
+                ? te('education.admin.reject')
+                : te('education.admin.requestChanges')
+              }: {selectedCourse?.title}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">{te('education.admin.rejectionReason')}</label>
+              <label className="text-sm font-medium">
+                {reviewAction === 'reject'
+                  ? te('education.admin.rejectionReason')
+                  : te('education.admin.changesDescription')
+                }
+              </label>
               <Textarea
-                value={rejectionReason}
-                onChange={e => setRejectionReason(e.target.value)}
+                value={reasonText}
+                onChange={e => setReasonText(e.target.value)}
                 rows={4}
-                placeholder={te('education.admin.rejectionReason')}
+                placeholder={
+                  reviewAction === 'reject'
+                    ? te('education.admin.rejectionPlaceholder')
+                    : te('education.admin.changesPlaceholder')
+                }
               />
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => {
-                  setShowRejectDialog(false)
-                  setRejectionReason('')
-                }}
+                onClick={closeReviewDialog}
               >
                 {te('education.form.cancel')}
               </Button>
-              <Button
-                variant="destructive"
-                className="flex-1"
-                onClick={handleReject}
-                disabled={!rejectionReason || actionLoading}
-              >
-                {te('education.admin.reject')}
-              </Button>
+              {reviewAction === 'reject' ? (
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={handleReject}
+                  disabled={!reasonText || actionLoading}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {te('education.admin.reject')}
+                </Button>
+              ) : (
+                <Button
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={handleRequestChanges}
+                  disabled={!reasonText || actionLoading}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {te('education.admin.requestChanges')}
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
