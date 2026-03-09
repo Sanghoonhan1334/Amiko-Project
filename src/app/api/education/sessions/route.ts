@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,11 +56,28 @@ export async function GET(request: NextRequest) {
 // POST /api/education/sessions - Create a new session for a course
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const body = await request.json()
     const { course_id, session_number, title, scheduled_at, duration_minutes } = body
 
     if (!course_id || !scheduled_at) {
       return NextResponse.json({ error: 'course_id and scheduled_at required' }, { status: 400 })
+    }
+
+    // Verify the user is the instructor of this course (or admin)
+    const { data: course } = await supabase
+      .from('education_courses')
+      .select('instructor:instructor_profiles(user_id)')
+      .eq('id', course_id)
+      .single()
+
+    const instructorUserId = (course?.instructor as { user_id?: string } | null)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Not authorized to add sessions to this course' }, { status: 403 })
     }
 
     const channel = `edu_${course_id.slice(0, 8)}_${session_number || 1}`
@@ -105,11 +123,28 @@ export async function POST(request: NextRequest) {
 // PUT /api/education/sessions - Update session (reschedule, cancel, etc.)
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const body = await request.json()
     const { id, ...updates } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Session id required' }, { status: 400 })
+    }
+
+    // Verify the user is the instructor of this session's course (or admin)
+    const { data: session } = await supabase
+      .from('education_sessions')
+      .select('course:education_courses(instructor:instructor_profiles(user_id))')
+      .eq('id', id)
+      .single()
+
+    const instructorUserId = ((session?.course as { instructor?: { user_id?: string } } | null)?.instructor)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Not authorized to update this session' }, { status: 403 })
     }
 
     // If rescheduling, set status and rescheduled_to

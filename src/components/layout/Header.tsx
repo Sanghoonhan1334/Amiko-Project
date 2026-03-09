@@ -273,7 +273,8 @@ function HeaderContent() {
     pathname.startsWith("/main") ||
     pathname.startsWith("/lounge") ||
     pathname.startsWith("/community") ||
-    pathname.startsWith("/education");
+    pathname.startsWith("/education") ||
+    pathname.startsWith("/admin");
 
   // pathname 변경 시 activeNavItem 업데이트
   useEffect(() => {
@@ -1062,6 +1063,27 @@ function HeaderContent() {
                     >
                       {language === "ko" ? "교육" : "Educación"}
                     </button>
+                    {/* Administración - solo visible para admins */}
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push("/admin");
+                        }}
+                        className={`px-3 py-2 font-semibold transition-colors duration-300 whitespace-nowrap bg-transparent focus:outline-none active:outline-none focus:bg-transparent active:bg-transparent hover:bg-transparent cursor-pointer relative z-[110] ${
+                          pathname.startsWith("/admin")
+                            ? "text-purple-500"
+                            : "text-gray-800 dark:!text-white hover:text-purple-500"
+                        }`}
+                        style={{
+                          backgroundColor: "transparent",
+                          pointerEvents: "auto",
+                        }}
+                      >
+                        {language === "ko" ? "👑 관리" : "👑 Admin"}
+                      </button>
+                    )}
                   </div>
                 ) : null}
               </nav>
@@ -1138,16 +1160,7 @@ function HeaderContent() {
                   </div>
 
                   {/* 하단: 인증 상태 표시 */}
-                  {isAdmin ? (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <span className="text-purple-600 dark:text-purple-400 text-sm">
-                        👑
-                      </span>
-                      <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
-                        운영자
-                      </span>
-                    </div>
-                  ) : verificationStatus === "verified" ? (
+                  {verificationStatus === "verified" ? (
                     <div className="flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <span className="text-green-600 dark:text-green-400 text-sm">
                         ✅
@@ -1307,6 +1320,20 @@ function HeaderContent() {
                   {language === "ko" ? "교육" : "Educación"}
                 </span>
               </Link>
+
+              {/* Administración - solo visible para admins */}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-300 transition-all duration-300"
+                  onClick={toggleMobileMenu}
+                >
+                  <span className="text-base">👑</span>
+                  <span className="text-sm font-medium">
+                    {language === "ko" ? "관리자 패널" : "Administración"}
+                  </span>
+                </Link>
+              )}
 
               {/* 문의하기 */}
               <button

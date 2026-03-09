@@ -861,6 +861,7 @@ export const translations = {
       logout: "로그아웃",
       store: "상점",
       storeShort: "상점",
+      administration: "관리",
       worldTime: "세계 시간",
       countries: {
         korea: "한국",
@@ -4653,6 +4654,7 @@ export const translations = {
       logout: "Cerrar Sesión",
       store: "Tienda",
       storeShort: "Tienda",
+      administration: "Administración",
       worldTime: "Hora Mundial",
       countries: {
         korea: "Corea",

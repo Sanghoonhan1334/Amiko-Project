@@ -76,12 +76,15 @@ export const educationKo = {
       status: {
         draft: '초안',
         pending_review: '검토 대기',
+        submitted_for_review: '검토 요청 제출',
+        changes_requested: '수정 요청',
         approved: '승인됨',
         rejected: '거절됨',
         published: '게시됨',
         in_progress: '진행 중',
         completed: '완료',
-        cancelled: '취소됨'
+        cancelled: '취소됨',
+        archived: '보관됨'
       }
     },
 
@@ -90,7 +93,9 @@ export const educationKo = {
       title: '수업',
       classNumber: '수업 {number}',
       scheduled: '예정',
+      ready: '준비 완료',
       live: '실시간',
+      ending: '종료 중',
       completed: '완료',
       cancelled: '취소',
       rescheduled: '일정 변경',
@@ -103,7 +108,7 @@ export const educationKo = {
       recording: '녹화',
       viewRecording: '녹화 보기',
       noRecording: '녹화 없음',
-      minutesBefore: '시작 {minutes}분 전',
+      minutesBefore: '액세스 {minutes}분 전',
       classStartsSoon: '곧 수업이 시작됩니다',
       classInProgress: '수업 진행 중'
     },
@@ -181,7 +186,9 @@ export const educationKo = {
       totalAmount: '총 금액',
       refund: '환불',
       refundRequested: '환불 요청됨',
-      refundProcessed: '환불이 완료되었습니다'
+      refundProcessed: '환불이 완료되었습니다',
+      cancelled: '결제 취소됨',
+      cancelledDescription: '결제 과정을 취소했습니다. 원하실 때 다시 시도할 수 있습니다.'
     },
 
     // Admin
@@ -207,9 +214,14 @@ export const educationKo = {
 
     // Attendance
     attendance: {
-      completed: '출석',
       pending: '미정',
-      absent: '결석'
+      not_joined: '미참여',
+      joined: '접속됨',
+      attended: '출석',
+      late: '지각',
+      left_early: '조기 퇴장',
+      absent: '결석',
+      completed: '도달'
     },
 
     // Materials
@@ -242,7 +254,10 @@ export const educationKo = {
       classEnded: '수업이 종료되었습니다',
       connecting: '연결 중...',
       connected: '연결됨',
-      disconnected: '연결 끊김'
+      disconnected: '연결 끊김',
+      closingIn10min: '수업이 10분 후 종료됩니다',
+      closingIn5min: '수업이 5분 후 종료됩니다',
+      closingIn1min: '수업이 1분 후 종료됩니다!'
     },
 
     // Calendar
@@ -314,7 +329,41 @@ export const educationKo = {
       instructorName: '강사',
       completionDate: '수료일',
       download: '수료증 다운로드',
-      generated: '수료증이 발급되었습니다'
-    }
+      generated: '수료증이 발급되었습니다',
+      back: '뒤로',
+      print: '인쇄',
+      platformSubtitle: '문화 교류 교육 플랫폼',
+      completionTitle: '수료 인증서',
+      certifyThat: '다음을 인증합니다',
+      hasCompleted: '다음 과정을 성공적으로 수료했습니다',
+      classes: '수업',
+      hours: '시간',
+      level: '레벨',
+      levelBasic: '기초',
+      levelIntermediate: '중급',
+      levelAdvanced: '고급',
+      dateLabel: '수료일',
+      instructorLabel: '강사',
+      verified: '인증됨',
+      platform: '교육 플랫폼',
+      notFound: '수료증을 찾을 수 없습니다',
+      loadError: '수료증 로드 오류'
+    },
+
+    // Material upload form
+    materialForm: {
+      namePlaceholder: '자료 이름',
+      type: '유형',
+      descriptionOptional: '설명 (선택)',
+      descriptionPlaceholder: '간단한 자료 설명',
+      file: '파일',
+      uploading: '업로드 중...'
+    },
+
+    // Misc
+    securePayment: 'PayPal 보안 결제',
+    stopRecording: '녹화 중지',
+    viewSchedule: '일정 보기',
+    goToCourse: '강좌로 이동'
   }
 }

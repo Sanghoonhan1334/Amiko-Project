@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,13 @@ const supabase = createClient(
 // GET /api/education/admin/stats - Admin dashboard stats
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const admin = await isAdminUser(auth.user.id)
+    if (!admin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
     const [
       { count: totalCourses },
       { count: activeCourses },
@@ -20,7 +28,7 @@ export async function GET(request: NextRequest) {
       supabase.from('education_courses').select('*', { count: 'exact', head: true })
         .in('status', ['published', 'in_progress']),
       supabase.from('education_courses').select('*', { count: 'exact', head: true })
-        .eq('status', 'pending_review'),
+        .in('status', ['pending_review', 'submitted_for_review']),
       supabase.from('education_enrollments').select('*', { count: 'exact', head: true })
         .eq('payment_status', 'completed'),
       supabase.from('instructor_profiles').select('*', { count: 'exact', head: true })
@@ -41,7 +49,7 @@ export async function GET(request: NextRequest) {
         *,
         instructor:instructor_profiles(display_name, photo_url)
       `)
-      .eq('status', 'pending_review')
+      .in('status', ['pending_review', 'submitted_for_review'])
       .order('created_at', { ascending: false })
 
     return NextResponse.json({

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Plus, X, Calendar } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface TimeSlot {
   start: string
@@ -34,16 +35,6 @@ interface ConsultantScheduleEditorProps {
   timezone: string
 }
 
-const DAYS = [
-  { key: 'monday', label: '월요일', short: '월' },
-  { key: 'tuesday', label: '화요일', short: '화' },
-  { key: 'wednesday', label: '수요일', short: '수' },
-  { key: 'thursday', label: '목요일', short: '목' },
-  { key: 'friday', label: '금요일', short: '금' },
-  { key: 'saturday', label: '토요일', short: '토' },
-  { key: 'sunday', label: '일요일', short: '일' }
-]
-
 const TIME_OPTIONS = [
   '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
   '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
@@ -56,6 +47,19 @@ export default function ConsultantScheduleEditor({
   onScheduleChange,
   timezone
 }: ConsultantScheduleEditorProps) {
+  const { language } = useLanguage()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
+
+  const DAYS = [
+    { key: 'monday', label: t('월요일', 'Lunes'), short: t('월', 'Lun') },
+    { key: 'tuesday', label: t('화요일', 'Martes'), short: t('화', 'Mar') },
+    { key: 'wednesday', label: t('수요일', 'Miércoles'), short: t('수', 'Mié') },
+    { key: 'thursday', label: t('목요일', 'Jueves'), short: t('목', 'Jue') },
+    { key: 'friday', label: t('금요일', 'Viernes'), short: t('금', 'Vie') },
+    { key: 'saturday', label: t('토요일', 'Sábado'), short: t('토', 'Sáb') },
+    { key: 'sunday', label: t('일요일', 'Domingo'), short: t('일', 'Dom') }
+  ]
+
   const [selectedDay, setSelectedDay] = useState<keyof WeeklySchedule>('monday')
 
   // schedule이 undefined인 경우 기본값 사용
@@ -158,9 +162,9 @@ export default function ConsultantScheduleEditor({
   return (
     <div className="space-y-6">
       {/* 시간대 표시 */}
-      <div className="flex items-center space-x-2 text-sm text-gray-600">
+      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
         <Clock className="w-4 h-4" />
-        <span>현재 시간대: {timezone}</span>
+        <span>{t('현재 시간대', 'Zona horaria actual')}: {timezone}</span>
       </div>
 
       {/* 빠른 설정 버튼들 */}
@@ -170,41 +174,41 @@ export default function ConsultantScheduleEditor({
           size="sm"
           onClick={() => setWeekdaySchedule(true)}
         >
-          평일 09:00-18:00 설정
+          {t('평일 09:00-18:00 설정', 'Config. L-V 09:00-18:00')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setWeekdaySchedule(false)}
         >
-          평일 휴무 설정
+          {t('평일 휴무 설정', 'Config. L-V Descanso')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setWeekendSchedule(true)}
         >
-          주말 10:00-17:00 설정
+          {t('주말 10:00-17:00 설정', 'Config. S-D 10:00-17:00')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setWeekendSchedule(false)}
         >
-          주말 휴무 설정
+          {t('주말 휴무 설정', 'Config. S-D Descanso')}
         </Button>
       </div>
 
       {/* 요일별 탭 */}
-      <div className="flex space-x-1 border-b">
+      <div className="flex space-x-1 border-b dark:border-gray-700">
         {DAYS.map((day) => (
           <button
             key={day.key}
             onClick={() => setSelectedDay(day.key as keyof WeeklySchedule)}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               selectedDay === day.key
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-b-2 border-blue-700 dark:border-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             {day.short}
@@ -217,17 +221,17 @@ export default function ConsultantScheduleEditor({
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>{DAYS.find(d => d.key === selectedDay)?.label} 일정</span>
+            <span>{DAYS.find(d => d.key === selectedDay)?.label} {t('일정', 'Horario')}</span>
           </CardTitle>
           <CardDescription>
-            {safeSchedule[selectedDay].isWorking ? '근무일' : '휴무일'} - 
-            {safeSchedule[selectedDay].timeSlots.length}개 시간 슬롯
+            {safeSchedule[selectedDay].isWorking ? t('근무일', 'Día Laboral') : t('휴무일', 'Día de Descanso')} - 
+            {safeSchedule[selectedDay].timeSlots.length}{t('개 시간 슬롯', ' franjas horarias')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 근무 여부 토글 */}
           <div className="flex items-center space-x-4">
-            <Label className="text-sm font-medium">근무 여부</Label>
+            <Label className="text-sm font-medium">{t('근무 여부', 'Estado Laboral')}</Label>
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -237,7 +241,7 @@ export default function ConsultantScheduleEditor({
                 className="w-4 h-4"
               />
               <Label htmlFor={`working-${selectedDay}`}>
-                {safeSchedule[selectedDay].isWorking ? '근무일' : '휴무일'}
+                {safeSchedule[selectedDay].isWorking ? t('근무', 'Trabajo') : t('휴무', 'Descanso')}
               </Label>
             </div>
             <Button
@@ -245,7 +249,7 @@ export default function ConsultantScheduleEditor({
               size="sm"
               onClick={() => copyScheduleToAll(selectedDay)}
             >
-              다른 요일에 복사
+              {t('다른 요일에 복사', 'Copiar a Otros Días')}
             </Button>
           </div>
 
@@ -253,7 +257,7 @@ export default function ConsultantScheduleEditor({
           {safeSchedule[selectedDay].isWorking && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">예약 가능 시간</Label>
+                <Label className="text-sm font-medium">{t('예약 가능 시간', 'Horarios Disponibles')}</Label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -261,14 +265,14 @@ export default function ConsultantScheduleEditor({
                   className="flex items-center space-x-1"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>시간 추가</span>
+                  <span>{t('시간 추가', 'Agregar Horario')}</span>
                 </Button>
               </div>
 
               {safeSchedule[selectedDay].timeSlots.map((slot, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="flex items-center space-x-2">
-                    <Label className="text-sm">시작:</Label>
+                    <Label className="text-sm">{t('시작', 'Inicio')}:</Label>
                     <Select
                       value={slot.start}
                       onValueChange={(value) => updateTimeSlot(selectedDay, index, 'start', value)}
@@ -287,7 +291,7 @@ export default function ConsultantScheduleEditor({
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Label className="text-sm">종료:</Label>
+                    <Label className="text-sm">{t('종료', 'Fin')}:</Label>
                     <Select
                       value={slot.end}
                       onValueChange={(value) => updateTimeSlot(selectedDay, index, 'end', value)}
@@ -314,7 +318,7 @@ export default function ConsultantScheduleEditor({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeTimeSlot(selectedDay, index)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -326,10 +330,10 @@ export default function ConsultantScheduleEditor({
 
           {/* 휴무일 메시지 */}
           {!safeSchedule[selectedDay].isWorking && (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              <p>이 요일은 휴무일입니다.</p>
-              <p className="text-sm">예약을 받지 않습니다.</p>
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+              <p>{t('이 요일은 휴무일입니다.', 'Este día es de descanso.')}</p>
+              <p className="text-sm">{t('예약을 받지 않습니다.', 'No se aceptan reservas.')}</p>
             </div>
           )}
         </CardContent>
@@ -338,13 +342,13 @@ export default function ConsultantScheduleEditor({
       {/* 전체 일정 요약 */}
       <Card>
         <CardHeader>
-          <CardTitle>주간 일정 요약</CardTitle>
+          <CardTitle>{t('주간 일정 요약', 'Resumen del Horario Semanal')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
             {DAYS.map((day) => (
               <div key={day.key} className="text-center">
-                <div className="text-sm font-medium text-gray-600 mb-1">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                   {day.short}
                 </div>
                 <div className="text-xs">
@@ -357,7 +361,7 @@ export default function ConsultantScheduleEditor({
                       ))}
                     </div>
                   ) : (
-                    <Badge variant="secondary" className="text-xs">휴무</Badge>
+                    <Badge variant="secondary" className="text-xs">{t('휴무', 'Descanso')}</Badge>
                   )}
                 </div>
               </div>

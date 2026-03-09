@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // 화상 채팅 파트너 삭제
 export async function DELETE(
@@ -8,6 +9,9 @@ export async function DELETE(
 ) {
   const params = await context.params
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     const supabase = createAdminClient()
 
     const { error } = await supabase

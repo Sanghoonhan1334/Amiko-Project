@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -45,6 +47,9 @@ interface MentorStatus {
 }
 
 export default function MentorStatusManager() {
+  const { language } = useLanguage()
+  const { token } = useAuth()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
   const [mentors, setMentors] = useState<MentorStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
@@ -53,17 +58,19 @@ export default function MentorStatusManager() {
   const fetchMentorStatus = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/mentors/status')
+      const response = await fetch('/api/mentors/status', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const data = await response.json()
 
       if (data.success) {
         setMentors(data.mentors || [])
       } else {
-        toast.error('멘토 상태를 불러오는데 실패했습니다.')
+        toast.error(t('멘토 상태를 불러오는데 실패했습니다.', 'No se pudo cargar el estado de los mentores.'))
       }
     } catch (error) {
       console.error('멘토 상태 조회 실패:', error)
-      toast.error('멘토 상태를 불러오는데 실패했습니다.')
+      toast.error(t('멘토 상태를 불러오는데 실패했습니다.', 'No se pudo cargar el estado de los mentores.'))
     } finally {
       setLoading(false)
     }
@@ -77,6 +84,7 @@ export default function MentorStatusManager() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           mentorId,
@@ -88,14 +96,14 @@ export default function MentorStatusManager() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('멘토 상태가 업데이트되었습니다.')
+        toast.success(t('멘토 상태가 업데이트되었습니다.', 'El estado del mentor se ha actualizado.'))
         fetchMentorStatus() // 목록 새로고침
       } else {
-        toast.error(data.error || '상태 업데이트에 실패했습니다.')
+        toast.error(data.error || t('상태 업데이트에 실패했습니다.', 'Error al cambiar el estado.'))
       }
     } catch (error) {
       console.error('멘토 상태 업데이트 실패:', error)
-      toast.error('상태 업데이트에 실패했습니다.')
+      toast.error(t('상태 업데이트에 실패했습니다.', 'Error al cambiar el estado.'))
     } finally {
       setUpdating(null)
     }
@@ -134,13 +142,13 @@ export default function MentorStatusManager() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'online':
-        return '온라인'
+        return t('온라인', 'En línea')
       case 'busy':
-        return '다른 상담 중'
+        return t('다른 상담 중', 'Ocupado')
       case 'offline':
-        return '오프라인'
+        return t('오프라인', 'Desconectado')
       default:
-        return '알 수 없음'
+        return t('알 수 없음', 'Desconocido')
     }
   }
 
@@ -148,7 +156,7 @@ export default function MentorStatusManager() {
     return (
       <div className="flex items-center justify-center p-8">
         <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
-        <span className="ml-2 text-gray-600">멘토 상태를 불러오는 중...</span>
+        <span className="ml-2 text-gray-600 dark:text-gray-400">{t('멘토 상태를 불러오는 중...', 'Cargando estado de mentores...')}</span>
       </div>
     )
   }
@@ -158,12 +166,12 @@ export default function MentorStatusManager() {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">멘토 상태 관리</h2>
-          <p className="text-gray-600">멘토들의 현재 상태를 관리하고 모니터링하세요.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('멘토 상태 관리', 'Gestión de Estado de Mentores')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('멘토들의 현재 상태를 관리하고 모니터링하세요.', 'Gestione y monitoree el estado actual de los mentores.')}</p>
         </div>
         <Button onClick={fetchMentorStatus} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
-          새로고침
+          {t('새로고침', 'Actualizar')}
         </Button>
       </div>
 
@@ -172,11 +180,11 @@ export default function MentorStatusManager() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">온라인</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('온라인', 'En línea')}</p>
                 <p className="text-xl font-bold text-green-600">
                   {mentors.filter(m => m.status === 'online' && m.is_active).length}
                 </p>
@@ -188,11 +196,11 @@ export default function MentorStatusManager() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                 <Clock className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">다른 상담 중</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('다른 상담 중', 'Ocupado')}</p>
                 <p className="text-xl font-bold text-orange-600">
                   {mentors.filter(m => m.status === 'busy' && m.is_active).length}
                 </p>
@@ -204,11 +212,11 @@ export default function MentorStatusManager() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">오프라인</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('오프라인', 'Desconectado')}</p>
                 <p className="text-xl font-bold text-gray-600">
                   {mentors.filter(m => m.status === 'offline' && m.is_active).length}
                 </p>
@@ -220,11 +228,11 @@ export default function MentorStatusManager() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">전체 멘토</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('전체 멘토', 'Total de Mentores')}</p>
                 <p className="text-xl font-bold text-blue-600">
                   {mentors.filter(m => m.is_active).length}
                 </p>
@@ -239,7 +247,7 @@ export default function MentorStatusManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            멘토 상태 관리
+            {t('멘토 상태 관리', 'Gestión de Estado de Mentores')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -247,7 +255,7 @@ export default function MentorStatusManager() {
             {mentors.map((mentor) => (
               <div
                 key={mentor.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md dark:hover:shadow-gray-900/30 transition-shadow dark:bg-gray-800/50"
               >
                 <div className="flex items-center gap-4">
                   {/* 멘토 아바타 */}
@@ -259,21 +267,21 @@ export default function MentorStatusManager() {
 
                   {/* 멘토 정보 */}
                   <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {mentor.mentors?.name || '알 수 없는 멘토'}
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {mentor.mentors?.name || t('알 수 없는 멘토', 'Mentor desconocido')}
                     </h3>
-                    <p className="text-sm text-gray-600">
-                      {mentor.mentors?.email || '이메일 없음'}
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {mentor.mentors?.email || t('이메일 없음', 'Sin email')}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {mentor.mentors?.is_korean ? '한국인' : '현지인'}
+                        {mentor.mentors?.is_korean ? t('한국인', 'Coreano/a') : t('현지인', 'Local')}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        경력 {mentor.mentors?.experience_years || 0}년
+                        {t('경력', 'Exp.')} {mentor.mentors?.experience_years || 0}{t('년', ' años')}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        평점 {mentor.mentors?.rating || 0}
+                        {t('평점', 'Punt.')} {mentor.mentors?.rating || 0}
                       </Badge>
                     </div>
                   </div>
@@ -302,9 +310,9 @@ export default function MentorStatusManager() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="online">온라인</SelectItem>
-                        <SelectItem value="busy">다른 상담 중</SelectItem>
-                        <SelectItem value="offline">오프라인</SelectItem>
+                        <SelectItem value="online">{t('온라인', 'En línea')}</SelectItem>
+                        <SelectItem value="busy">{t('다른 상담 중', 'Ocupado')}</SelectItem>
+                        <SelectItem value="offline">{t('오프라인', 'Desconectado')}</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -317,15 +325,15 @@ export default function MentorStatusManager() {
                         }
                         disabled={updating === mentor.mentor_id}
                       />
-                      <Label className="text-sm">
-                        {mentor.is_active ? '활성' : '비활성'}
+                      <Label className="text-sm dark:text-gray-300">
+                        {mentor.is_active ? t('활성', 'Activo') : t('비활성', 'Inactivo')}
                       </Label>
                     </div>
                   </div>
 
                   {/* 마지막 활동 시간 */}
-                  <div className="text-xs text-gray-500">
-                    {new Date(mentor.updated_at).toLocaleString('ko-KR')}
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(mentor.updated_at).toLocaleString(language === 'ko' ? 'ko-KR' : 'es-ES')}
                   </div>
                 </div>
               </div>

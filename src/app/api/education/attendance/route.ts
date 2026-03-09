@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendCertificateEmail } from '@/lib/education-email'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,9 +11,13 @@ const supabase = createClient(
 // POST /api/education/attendance - Mark attendance
 export async function POST(request: NextRequest) {
   try {
-    const { session_id, student_id, status } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const student_id = auth.user.id
 
-    if (!session_id || !student_id || !status) {
+    const { session_id, status } = await request.json()
+
+    if (!session_id || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -20,7 +25,7 @@ export async function POST(request: NextRequest) {
     const updateData: Record<string, unknown> = { status }
 
     if (status === 'completed') {
-      updateData.joined_at = updateData.joined_at || now
+      updateData.joined_at = now
     }
 
     const { data, error } = await supabase
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
         .from('education_attendance')
         .select('*', { count: 'exact', head: true })
         .eq('student_id', student_id)
-        .eq('status', 'completed')
+        .in('status', ['attended', 'completed', 'late'])
         .in('session_id',
           (await supabase.from('education_sessions').select('id').eq('course_id', session.course_id)).data?.map(s => s.id) || []
         )

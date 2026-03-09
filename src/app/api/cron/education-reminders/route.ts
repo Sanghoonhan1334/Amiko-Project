@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in24h.toISOString())
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in1h.toISOString())
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
       .from('education_sessions')
       .select(`
         id, title, session_number, scheduled_at, duration_minutes,
-        course:education_courses!inner(id, title, instructor_id)
+        course:education_courses!inner(id, title, instructor_id, instructor:instructor_profiles(user_id))
       `)
       .eq('status', 'scheduled')
       .gte('scheduled_at', in15m.toISOString())
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
 
     if (sessions15m?.length) {
       for (const session of sessions15m) {
-        const sent = await sendReminders(session, '15m')
+        const sent = await sendReminders(session, '15min')
         results.reminders15m += sent
       }
     }
@@ -101,87 +101,99 @@ export async function GET(req: Request) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function sendReminders(
   session: any,
-  type: '24h' | '1h' | '15m'
+  type: '24h' | '1h' | '15min'
 ): Promise<number> {
   const courseId = session.course?.id
   if (!courseId) return 0
 
-  // 해당 과정에 등록된 학생 조회
+  // Obtener estudiantes inscritos activos con pago completado
   const { data: enrollments } = await supabase
     .from('education_enrollments')
     .select('student_id')
     .eq('course_id', courseId)
-    .eq('enrollment_status', 'active')
+    .in('enrollment_status', ['active', 'enrolled'])
     .eq('payment_status', 'completed')
 
   if (!enrollments?.length) return 0
 
-  // 이미 보낸 알림인지 확인
-  const { data: existingReminder } = await supabase
-    .from('education_reminders')
+  // Comprobar si ya se envió este recordatorio (usando la tabla de seguimiento del cron)
+  const { data: alreadySent } = await supabase
+    .from('education_reminder_sends')
     .select('id')
     .eq('session_id', session.id)
     .eq('reminder_type', type)
-    .eq('sent', true)
     .limit(1)
 
-  if (existingReminder?.length) return 0
+  if (alreadySent?.length) return 0
 
-  // 알림 생성 또는 업데이트
-  const reminderData = {
-    session_id: session.id,
-    reminder_type: type,
-    scheduled_for: session.scheduled_at,
-    sent: true,
-    sent_at: new Date().toISOString()
+  // Registrar el envío en education_reminder_sends ANTES de enviar
+  // para evitar envíos dobles si el cron se ejecuta en paralelo
+  const { error: insertSendError } = await supabase
+    .from('education_reminder_sends')
+    .insert({
+      session_id: session.id,
+      reminder_type: type,
+      recipients: enrollments.length
+    })
+
+  // Si el insert falla por duplicado, otro worker ya lo procesó
+  if (insertSendError) {
+    if (insertSendError.code === '23505') return 0 // unique violation
+    console.error(`[Education Cron] reminder_sends insert error:`, insertSendError)
+    return 0
   }
 
-  await supabase
-    .from('education_reminders')
-    .upsert(reminderData, { onConflict: 'session_id,reminder_type' })
+  // Construir notificaciones para estudiantes
+  const courseTitle = session.course.title as string
+  const sessionLabel = session.title || `Sesión ${session.session_number}`
 
-  // 앱 내 알림 생성 (각 학생에게)
+  const titleByType = {
+    '24h':   `📚 Tu clase "${courseTitle}" es mañana`,
+    '1h':    `⏰ Tu clase "${courseTitle}" comienza en 1 hora`,
+    '15min': `🔔 Tu clase "${courseTitle}" comienza en 15 minutos`
+  }
+
   const notifications = enrollments.map(enrollment => ({
     user_id: enrollment.student_id,
     type: 'education_reminder',
-    title: type === '24h'
-      ? `📚 Tu clase "${session.course.title}" es mañana`
-      : type === '1h'
-        ? `⏰ Tu clase "${session.course.title}" comienza en 1 hora`
-        : `🔔 Tu clase "${session.course.title}" comienza en 15 minutos`,
-    message: `Sesión ${session.session_number}: ${session.title || session.course.title}`,
+    title: titleByType[type],
+    message: `${sessionLabel} — ${new Date(session.scheduled_at).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })}`,
     link: `/education/class/${session.id}`,
     is_read: false
   }))
 
-  // 강사에게도 알림
-  if (session.course?.instructor_id) {
+  // Añadir notificación para el instructor
+  const instructorUserId = (session.course?.instructor as { user_id?: string } | null)?.user_id
+  if (instructorUserId) {
     notifications.push({
-      user_id: session.course.instructor_id,
+      user_id: instructorUserId,
       type: 'education_reminder',
-      title: type === '24h'
-        ? `📚 Tu clase "${session.course.title}" es mañana`
-        : type === '1h'
-          ? `⏰ Tu clase "${session.course.title}" comienza en 1 hora`
-          : `🔔 Tu clase "${session.course.title}" comienza en 15 minutos`,
-      message: `Sesión ${session.session_number}: ${session.title || session.course.title} - ${enrollments.length} estudiantes`,
+      title: titleByType[type],
+      message: `${sessionLabel} — ${enrollments.length} estudiantes inscritos`,
       link: `/education/class/${session.id}`,
       is_read: false
     })
   }
 
-  const { error } = await supabase
+  const { error: notifError } = await supabase
     .from('notifications')
     .insert(notifications)
 
-  if (error) {
-    console.error(`Error sending ${type} reminders for session ${session.id}:`, error)
+  if (notifError) {
+    console.error(`[Education Cron] Error inserting reminders for session ${session.id}:`, notifError)
+    // Revertir el registro de envío para que pueda reintentarse
+    await supabase
+      .from('education_reminder_sends')
+      .delete()
+      .eq('session_id', session.id)
+      .eq('reminder_type', type)
     return 0
   }
 
-  // Also send email reminders to enrolled students
+  // Enviar email a cada estudiante
   for (const enrollment of enrollments) {
     try {
       const { data: profile } = await supabase
@@ -194,15 +206,15 @@ async function sendReminders(
         await sendEducationReminderEmail(
           profile.email,
           profile.full_name || profile.username || 'Estudiante',
-          session.course.title,
-          session.title || session.course.title,
+          courseTitle,
+          sessionLabel,
           session.session_number,
           session.scheduled_at,
           type
         )
       }
     } catch (emailErr) {
-      console.error(`Error sending email to student ${enrollment.student_id}:`, emailErr)
+      console.error(`[Education Cron] Email error for student ${enrollment.student_id}:`, emailErr)
     }
   }
 

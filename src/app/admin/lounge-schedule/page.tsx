@@ -21,8 +21,9 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import { ko as koLocale, es as esLocale } from 'date-fns/locale'
 import { createClient } from '@supabase/supabase-js'
+import { useLanguage } from '@/context/LanguageContext'
 
 // 운영자 권한 체크
 const isOperator = async (): Promise<boolean> => {
@@ -71,6 +72,9 @@ interface LoungeSchedule {
 }
 
 export default function LoungeSchedulePage() {
+  const { language } = useLanguage()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
+
   const [schedules, setSchedules] = useState<LoungeSchedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -109,8 +113,8 @@ export default function LoungeSchedulePage() {
         scheduled_date: '2025-01-25',
         start_time: '20:00',
         duration_minutes: 120,
-        topic: '한국 음식 문화 이야기',
-        description: '한국의 다양한 음식과 문화에 대해 이야기해요',
+        topic: t('한국 음식 문화 이야기', 'Cultura gastronómica coreana'),
+        description: t('한국의 다양한 음식과 문화에 대해 이야기해요', 'Hablemos sobre la diversa gastronomía y cultura de Corea'),
         status: 'confirmed',
         max_participants: 30,
         created_at: '2025-01-20T10:00:00Z'
@@ -120,8 +124,8 @@ export default function LoungeSchedulePage() {
         scheduled_date: '2025-02-01',
         start_time: '19:00',
         duration_minutes: 120,
-        topic: '한국 여행 가이드',
-        description: '한국 여행 추천 코스와 팁을 공유해요',
+        topic: t('한국 여행 가이드', 'Guía de viaje a Corea'),
+        description: t('한국 여행 추천 코스와 팁을 공유해요', 'Compartamos rutas y tips recomendados para viajar a Corea'),
         status: 'draft',
         max_participants: 25,
         created_at: '2025-01-21T10:00:00Z'
@@ -164,31 +168,34 @@ export default function LoungeSchedulePage() {
   const createSchedule = async (data: Partial<LoungeSchedule>) => {
     // TODO: 실제 Supabase API 호출
     console.log('새 일정 생성:', data)
-    alert('새 일정이 생성되었습니다!')
+    alert(t('새 일정이 생성되었습니다!', '¡Se ha creado un nuevo horario!'))
   }
 
   // 일정 수정
   const updateSchedule = async (id: string, data: Partial<LoungeSchedule>) => {
     // TODO: 실제 Supabase API 호출
     console.log('일정 수정:', id, data)
-    alert('일정이 수정되었습니다!')
+    alert(t('일정이 수정되었습니다!', '¡El horario ha sido modificado!'))
   }
 
   // 일정 상태 변경
   const updateScheduleStatus = async (id: string, status: ScheduleStatus) => {
     // TODO: 실제 Supabase API 호출
     console.log('일정 상태 변경:', id, status)
-    alert(`일정 상태가 ${status === 'confirmed' ? '확정' : '취소'}되었습니다!`)
+    alert(t(
+      `일정 상태가 ${status === 'confirmed' ? '확정' : '취소'}되었습니다!`,
+      `¡El estado ha sido ${status === 'confirmed' ? 'confirmado' : 'cancelado'}!`
+    ))
     loadSchedules()
   }
 
   // 일정 삭제
   const deleteSchedule = async (id: string) => {
-    if (!confirm('정말로 이 일정을 삭제하시겠습니까?')) return
+    if (!confirm(t('정말로 이 일정을 삭제하시겠습니까?', '¿Está seguro de eliminar esta sesión?'))) return
     
     // TODO: 실제 Supabase API 호출
     console.log('일정 삭제:', id)
-    alert('일정이 삭제되었습니다!')
+    alert(t('일정이 삭제되었습니다!', '¡El horario ha sido eliminado!'))
     loadSchedules()
   }
 
@@ -224,11 +231,11 @@ export default function LoungeSchedulePage() {
   const getStatusBadge = (status: ScheduleStatus) => {
     switch (status) {
       case 'draft':
-        return <Badge className="bg-gray-100 text-gray-700 border-gray-300">초안</Badge>
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">{t('초안', 'Borrador')}</Badge>
       case 'confirmed':
-        return <Badge className="bg-green-100 text-green-700 border-green-300">확정</Badge>
+        return <Badge className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700">{t('확정', 'Confirmado')}</Badge>
       case 'cancelled':
-        return <Badge className="bg-red-100 text-red-700 border-red-300">취소</Badge>
+        return <Badge className="bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-300 dark:border-red-700">{t('취소', 'Cancelado')}</Badge>
     }
   }
 
@@ -244,7 +251,7 @@ export default function LoungeSchedulePage() {
               className="bg-green-600 hover:bg-green-700"
             >
               <CheckCircle className="w-4 h-4 mr-1" />
-              확정
+              {t('확정', 'Confirmar')}
             </Button>
             <Button
               size="sm"
@@ -252,16 +259,16 @@ export default function LoungeSchedulePage() {
               onClick={() => startEditing(schedule)}
             >
               <Edit className="w-4 h-4 mr-1" />
-              수정
+              {t('수정', 'Editar')}
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => deleteSchedule(schedule.id)}
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-950"
             >
               <Trash2 className="w-4 h-4 mr-1" />
-              삭제
+              {t('삭제', 'Eliminar')}
             </Button>
           </div>
         )
@@ -274,16 +281,16 @@ export default function LoungeSchedulePage() {
               onClick={() => startEditing(schedule)}
             >
               <Edit className="w-4 h-4 mr-1" />
-              수정
+              {t('수정', 'Editar')}
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => updateScheduleStatus(schedule.id, 'cancelled')}
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-950"
             >
               <XCircle className="w-4 h-4 mr-1" />
-              취소
+              {t('취소', 'Cancelar')}
             </Button>
           </div>
         )
@@ -296,16 +303,16 @@ export default function LoungeSchedulePage() {
               className="bg-gray-600 hover:bg-gray-700"
             >
               <Edit className="w-4 h-4 mr-1" />
-              초안으로
+              {t('초안으로', 'A borrador')}
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => deleteSchedule(schedule.id)}
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-950"
             >
               <Trash2 className="w-4 h-4 mr-1" />
-              삭제
+              {t('삭제', 'Eliminar')}
             </Button>
           </div>
         )
@@ -314,26 +321,26 @@ export default function LoungeSchedulePage() {
 
   if (!isOperator()) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">접근 권한이 없습니다</h1>
-          <p className="text-gray-600">운영자만 접근할 수 있는 페이지입니다.</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">{t('접근 권한이 없습니다', 'No tiene permisos de acceso')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('운영자만 접근할 수 있는 페이지입니다.', 'Solo acceso para administradores.')}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            🎈 ZEP 라운지 일정 관리
+          <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            {t('🎈 ZEP 라운지 일정 관리', '🎈 Gestión de Horarios del Lounge ZEP')}
           </h1>
-          <p className="text-lg text-gray-600">
-            운영자로서 라운지 일정을 관리하고 확정할 수 있습니다
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            {t('운영자로서 라운지 일정을 관리하고 확정할 수 있습니다', 'Administre y confirme los horarios del lounge como operador')}
           </p>
         </div>
 
@@ -344,17 +351,17 @@ export default function LoungeSchedulePage() {
             className="bg-gradient-to-r from-brand-500 to-mint-500 hover:from-brand-600 hover:to-mint-600 text-white px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             <Plus className="w-5 h-5 mr-2" />
-            새 일정 만들기
+            {t('새 일정 만들기', 'Agregar Nueva Sesión')}
           </Button>
         </div>
 
         {/* 일정 생성/수정 폼 */}
         {showForm && (
-          <Card className="mb-8 bg-white/80 backdrop-blur-sm border-2 border-brand-200/50">
+          <Card className="mb-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-brand-200/50 dark:border-brand-700/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3">
+              <CardTitle className="flex items-center gap-3 dark:text-gray-100">
                 {editingSchedule ? <Edit className="w-6 h-6 text-brand-600" /> : <Plus className="w-6 h-6 text-brand-600" />}
-                {editingSchedule ? '일정 수정' : '새 일정 생성'}
+                {editingSchedule ? t('일정 수정', 'Editar Sesión') : t('새 일정 생성', 'Agregar Nueva Sesión')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -362,7 +369,7 @@ export default function LoungeSchedulePage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* 날짜 */}
                   <div>
-                    <Label htmlFor="scheduled_date">일정 날짜</Label>
+                    <Label htmlFor="scheduled_date" className="dark:text-gray-200">{t('일정 날짜', 'Fecha')}</Label>
                     <Input
                       id="scheduled_date"
                       type="date"
@@ -375,7 +382,7 @@ export default function LoungeSchedulePage() {
 
                   {/* 시간 */}
                   <div>
-                    <Label htmlFor="start_time">시작 시간</Label>
+                    <Label htmlFor="start_time" className="dark:text-gray-200">{t('시작 시간', 'Hora de Inicio')}</Label>
                     <Input
                       id="start_time"
                       type="time"
@@ -387,7 +394,7 @@ export default function LoungeSchedulePage() {
 
                   {/* 지속시간 */}
                   <div>
-                    <Label htmlFor="duration_minutes">지속시간 (분)</Label>
+                    <Label htmlFor="duration_minutes" className="dark:text-gray-200">{t('지속시간 (분)', 'Duración (min)')}</Label>
                     <Select
                       value={formData.duration_minutes.toString()}
                       onValueChange={(value) => setFormData({ ...formData, duration_minutes: parseInt(value) })}
@@ -396,17 +403,17 @@ export default function LoungeSchedulePage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="60">60분 (1시간)</SelectItem>
-                        <SelectItem value="90">90분 (1.5시간)</SelectItem>
-                        <SelectItem value="120">120분 (2시간)</SelectItem>
-                        <SelectItem value="180">180분 (3시간)</SelectItem>
+                        <SelectItem value="60">{t('60분 (1시간)', '60 min (1 hora)')}</SelectItem>
+                        <SelectItem value="90">{t('90분 (1.5시간)', '90 min (1 hora 30 min)')}</SelectItem>
+                        <SelectItem value="120">{t('120분 (2시간)', '120 min (2 horas)')}</SelectItem>
+                        <SelectItem value="180">{t('180분 (3시간)', '180 min (3 horas)')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* 최대 참여자 */}
                   <div>
-                    <Label htmlFor="max_participants">최대 참여자 수</Label>
+                    <Label htmlFor="max_participants" className="dark:text-gray-200">{t('최대 참여자 수', 'Máximo de Participantes')}</Label>
                     <Input
                       id="max_participants"
                       type="number"
@@ -421,24 +428,24 @@ export default function LoungeSchedulePage() {
 
                 {/* 주제 */}
                 <div>
-                  <Label htmlFor="topic">라운지 주제</Label>
+                  <Label htmlFor="topic" className="dark:text-gray-200">{t('라운지 주제', 'Tema del Lounge')}</Label>
                   <Input
                     id="topic"
                     value={formData.topic}
                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    placeholder="예: 한국 음식 문화 이야기"
+                    placeholder={t('예: 한국 음식 문화 이야기', 'Ej: Cultura gastronómica coreana')}
                     required
                   />
                 </div>
 
                 {/* 설명 */}
                 <div>
-                  <Label htmlFor="description">상세 설명</Label>
+                  <Label htmlFor="description" className="dark:text-gray-200">{t('상세 설명', 'Descripción Detallada')}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="라운지에서 다룰 내용을 자세히 설명해주세요"
+                    placeholder={t('라운지에서 다룰 내용을 자세히 설명해주세요', 'Describa en detalle el contenido del lounge')}
                     rows={3}
                   />
                 </div>
@@ -446,11 +453,11 @@ export default function LoungeSchedulePage() {
                 {/* 버튼 */}
                 <div className="flex gap-4 justify-end">
                   <Button type="button" variant="outline" onClick={cancelForm}>
-                    취소
+                    {t('취소', 'Cancelar')}
                   </Button>
                   <Button type="submit" className="bg-brand-600 hover:bg-brand-700">
                     <Save className="w-4 h-4 mr-2" />
-                    {editingSchedule ? '수정하기' : '생성하기'}
+                    {editingSchedule ? t('수정하기', 'Guardar') : t('생성하기', 'Crear')}
                   </Button>
                 </div>
               </form>
@@ -460,54 +467,54 @@ export default function LoungeSchedulePage() {
 
         {/* 일정 목록 */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-            📅 라운지 일정 목록
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 text-center mb-6">
+            {t('📅 라운지 일정 목록', '📅 Lista de Horarios del Lounge')}
           </h2>
 
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
-              <p className="mt-4 text-gray-600">일정을 불러오는 중...</p>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">{t('일정을 불러오는 중...', 'Cargando horarios...')}</p>
             </div>
           ) : schedules.length === 0 ? (
-            <Card className="bg-white/80 backdrop-blur-sm border-2 border-gray-200/50">
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50">
               <CardContent className="text-center py-12">
                 <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">아직 일정이 없습니다</h3>
-                <p className="text-gray-500">새 일정을 만들어보세요!</p>
+                <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">{t('아직 일정이 없습니다', 'No hay sesiones')}</h3>
+                <p className="text-gray-500 dark:text-gray-400">{t('새 일정을 만들어보세요!', '¡Cree una nueva sesión!')}</p>
               </CardContent>
             </Card>
           ) : (
             schedules.map((schedule) => (
-              <Card key={schedule.id} className="bg-white/80 backdrop-blur-sm border-2 border-mint-200/50">
+              <Card key={schedule.id} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-mint-200/50 dark:border-mint-700/50">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* 일정 정보 */}
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-semibold text-gray-800">
+                        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                           {schedule.topic}
                         </h3>
                         {getStatusBadge(schedule.status)}
                       </div>
                       
-                      <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-brand-500" />
-                          <span>{format(new Date(schedule.scheduled_date), 'M월 d일 (E)', { locale: ko })}</span>
+                          <span>{format(new Date(schedule.scheduled_date), language === 'ko' ? 'M월 d일 (E)' : "d 'de' MMM (E)", { locale: language === 'ko' ? koLocale : esLocale })}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-mint-500" />
-                          <span>{schedule.start_time} ({schedule.duration_minutes}분)</span>
+                          <span>{schedule.start_time} ({schedule.duration_minutes}{t('분', ' min')})</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-yellow-500" />
-                          <span>최대 {schedule.max_participants}명</span>
+                          <span>{t('최대', 'Máx.')} {schedule.max_participants}{t('명', ' personas')}</span>
                         </div>
                       </div>
                       
                       {schedule.description && (
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
                           {schedule.description}
                         </p>
                       )}

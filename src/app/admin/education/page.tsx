@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useEducationTranslation } from '@/hooks/useEducationTranslation'
+import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +24,7 @@ import { format } from 'date-fns'
 
 export default function AdminEducationPage() {
   const { te } = useEducationTranslation()
+  const { token } = useAuth()
   const [stats, setStats] = useState<EducationAdminStats | null>(null)
   const [pendingCourses, setPendingCourses] = useState<EducationCourse[]>([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +39,9 @@ export default function AdminEducationPage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/education/admin/stats')
+      const res = await fetch('/api/education/admin/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const data = await res.json()
       setStats(data.stats)
       setPendingCourses(data.pendingCourses || [])
@@ -52,7 +56,8 @@ export default function AdminEducationPage() {
     setActionLoading(true)
     try {
       const res = await fetch(`/api/education/courses/${courseId}/approve`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) {
         setPendingCourses(prev => prev.filter(c => c.id !== courseId))
@@ -71,7 +76,7 @@ export default function AdminEducationPage() {
     try {
       const res = await fetch(`/api/education/courses/${selectedCourse.id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ reason: rejectionReason })
       })
       if (res.ok) {

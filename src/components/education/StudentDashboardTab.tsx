@@ -183,6 +183,7 @@ function EnrollmentCard({
   onClick: () => void
   onRefund?: (enrollmentId: string) => void
 }) {
+  const router = useRouter()
   const course = enrollment.course
 
   return (
@@ -245,9 +246,17 @@ function EnrollmentCard({
             {/* Quick Actions */}
             <div className="flex items-center gap-2 pt-1">
               {enrollment.enrollment_status === 'active' && (
-                <Button size="sm" variant="default" className="h-7 text-xs">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push(`/education/course/${enrollment.course_id}`)
+                  }}
+                >
                   <Calendar className="w-3 h-3 mr-1" />
-                  {te('education.student.viewCalendar')}
+                  {te('education.viewSchedule')}
                 </Button>
               )}
               {enrollment.certificate_issued && enrollment.certificate_url && (
@@ -257,7 +266,11 @@ function EnrollmentCard({
                   className="h-7 text-xs"
                   onClick={(e) => {
                     e.stopPropagation()
-                    window.open(enrollment.certificate_url!, '_blank')
+                    if (enrollment.certificate_url?.startsWith('/')) {
+                      router.push(enrollment.certificate_url)
+                    } else {
+                      router.push(`/education/certificate/${enrollment.id}`)
+                    }
                   }}
                 >
                   <Award className="w-3 h-3 mr-1" />

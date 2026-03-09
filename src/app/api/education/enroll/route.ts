@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,9 +10,13 @@ const supabase = createClient(
 // POST /api/education/enroll - Student enrolls in a course (after PayPal payment)
 export async function POST(request: NextRequest) {
   try {
-    const { course_id, student_id, paypal_order_id, amount_paid } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const student_id = auth.user.id
 
-    if (!course_id || !student_id || !paypal_order_id) {
+    const { course_id, paypal_order_id, amount_paid } = await request.json()
+
+    if (!course_id || !paypal_order_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -80,16 +85,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/education/enroll?studentId=xxx - Get student's enrollments
+// GET /api/education/enroll?courseId=xxx - Get student's enrollments (auth required)
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const studentId = searchParams.get('studentId')
-    const courseId = searchParams.get('courseId')
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
 
-    if (!studentId && !courseId) {
-      return NextResponse.json({ error: 'studentId or courseId required' }, { status: 400 })
-    }
+    const { searchParams } = new URL(request.url)
+    const courseId = searchParams.get('courseId')
 
     let query = supabase
       .from('education_enrollments')
@@ -100,8 +104,8 @@ export async function GET(request: NextRequest) {
           instructor:instructor_profiles(*)
         )
       `)
+      .eq('student_id', userId)
 
-    if (studentId) query = query.eq('student_id', studentId)
     if (courseId) query = query.eq('course_id', courseId)
 
     const { data, error } = await query.order('enrolled_at', { ascending: false })

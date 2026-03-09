@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // 관리자용 개인정보 삭제 요청 처리
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     if (!supabaseServer) {
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
@@ -12,26 +16,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { requestId, action, adminId, rejectionReason } = body
+    const { requestId, action, rejectionReason } = body
+    const adminId = auth.user.id
 
-    if (!requestId || !action || !adminId) {
+    if (!requestId || !action) {
       return NextResponse.json(
         { error: '필수 정보가 누락되었습니다.' },
         { status: 400 }
-      )
-    }
-
-    // 관리자 권한 확인
-    const { data: adminData } = await supabaseServer
-      .from('users')
-      .select('is_admin')
-      .eq('id', adminId)
-      .single()
-
-    if (!adminData?.is_admin) {
-      return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 403 }
       )
     }
 
@@ -136,6 +127,9 @@ export async function POST(request: NextRequest) {
 // 삭제 요청 목록 조회 (관리자용)
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     if (!supabaseServer) {
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
@@ -144,31 +138,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const adminId = searchParams.get('adminId')
     const status = searchParams.get('status')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { error: '관리자 ID가 필요합니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 관리자 권한 확인
-    const { data: adminData } = await supabaseServer
-      .from('users')
-      .select('is_admin')
-      .eq('id', adminId)
-      .single()
-
-    if (!adminData?.is_admin) {
-      return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 403 }
-      )
-    }
 
     // 삭제 요청 목록 조회
     let query = supabaseServer

@@ -10,21 +10,26 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, Monitor, MonitorOff,
-  MessageCircle, Users, Send, GraduationCap, ArrowLeft, X, Circle
+  MessageCircle, Users, Send, GraduationCap, ArrowLeft, X, Circle,
+  Clock, AlertTriangle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { SessionAccessStatus, SessionAccessToken, SessionTimerState } from '@/types/education'
 
+// Agora token data used once the user is inside the class
 interface JoinData {
   channelName: string
   token: string
+  uid: number
   appId: string
   isInstructor: boolean
   allowRecording: boolean
   session: {
     id: string
-    title: string
+    title: string | null
     session_number: number
     course_id: string
+    duration_minutes: number
   }
 }
 
@@ -42,10 +47,22 @@ export default function LiveClassPage() {
   const { user } = useAuth()
   const { te } = useEducationTranslation()
 
+  // Pre-room: access status
+  const [accessStatus, setAccessStatus] = useState<SessionAccessStatus | null>(null)
+  const [statusLoading, setStatusLoading] = useState(true)
+  const [statusError, setStatusError] = useState('')
+
+  // In-room state (after token obtained)
   const [joinData, setJoinData] = useState<JoinData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [joining, setJoining] = useState(false)
+  const [joinError, setJoinError] = useState('')
   const [joined, setJoined] = useState(false)
+
+  // Countdown for "too early" state
+  const [countdown, setCountdown] = useState<number | null>(null)
+
+  // Timer (backend-controlled class duration)
+  const [timerData, setTimerData] = useState<SessionTimerState | null>(null)
 
   // Media states
   const [audioMuted, setAudioMuted] = useState(false)
@@ -60,6 +77,8 @@ export default function LiveClassPage() {
   const [chatInput, setChatInput] = useState('')
   const [participantCount, setParticipantCount] = useState(1)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const lastMsgTimestampRef = useRef<string | null>(null)
+  const remoteUsersSetRef = useRef<Set<number>>(new Set())
 
   // Agora refs
   const clientRef = useRef<ReturnType<typeof import('agora-rtc-sdk-ng').default.createClient> | null>(null)
@@ -70,39 +89,115 @@ export default function LiveClassPage() {
   const localVideoRef = useRef<HTMLDivElement>(null)
   const remoteVideosRef = useRef<HTMLDivElement>(null)
 
-  // Join the class session
+  // ────────────────────────────────────────────────────────────────────────
+  // STEP 1 — Check access status on mount (no Agora yet, just metadata)
+  // ────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user?.id || !sessionId) return
 
-    const joinSession = async () => {
+    const checkAccess = async () => {
+      setStatusLoading(true)
+      setStatusError('')
       try {
-        const res = await fetch('/api/education/session/join', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sessionId, user_id: user.id })
+        const res = await fetch(`/api/education/sessions/${sessionId}/access-status`, {
+          headers: { 'Content-Type': 'application/json' }
         })
-        const data = await res.json()
+        const data: SessionAccessStatus = await res.json()
 
         if (!res.ok) {
-          setError(data.error || 'Cannot join class')
-          setLoading(false)
+          setStatusError((data as { error?: string }).error || te('education.liveClass.connecting'))
+          setStatusLoading(false)
           return
         }
 
-        setJoinData(data)
-        setLoading(false)
-      } catch (err) {
-        setError('Failed to join class')
-        setLoading(false)
+        setAccessStatus(data)
+
+        // If too early, start countdown from window_opens_at
+        if (data.reason === 'too_early' && data.window_opens_at) {
+          const opensAt = new Date(data.window_opens_at).getTime()
+          setCountdown(Math.max(0, Math.floor((opensAt - Date.now()) / 1000)))
+        }
+      } catch {
+        setStatusError(te('education.liveClass.connecting'))
+      } finally {
+        setStatusLoading(false)
       }
     }
 
-    joinSession()
-  }, [sessionId, user?.id])
+    checkAccess()
+  }, [user?.id, sessionId])
 
-  // Initialize Agora
-  const initAgora = useCallback(async () => {
-    if (!joinData) return
+  // Countdown ticker for "too early" state
+  useEffect(() => {
+    if (countdown === null || countdown <= 0) return
+    const tick = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(tick)
+          // Re-check access when countdown expires
+          if (user?.id && sessionId) {
+            fetch(`/api/education/sessions/${sessionId}/access-status`)
+              .then(r => r.json())
+              .then((d: SessionAccessStatus) => setAccessStatus(d))
+              .catch(() => null)
+          }
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(tick)
+  }, [countdown, user?.id, sessionId])
+
+  // ────────────────────────────────────────────────────────────────────────
+  // STEP 2 — Obtain Agora token (called when user clicks "Join Class")
+  // ────────────────────────────────────────────────────────────────────────
+  const fetchAccessToken = useCallback(async (): Promise<JoinData | null> => {
+    if (!user?.id || !sessionId) return null
+    setJoining(true)
+    setJoinError('')
+    try {
+      const res = await fetch(`/api/education/sessions/${sessionId}/access-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data: SessionAccessToken = await res.json()
+
+      if (!res.ok) {
+        const errMsg = (data as { error?: string }).error || te('education.liveClass.connecting')
+        setJoinError(errMsg)
+        setJoining(false)
+        return null
+      }
+
+      return {
+        channelName: data.channel,
+        token: data.token,
+        uid: data.uid,
+        appId: data.app_id,
+        isInstructor: data.is_instructor,
+        allowRecording: data.allow_recording,
+        session: {
+          id: data.session.id,
+          title: accessStatus?.title ?? null,
+          session_number: data.session.session_number,
+          course_id: accessStatus?.course_id ?? '',
+          duration_minutes: data.session.duration_minutes
+        }
+      }
+    } catch {
+      setJoinError(te('education.liveClass.connecting'))
+      setJoining(false)
+      return null
+    }
+  }, [user?.id, sessionId, accessStatus, te])
+
+  // ────────────────────────────────────────────────────────────────────────
+  // STEP 3 — Initialize Agora RTC and register presence
+  // Called with the JoinData received from /access-token
+  // ────────────────────────────────────────────────────────────────────────
+  const initAgora = useCallback(async (data: JoinData) => {
+    setJoinData(data)
 
     try {
       const AgoraRTC = (await import('agora-rtc-sdk-ng')).default
@@ -125,7 +220,11 @@ export default function LiveClassPage() {
           remoteUser.audioTrack?.play()
         }
 
-        setParticipantCount(prev => prev + 1)
+        // Track unique users to avoid double-counting (audio+video fire separately)
+        if (!remoteUsersSetRef.current.has(remoteUser.uid as number)) {
+          remoteUsersSetRef.current.add(remoteUser.uid as number)
+          setParticipantCount(remoteUsersSetRef.current.size + 1) // +1 for local user
+        }
       })
 
       client.on('user-unpublished', (remoteUser, mediaType) => {
@@ -138,15 +237,16 @@ export default function LiveClassPage() {
       client.on('user-left', (remoteUser) => {
         const el = document.getElementById(`remote-video-${remoteUser.uid}`)
         el?.remove()
-        setParticipantCount(prev => Math.max(1, prev - 1))
+        remoteUsersSetRef.current.delete(remoteUser.uid as number)
+        setParticipantCount(remoteUsersSetRef.current.size + 1) // +1 for local user
       })
 
-      // Join channel
-      const uid = await client.join(
-        joinData.appId,
-        joinData.channelName,
-        joinData.token,
-        null
+      // Join channel with the deterministic UID from the token server
+      await client.join(
+        data.appId,
+        data.channelName,
+        data.token,
+        data.uid
       )
 
       // Create local tracks
@@ -160,12 +260,22 @@ export default function LiveClassPage() {
 
       // Publish
       await client.publish([audioTrack, videoTrack])
+
+      // Register presence (non-blocking — don't fail the call if this fails)
+      fetch(`/api/education/sessions/${data.session.id}/presence/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(err => console.warn('[Education] presence/join failed:', err))
+
       setJoined(true)
+      setJoining(false)
     } catch (err) {
       console.error('Agora error:', err)
-      setError('Failed to connect to video call')
+      setJoinError(te('education.liveClass.connecting'))
+      setJoining(false)
     }
-  }, [joinData])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, te])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -177,6 +287,46 @@ export default function LiveClassPage() {
       clientRef.current?.leave()
     }
   }, [])
+
+  // ────────────────────────────────────────────────────────────────────────
+  // TIMER — poll backend for session duration state (backend is source of truth)
+  // ────────────────────────────────────────────────────────────────────────
+  const autoClosedRef = useRef(false)
+  useEffect(() => {
+    if (!joined || !sessionId) return
+
+    const fetchTimer = async () => {
+      try {
+        const res = await fetch(`/api/education/sessions/${sessionId}/timer`)
+        if (res.ok) {
+          const data: SessionTimerState = await res.json()
+          setTimerData(data)
+          // Auto-leave when backend confirms session has ended and we haven't left yet
+          if (data.warnings.ended && data.status !== 'live' && !autoClosedRef.current) {
+            autoClosedRef.current = true
+            // Clean up Agora tracks
+            localTracksRef.current.forEach(track => { track.stop(); track.close() })
+            await clientRef.current?.leave()
+            // Register departure
+            fetch(`/api/education/sessions/${sessionId}/presence/leave`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).catch(() => null)
+            // Navigate back to the course page
+            setTimeout(() => {
+              router.push(joinData?.session.course_id ? `/education/course/${joinData.session.course_id}` : '/education')
+            }, 800)
+          }
+        }
+      } catch {
+        // Non-fatal — timer is informational
+      }
+    }
+
+    fetchTimer()
+    const interval = setInterval(fetchTimer, 30_000)
+    return () => clearInterval(interval)
+  }, [joined, sessionId, router, joinData])
 
   // Toggle audio
   const toggleAudio = async () => {
@@ -196,8 +346,15 @@ export default function LiveClassPage() {
     }
   }
 
-  // Leave call
+  // Leave call — stores presence/leave on the backend
   const leaveClass = async () => {
+    // Notify backend of departure (attendance calculation)
+    if (joinData?.session.id) {
+      fetch(`/api/education/sessions/${joinData.session.id}/presence/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(err => console.warn('[Education] presence/leave failed:', err))
+    }
     // If instructor, stop recording first
     if (recording && joinData?.isInstructor) {
       await toggleRecording()
@@ -394,6 +551,10 @@ export default function LiveClassPage() {
         const res = await fetch(`/api/education/chat?sessionId=${sessionId}`)
         const data = await res.json()
         if (data.messages) {
+          const lastMsg = data.messages[data.messages.length - 1]
+          if (lastMsg?.created_at) {
+            lastMsgTimestampRef.current = lastMsg.created_at
+          }
           setChatMessages(data.messages.map((m: { id: string; user_id: string; user_name: string; message: string; created_at: string }) => ({
             id: m.id,
             userId: m.user_id,
@@ -412,8 +573,7 @@ export default function LiveClassPage() {
     // Poll for new messages every 5 seconds
     const pollInterval = setInterval(async () => {
       try {
-        const lastMsg = chatMessages[chatMessages.length - 1]
-        const after = lastMsg ? new Date(lastMsg.timestamp).toISOString() : undefined
+        const after = lastMsgTimestampRef.current
         const url = after
           ? `/api/education/chat?sessionId=${sessionId}&after=${after}`
           : `/api/education/chat?sessionId=${sessionId}`
@@ -430,6 +590,10 @@ export default function LiveClassPage() {
               timestamp: new Date(m.created_at)
             }))
           if (newMsgs.length > 0) {
+            const lastNew = data.messages[data.messages.length - 1]
+            if (lastNew?.created_at) {
+              lastMsgTimestampRef.current = lastNew.created_at
+            }
             setChatMessages(prev => [...prev, ...newMsgs])
             setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
           }
@@ -443,7 +607,36 @@ export default function LiveClassPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joined, sessionId])
 
-  if (loading) {
+  // ── Join handler — fetch token then init Agora ──────────────────────────
+  const handleJoinClass = useCallback(async () => {
+    const tokenData = await fetchAccessToken()
+    if (tokenData) {
+      await initAgora(tokenData)
+    }
+  }, [fetchAccessToken, initAgora])
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const formatCountdown = (secs: number) => {
+    const h = Math.floor(secs / 3600)
+    const m = Math.floor((secs % 3600) / 60)
+    const s = secs % 60
+    if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m`
+    if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`
+    return `${s}s`
+  }
+
+  const formatTimer = (secs: number) => {
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // 1. Loading access-status check
+  if (statusLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-950">
         <div className="text-center">
@@ -454,12 +647,14 @@ export default function LiveClassPage() {
     )
   }
 
-  if (error) {
+  // 2. Hard error (not enrolled, network error)
+  if (statusError || (accessStatus && !accessStatus.is_enrolled)) {
+    const message = statusError || te('education.liveClass.connecting')
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center max-w-md mx-auto px-4 space-y-4">
           <GraduationCap className="w-16 h-16 text-muted-foreground/30 mx-auto" />
-          <p className="text-lg font-medium text-foreground">{error}</p>
+          <p className="text-lg font-medium text-foreground">{message}</p>
           <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             {te('education.form.cancel')}
@@ -469,27 +664,82 @@ export default function LiveClassPage() {
     )
   }
 
-  if (!joined && joinData) {
+  // 3. Pre-room waiting area (not yet joined Agora)
+  if (!joined && accessStatus) {
+    const canEnter = accessStatus.can_enter
+    const isTooEarly = accessStatus.reason === 'too_early'
+    const isInstructor = accessStatus.viewer_role === 'instructor'
+
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-950">
         <div className="text-center space-y-6 max-w-md mx-auto px-4">
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
             <Video className="w-8 h-8 text-primary" />
           </div>
+
           <div>
             <h2 className="text-xl font-bold text-white">
-              {te('education.session.classNumber', { number: joinData.session.session_number })}
+              {te('education.session.classNumber', { number: accessStatus.session_number })}
             </h2>
-            {joinData.session.title && (
-              <p className="text-white/60 text-sm mt-1">{joinData.session.title}</p>
+            {accessStatus.title && (
+              <p className="text-white/60 text-sm mt-1">{accessStatus.title}</p>
             )}
           </div>
+
           <Badge variant="secondary" className="text-xs">
-            {joinData.isInstructor ? te('education.course.instructor') : te('education.course.enrolled')}
+            {isInstructor ? te('education.course.instructor') : te('education.course.enrolled')}
           </Badge>
-          <Button size="lg" onClick={initAgora} className="px-8">
-            <Video className="w-5 h-5 mr-2" />
-            {joinData.isInstructor ? te('education.session.startClass') : te('education.session.joinClass')}
+
+          {/* Too early — countdown */}
+          {isTooEarly && countdown !== null && (
+            <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-6 py-4 space-y-2">
+              <div className="flex items-center justify-center gap-2 text-amber-400">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">{te('education.session.minutesBefore', { minutes: Math.ceil((countdown ?? 0) / 60) })}</span>
+              </div>
+              <p className="text-3xl font-mono font-bold text-white">{formatCountdown(countdown ?? 0)}</p>
+              <p className="text-white/50 text-xs">
+                {new Date(accessStatus.window_opens_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+          )}
+
+          {/* Session ended / unavailable */}
+          {(accessStatus.reason === 'session_ended' || accessStatus.reason === 'session_unavailable' || accessStatus.reason === 'window_closed') && (
+            <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{te('education.liveClass.classEnded')}</span>
+            </div>
+          )}
+
+          {/* Join error */}
+          {joinError && (
+            <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{joinError}</span>
+            </div>
+          )}
+
+          {/* Join button */}
+          {canEnter && (
+            <Button
+              size="lg"
+              onClick={handleJoinClass}
+              disabled={joining}
+              className="px-8 w-full"
+            >
+              <Video className="w-5 h-5 mr-2" />
+              {joining
+                ? te('education.liveClass.connecting')
+                : isInstructor
+                  ? te('education.session.startClass')
+                  : te('education.session.joinClass')}
+            </Button>
+          )}
+
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-white/40 hover:text-white/80">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            {te('education.form.cancel')}
           </Button>
         </div>
       </div>
@@ -507,12 +757,41 @@ export default function LiveClassPage() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {/* Backend-driven timer */}
+          {timerData && timerData.remaining_seconds > 0 && (
+            <Badge
+              variant={timerData.warnings.closing_5min ? 'destructive' : 'secondary'}
+              className={cn('text-xs font-mono gap-1', timerData.warnings.closing_5min && 'animate-pulse')}
+            >
+              <Clock className="w-3 h-3" />
+              {formatTimer(timerData.remaining_seconds)}
+            </Badge>
+          )}
           <Badge variant="secondary" className="text-xs gap-1">
             <Users className="w-3 h-3" />
             {participantCount}
           </Badge>
         </div>
       </div>
+
+      {/* Close-warning banner */}
+      {timerData?.warnings.closing_10min && !timerData.warnings.ended && (
+        <div className={cn(
+          'flex items-center justify-center gap-2 py-1.5 text-sm font-medium',
+          timerData.warnings.closing_1min
+            ? 'bg-red-600 text-white'
+            : timerData.warnings.closing_5min
+              ? 'bg-amber-600 text-white'
+              : 'bg-amber-500/20 text-amber-300'
+        )}>
+          <Clock className="w-4 h-4" />
+          {timerData.warnings.closing_1min
+            ? te('education.liveClass.closingIn1min')
+            : timerData.warnings.closing_5min
+              ? te('education.liveClass.closingIn5min')
+              : te('education.liveClass.closingIn10min')}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
@@ -585,6 +864,52 @@ export default function LiveClassPage() {
             </div>
           </div>
         )}
+
+        {/* Participants Panel */}
+        {showParticipants && (
+          <div className="w-80 border-l border-gray-800 flex flex-col bg-gray-900/50">
+            <div className="flex items-center justify-between p-3 border-b border-gray-800">
+              <h4 className="text-white text-sm font-medium">{te('education.liveClass.participants')} ({participantCount})</h4>
+              <button onClick={() => setShowParticipants(false)} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {/* Current user (self) */}
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800/50">
+                <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                  {(user?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm truncate">
+                    {user?.email?.split('@')[0] || 'You'}
+                    {joinData?.isInstructor && <span className="ml-1 text-xs text-purple-400">🎓</span>}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {joinData?.isInstructor ? te('education.instructor.title') : te('education.student.title')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {audioMuted ? <MicOff className="w-3 h-3 text-red-400" /> : <Mic className="w-3 h-3 text-green-400" />}
+                  {videoMuted ? <VideoOff className="w-3 h-3 text-red-400" /> : <Video className="w-3 h-3 text-green-400" />}
+                </div>
+              </div>
+
+              {/* Remote participants */}
+              {participantCount > 1 && Array.from({ length: participantCount - 1 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800/30">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white text-xs font-medium">
+                    P{i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm truncate">{te('education.liveClass.participants')} {i + 2}</p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-400" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
@@ -616,7 +941,7 @@ export default function LiveClassPage() {
             size="icon"
             className="rounded-full w-12 h-12"
             onClick={toggleRecording}
-            title={recording ? 'Detener grabación' : te('education.session.recording')}
+            title={recording ? te('education.stopRecording') : te('education.session.recording')}
           >
             <Circle className={cn('w-5 h-5', recording && 'fill-current animate-pulse')} />
           </Button>

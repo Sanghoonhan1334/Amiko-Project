@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,9 +28,15 @@ export async function GET(request: NextRequest) {
         instructor:instructor_profiles(*)
       `, { count: 'exact' })
 
-    // Filter by status (default: published for public, allow others for instructor/admin)
+    // Filter by status:
+    // - 'all' + instructorId  → return all statuses for that instructor (dashboard)
+    // - 'all' alone          → public marketplace: only published/in_progress/completed
+    // - any other value      → exact status match
     if (status === 'all') {
-      query = query.in('status', ['published', 'in_progress', 'completed'])
+      if (!instructorId) {
+        query = query.in('status', ['published', 'in_progress', 'completed'])
+      }
+      // with instructorId: no status filter – instructor sees all their own courses
     } else {
       query = query.eq('status', status)
     }
@@ -64,9 +71,12 @@ export async function GET(request: NextRequest) {
 // POST /api/education/courses - Create a new course
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const body = await request.json()
     const {
-      instructor_id,
       title,
       category,
       description,
@@ -83,20 +93,22 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!instructor_id || !title || !category || !description || !level || !teaching_language || !total_classes || !price_usd) {
+    if (!title || !category || !description || !level || !teaching_language || !total_classes || !price_usd) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Verify instructor exists
+    // Look up instructor profile for authenticated user
     const { data: instructor, error: instructorError } = await supabase
       .from('instructor_profiles')
       .select('id, user_id')
-      .eq('id', instructor_id)
+      .eq('user_id', userId)
       .single()
 
     if (instructorError || !instructor) {
-      return NextResponse.json({ error: 'Instructor not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Instructor profile not found. Please create your instructor profile first.' }, { status: 404 })
     }
+
+    const instructor_id = instructor.id
 
     // Determine start/end dates from sessions
     let start_date = null
@@ -124,7 +136,7 @@ export async function POST(request: NextRequest) {
         max_students: max_students || 20,
         thumbnail_url: thumbnail_url || null,
         allow_recording: allow_recording || false,
-        status: 'pending_review',
+        status: 'draft',
         start_date,
         end_date
       })
@@ -145,7 +157,9 @@ export async function POST(request: NextRequest) {
         description: s.description || null,
         scheduled_at: s.scheduled_at,
         duration_minutes: class_duration_minutes || 60,
-        agora_channel: `edu_${course.id}_${idx + 1}`
+        // Naming format: edu_{course_id_first8}_{session_number}
+        // Must match the fallback in access-token and access-status routes
+        agora_channel: `edu_${course.id.slice(0, 8)}_${s.session_number || idx + 1}`
       }))
 
       const { error: sessionsError } = await supabase
@@ -157,22 +171,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update instructor course count
-    await supabase.rpc('', {}).catch(() => {})
-    const { error: updateError } = await supabase
-      .from('instructor_profiles')
-      .update({ total_courses: instructor.user_id ? undefined : 0 })
-      .eq('id', instructor_id)
-
-    // Recount
-    const { count } = await supabase
+    // Update instructor course count (recount from DB for accuracy)
+    const { count: courseCount } = await supabase
       .from('education_courses')
       .select('*', { count: 'exact', head: true })
       .eq('instructor_id', instructor_id)
 
     await supabase
       .from('instructor_profiles')
-      .update({ total_courses: count || 0 })
+      .update({ total_courses: courseCount || 0 })
       .eq('id', instructor_id)
 
     return NextResponse.json({ course }, { status: 201 })

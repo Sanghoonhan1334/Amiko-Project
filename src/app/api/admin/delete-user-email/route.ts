@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 /**
  * 특정 이메일의 모든 데이터를 삭제하는 API
@@ -7,6 +8,9 @@ import { supabaseServer } from '@/lib/supabaseServer'
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     const body = await request.json()
     const { email, force = false } = body
 

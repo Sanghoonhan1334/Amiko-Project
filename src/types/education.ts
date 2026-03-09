@@ -16,21 +16,56 @@ export type TeachingLanguage = 'es' | 'ko' | 'bilingual';
 
 export type CourseStatus =
   | 'draft'
-  | 'pending_review'
+  | 'submitted_for_review'
+  | 'pending_review'       // legacy alias
+  | 'changes_requested'
   | 'approved'
   | 'rejected'
   | 'published'
   | 'in_progress'
   | 'completed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'archived';
 
-export type SessionStatus = 'scheduled' | 'live' | 'completed' | 'cancelled' | 'rescheduled';
+export type SessionStatus =
+  | 'scheduled'
+  | 'ready'
+  | 'live'
+  | 'ending'
+  | 'completed'
+  | 'cancelled'
+  | 'rescheduled';
 
-export type PaymentStatus = 'pending' | 'completed' | 'refunded' | 'failed';
+export type PaymentStatus =
+  | 'pending'
+  | 'payment_created'
+  | 'payment_approved'
+  | 'payment_captured'
+  | 'completed'           // legacy alias for payment_captured
+  | 'failed'
+  | 'cancelled'
+  | 'partially_refunded'
+  | 'refunded';
 
-export type EnrollmentStatus = 'active' | 'completed' | 'dropped' | 'refunded';
+export type EnrollmentStatus =
+  | 'pending_payment'
+  | 'enrolled'
+  | 'active'
+  | 'completed'
+  | 'dropped'
+  | 'cancelled'
+  | 'blocked'
+  | 'refunded';
 
-export type AttendanceStatus = 'completed' | 'pending' | 'absent';
+export type AttendanceStatus =
+  | 'pending'
+  | 'not_joined'
+  | 'joined'
+  | 'attended'
+  | 'late'
+  | 'left_early'
+  | 'absent'
+  | 'completed';           // legacy alias for attended
 
 export type MaterialType = 'pdf' | 'presentation' | 'link' | 'vocabulary' | 'other';
 
@@ -89,10 +124,15 @@ export interface EducationSession {
   title: string | null;
   description: string | null;
   scheduled_at: string;
+  scheduled_end_utc: string | null;   // GENERATED ALWAYS AS (scheduled_at + duration_minutes)
   duration_minutes: number;
+  timezone_origin: string | null;
   agora_channel: string | null;
+  agora_uid_instructor: number | null;
   recording_url: string | null;
   status: SessionStatus;
+  started_at: string | null;
+  ended_at: string | null;
   rescheduled_to: string | null;
   created_at: string;
   updated_at: string;
@@ -107,6 +147,7 @@ export interface Enrollment {
   student_id: string;
   payment_id: string | null;
   paypal_order_id: string | null;
+  paypal_capture_id: string | null;
   amount_paid: number;
   payment_status: PaymentStatus;
   enrollment_status: EnrollmentStatus;
@@ -114,6 +155,7 @@ export interface Enrollment {
   completed_classes: number;
   certificate_issued: boolean;
   certificate_url: string | null;
+  review_eligible: boolean;
   enrolled_at: string;
   completed_at: string | null;
   // Joined
@@ -127,6 +169,7 @@ export interface SessionAttendance {
   status: AttendanceStatus;
   joined_at: string | null;
   left_at: string | null;
+  total_seconds_connected: number;
   created_at: string;
 }
 
@@ -242,4 +285,56 @@ export interface EducationAdminStats {
   totalInstructors: number;
   totalRevenue: number;
   pendingApprovals: number;
+}
+
+// ── Live-class API response types ────────────────────────────────────────────
+
+export interface SessionAccessStatus {
+  can_enter: boolean;
+  reason: 'not_enrolled' | 'session_unavailable' | 'session_ended' | 'too_early' | 'window_closed' | null;
+  session_status: SessionStatus;
+  viewer_role: 'instructor' | 'student' | 'none';
+  is_enrolled: boolean;
+  session_id: string;
+  course_id: string;
+  session_number: number;
+  title: string | null;
+  window_opens_at: string;
+  window_closes_at: string;
+}
+
+export interface SessionAccessToken {
+  app_id: string;
+  channel: string;
+  uid: number;
+  token: string;
+  role: 'publisher' | 'audience';
+  is_instructor: boolean;
+  allow_recording: boolean;
+  expires_at: string;
+  session: {
+    id: string;
+    status: SessionStatus;
+    session_number: number;
+    scheduled_at: string;
+    duration_minutes: number;
+  };
+}
+
+export interface SessionTimerState {
+  session_id: string;
+  status: SessionStatus;
+  started_at: string | null;
+  scheduled_at: string;
+  ends_at: string;
+  duration_minutes: number;
+  remaining_seconds: number;
+  elapsed_seconds: number;
+  progress_percent: number;
+  warnings: {
+    closing_10min: boolean;
+    closing_5min: boolean;
+    closing_1min: boolean;
+    ended: boolean;
+  };
 }

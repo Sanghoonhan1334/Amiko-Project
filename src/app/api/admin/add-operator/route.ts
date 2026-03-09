@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // Supabase 클라이언트 생성
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -22,26 +23,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Authorization 헤더에서 JWT 토큰 추출
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authorization token required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-
-    // JWT 토큰 검증 및 사용자 정보 추출
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
+    // 관리자 권한 확인
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+    const user = auth.user
 
     console.log('[ADD_OPERATOR] 사용자 정보:', {
       id: user.id,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,6 +37,10 @@ async function agoraRequest(path: string, method: string, body?: unknown) {
 // POST /api/education/recording - Start or stop recording
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const userId = auth.user.id
+
     const { action, session_id, channel_name, token, uid } = await request.json()
 
     if (!action || !session_id) {
@@ -45,12 +50,22 @@ export async function POST(request: NextRequest) {
     // Verify the session exists
     const { data: session, error: sessionError } = await supabase
       .from('education_sessions')
-      .select('id, course_id, status, recording_url')
+      .select(`
+        id, course_id, status, recording_url,
+        course:education_courses(instructor:instructor_profiles(user_id))
+      `)
       .eq('id', session_id)
       .single()
 
     if (sessionError || !session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+
+    // Verify user is the instructor
+    const instructorUserId = ((session.course as { instructor?: { user_id?: string } } | null)?.instructor)?.user_id
+    const admin = await isAdminUser(userId)
+    if (instructorUserId !== userId && !admin) {
+      return NextResponse.json({ error: 'Only the instructor can manage recordings' }, { status: 403 })
     }
 
     // Check if Agora credentials are configured

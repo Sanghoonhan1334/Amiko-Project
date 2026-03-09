@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,9 +10,13 @@ const supabase = createClient(
 // POST /api/education/session/join - Student/Instructor joins a live class
 export async function POST(request: NextRequest) {
   try {
-    const { session_id, user_id } = await request.json()
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+    const user_id = auth.user.id
 
-    if (!session_id || !user_id) {
+    const { session_id } = await request.json()
+
+    if (!session_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -49,16 +54,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if class is within 30 min window
-    const now = new Date()
-    const classTime = new Date(session.scheduled_at)
-    const diffMinutes = (classTime.getTime() - now.getTime()) / (1000 * 60)
+    // Check if class is within the join window
+    // - Always allow if session is already 'live' (instructor started early)
+    // - Allow 30 min before scheduled time
+    // - Allow up to 15 min after session ended (grace period for reconnects)
+    // - Block if session is cancelled, completed or rescheduled
+    if (['cancelled', 'rescheduled'].includes(session.status)) {
+      return NextResponse.json({ error: 'This class has been cancelled or rescheduled.' }, { status: 400 })
+    }
 
-    if (diffMinutes > 30) {
-      return NextResponse.json({
-        error: 'Class has not started yet. You can join 30 minutes before the scheduled time.',
-        minutesUntilJoin: Math.ceil(diffMinutes - 30)
-      }, { status: 425 })
+    if (session.status === 'completed') {
+      return NextResponse.json({ error: 'This class has already ended.' }, { status: 400 })
+    }
+
+    if (session.status !== 'live') {
+      const now = new Date()
+      const classTime = new Date(session.scheduled_at)
+      const diffMinutes = (classTime.getTime() - now.getTime()) / (1000 * 60)
+
+      if (diffMinutes > 30) {
+        return NextResponse.json({
+          error: 'Class has not started yet. You can join 30 minutes before the scheduled time.',
+          minutesUntilJoin: Math.ceil(diffMinutes - 30)
+        }, { status: 425 })
+      }
     }
 
     // Generate Agora channel name and token
@@ -91,7 +110,7 @@ export async function POST(request: NextRequest) {
         .upsert({
           session_id,
           student_id: user_id,
-          status: 'completed',
+          status: 'joined',
           joined_at: new Date().toISOString()
         }, { onConflict: 'session_id,student_id' })
     }

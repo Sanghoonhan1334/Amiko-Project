@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       const { error: supportError } = await supabaseServer
         .from('support_tickets')
         .delete()
-        .lt('created_at', threeYearsAgo.toISOISOString())
+        .lt('created_at', threeYearsAgo.toISOString())
         .eq('status', 'resolved')
 
       if (supportError) {

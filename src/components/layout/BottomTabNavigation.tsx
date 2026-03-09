@@ -24,7 +24,6 @@ export default function BottomTabNavigation() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("home");
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-
   // Detectar teclado virtual abierto (Capacitor APK)
   useEffect(() => {
     const viewport = window.visualViewport;
@@ -79,7 +78,7 @@ export default function BottomTabNavigation() {
       );
   }, []);
 
-  const tabs = [
+  const baseTabs = [
     {
       id: "meet",
       label: t("headerNav.videoCall"),
@@ -118,6 +117,8 @@ export default function BottomTabNavigation() {
       path: "/main?tab=me",
     },
   ];
+
+  const tabs = baseTabs;
 
   const handleTabClick = (tab: (typeof tabs)[0]) => {
     // 로그인하지 않은 상태에서 'me' 탭 클릭 시 로그인 페이지로 이동
@@ -177,7 +178,6 @@ export default function BottomTabNavigation() {
     "/contact",
     "/help",
     "/faq",
-    "/admin", // 관리자 페이지
   ];
 
   // 숨길 페이지인지 확인
@@ -186,14 +186,14 @@ export default function BottomTabNavigation() {
       pathname === hiddenPath || pathname.startsWith(hiddenPath + "/"),
   );
 
-  // 숨길 페이지이거나 관리자 페이지인 경우, 또는 키보드가 열려있으면 숨김
-  if (shouldHide || pathname.startsWith("/admin") || isKeyboardOpen) {
+  // 숨길 페이지이거나 키보드가 열려있으면 숨김
+  if (shouldHide || isKeyboardOpen) {
     return null;
   }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-50 dark:bg-gray-800 border-t-2 border-blue-200 dark:border-gray-700 shadow-2xl md:hidden">
-      <div className="grid grid-cols-6 py-1.5">
+      <div className="grid grid-cols-5 py-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

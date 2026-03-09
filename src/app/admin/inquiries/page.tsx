@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { TranslationService } from '@/lib/translation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -77,6 +78,7 @@ const getTypeConfig = (t: any) => ({
 
 export default function AdminInquiriesPage() {
   const { t, language } = useLanguage()
+  const { token } = useAuth()
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [responses, setResponses] = useState<Response[]>([])
@@ -97,7 +99,9 @@ export default function AdminInquiriesPage() {
       if (statusFilter !== 'all') params.append('status', statusFilter)
       if (typeFilter !== 'all') params.append('type', typeFilter)
       
-      const response = await fetch(`/api/inquiries?${params.toString()}`)
+      const response = await fetch(`/api/inquiries?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const result = await response.json()
 
       if (!response.ok) {
@@ -115,7 +119,9 @@ export default function AdminInquiriesPage() {
 
   const fetchResponses = async (inquiryId: string) => {
     try {
-      const response = await fetch(`/api/inquiries/${inquiryId}/responses`)
+      const response = await fetch(`/api/inquiries/${inquiryId}/responses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const result = await response.json()
 
       if (!response.ok) {
@@ -132,7 +138,7 @@ export default function AdminInquiriesPage() {
     try {
       const response = await fetch(`/api/inquiries/${inquiryId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status })
       })
 
@@ -197,7 +203,7 @@ export default function AdminInquiriesPage() {
 
       const response = await fetch(`/api/inquiries/${selectedInquiry.id}/responses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           responderId: adminId,
           responderType: 'admin',
@@ -242,19 +248,20 @@ export default function AdminInquiriesPage() {
     })
   }
 
-  const getStatusConfig = (status: string) => {
-    const config = getStatusConfig(t)
-    return config[status as keyof typeof config] || config.pending
+  const statusConfig = getStatusConfig(t)
+  const priorityConfig = getPriorityConfig(t)
+  const typeConfig = getTypeConfig(t)
+
+  const getStatusForItem = (status: string) => {
+    return statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
   }
 
-  const getPriorityConfig = (priority: string) => {
-    const config = getPriorityConfig(t)
-    return config[priority as keyof typeof config] || config.medium
+  const getPriorityForItem = (priority: string) => {
+    return priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium
   }
 
-  const getTypeConfig = (type: string) => {
-    const config = getTypeConfig(t)
-    return config[type as keyof typeof config] || config.general
+  const getTypeForItem = (type: string) => {
+    return typeConfig[type as keyof typeof typeConfig] || typeConfig.general
   }
 
   if (loading) {
@@ -321,9 +328,9 @@ export default function AdminInquiriesPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-900">{t('adminInquiries.inquiryList')} ({inquiries.length}{t('adminInquiries.count')})</h2>
             {inquiries.map((inquiry) => {
-              const statusInfo = getStatusConfig(inquiry.status)
-              const priorityInfo = getPriorityConfig(inquiry.priority)
-              const typeInfo = getTypeConfig(inquiry.type)
+              const statusInfo = getStatusForItem(inquiry.status)
+              const priorityInfo = getPriorityForItem(inquiry.priority)
+              const typeInfo = getTypeForItem(inquiry.type)
               const StatusIcon = statusInfo.icon
 
               return (

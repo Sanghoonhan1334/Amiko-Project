@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLanguage } from '@/context/LanguageContext'
+import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +21,10 @@ interface UserRanking {
 }
 
 export default function PointsRankingPage() {
+  const { language } = useLanguage()
+  const { token } = useAuth()
+  const t = (ko: string, es: string) => language === 'ko' ? ko : es
+
   const [loading, setLoading] = useState(true)
   const [totalRanking, setTotalRanking] = useState<UserRanking[]>([])
   const [monthlyRanking, setMonthlyRanking] = useState<UserRanking[]>([])
@@ -32,8 +38,8 @@ export default function PointsRankingPage() {
     setLoading(true)
     try {
       const [totalRes, monthlyRes] = await Promise.all([
-        fetch('/api/admin/points/total-ranking'),
-        fetch('/api/admin/points/monthly-ranking')
+        fetch('/api/admin/points/total-ranking', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/admin/points/monthly-ranking', { headers: { Authorization: `Bearer ${token}` } })
       ])
       
       const totalData = await totalRes.json()
@@ -69,55 +75,55 @@ export default function PointsRankingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">포인트 랭킹</h1>
-        <p className="text-gray-600">사용자 포인트 현황 및 순위 관리</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('포인트 랭킹', 'Ranking de Puntos')}</h1>
+        <p className="text-gray-600 dark:text-gray-400">{t('사용자 포인트 현황 및 순위 관리', 'Gestión de puntos y ranking de usuarios')}</p>
       </div>
       
       {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 사용자 수</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('총 사용자 수', 'Total de Usuarios')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalRanking.length}</div>
-            <p className="text-xs text-muted-foreground">전체 가입자</p>
+            <p className="text-xs text-muted-foreground">{t('전체 가입자', 'Todos los registrados')}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">최고 누적 점수</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('최고 누적 점수', 'Mayor Puntaje Acumulado')}</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalRanking[0]?.totalPoints || 0}</div>
-            <p className="text-xs text-muted-foreground">1위 사용자</p>
+            <p className="text-xs text-muted-foreground">{t('1위 사용자', 'Usuario #1')}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">최고 월별 점수</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('최고 월별 점수', 'Mayor Puntaje Mensual')}</CardTitle>
             <Medal className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{monthlyRanking[0]?.monthlyPoints || 0}</div>
-            <p className="text-xs text-muted-foreground">이번 달 1위</p>
+            <p className="text-xs text-muted-foreground">{t('이번 달 1위', '#1 este mes')}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">평균 점수</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('평균 점수', 'Puntaje Promedio')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {Math.round(totalRanking.reduce((sum, user) => sum + user.totalPoints, 0) / totalRanking.length) || 0}
             </div>
-            <p className="text-xs text-muted-foreground">전체 평균</p>
+            <p className="text-xs text-muted-foreground">{t('전체 평균', 'Promedio general')}</p>
           </CardContent>
         </Card>
       </div>
@@ -125,8 +131,8 @@ export default function PointsRankingPage() {
       <Tabs defaultValue="total" className="space-y-4">
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="total">누적 점수</TabsTrigger>
-            <TabsTrigger value="monthly">월별 점수</TabsTrigger>
+            <TabsTrigger value="total">{t('누적 점수', 'Puntaje Acumulado')}</TabsTrigger>
+            <TabsTrigger value="monthly">{t('월별 점수', 'Puntaje Mensual')}</TabsTrigger>
           </TabsList>
           
           {/* 검색 및 내보내기 */}
@@ -134,7 +140,7 @@ export default function PointsRankingPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="이름 또는 이메일 검색..."
+                placeholder={t('이름 또는 이메일 검색...', 'Buscar por nombre o email...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"
@@ -142,7 +148,7 @@ export default function PointsRankingPage() {
             </div>
             <Button variant="outline">
               <Download className="w-4 h-4 mr-2" />
-              내보내기
+              {t('내보내기', 'Exportar')}
             </Button>
           </div>
         </div>
@@ -151,13 +157,13 @@ export default function PointsRankingPage() {
         <TabsContent value="total" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>전체 누적 점수 랭킹</CardTitle>
-              <CardDescription>가입부터 누적된 총 점수 기준</CardDescription>
+              <CardTitle>{t('전체 누적 점수 랭킹', 'Ranking Total Acumulado')}</CardTitle>
+              <CardDescription>{t('가입부터 누적된 총 점수 기준', 'Basado en el puntaje total desde el registro')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {filteredTotalRanking.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">사용자가 없습니다.</p>
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('사용자가 없습니다.', 'No hay usuarios')}</p>
                 ) : (
                   filteredTotalRanking.map((user) => (
                     <div
@@ -210,13 +216,13 @@ export default function PointsRankingPage() {
         <TabsContent value="monthly" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>이번 달 점수 랭킹</CardTitle>
-              <CardDescription>현재 월에 획득한 점수 기준 (2월 이벤트 참고용)</CardDescription>
+              <CardTitle>{t('이번 달 점수 랭킹', 'Ranking Mensual')}</CardTitle>
+              <CardDescription>{t('현재 월에 획득한 점수 기준 (2월 이벤트 참고용)', 'Basado en puntos obtenidos este mes')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {filteredMonthlyRanking.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">사용자가 없습니다.</p>
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t('사용자가 없습니다.', 'No hay usuarios')}</p>
                 ) : (
                   filteredMonthlyRanking.map((user) => (
                     <div
