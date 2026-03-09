@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,11 +42,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, newsItems: [] })
     }
 
-    console.log('[NEWS_GET] 뉴스 조회 성공:', data?.length || 0, '개, 총', count || 0, '개')
+    // Filter drafts for public users (only admin panel sends showAll=true)
+    const showAll = searchParams.get('showAll') === 'true'
+    const filtered = showAll ? (data || []) : (data || []).filter((item: any) => item.published !== false)
+
+    console.log('[NEWS_GET] 뉴스 조회 성공:', filtered.length, '개, 총', count || 0, '개')
     return NextResponse.json({
       success: true,
-      newsItems: data,
-      total: count || 0,
+      newsItems: filtered,
+      total: showAll ? (count || 0) : filtered.length,
       page: pageNum,
       limit: limitNum,
       totalPages: Math.ceil((count || 0) / limitNum)
@@ -136,7 +141,7 @@ export async function POST(request: NextRequest) {
         comment_count: 0,
         like_count: 0,
         author: author,
-        published: published || true,
+        published: published !== undefined ? published : true,
         date: date || new Date().toISOString().split('T')[0], // 날짜 필드 추가
         created_at: new Date().toISOString()
       })
@@ -289,15 +294,14 @@ export async function POST(request: NextRequest) {
 
 // 뉴스 삭제
 export async function DELETE(request: NextRequest) {
-  try {
-    if (!supabaseServer) {
-      console.log('[NEWS_DELETE] Supabase 서버 클라이언트가 없음, 뉴스 삭제 불가')
-      return NextResponse.json(
-        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
-        { status: 500 }
-      )
-    }
+  if (!supabaseServer) {
+    return NextResponse.json({ error: '데이터베이스 연결이 설정되지 않았습니다.' }, { status: 500 })
+  }
 
+  const auth = await requireAdmin(request)
+  if (!auth.authenticated) return auth.response
+
+  try {
     const { searchParams } = new URL(request.url)
     const newsId = searchParams.get('id')
 
@@ -305,7 +309,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: '뉴스 ID가 필요합니다' }, { status: 400 })
     }
 
-    console.log('[NEWS_DELETE] 뉴스 삭제 요청:', newsId)
+    console.log('[NEWS_DELETE] 뉴스 삭제 요청:', newsId, 'by', auth.user.email)
+
+    // Fetch news before deleting (for history)
+    const { data: newsBefore } = await supabaseServer
+      .from('korean_news')
+      .select('id, title, title_es, author, category, created_at')
+      .eq('id', newsId)
+      .single()
 
     const { error } = await supabaseServer
       .from('korean_news')
@@ -315,6 +326,19 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('[NEWS_DELETE] 뉴스 삭제 오류:', error)
       return NextResponse.json({ error: '뉴스 삭제 실패' }, { status: 500 })
+    }
+
+    // Log to content_deletion_history
+    if (newsBefore) {
+      await supabaseServer.from('content_deletion_history').insert({
+        content_type: 'news',
+        content_id: newsId,
+        content_title: newsBefore.title_es || newsBefore.title || 'Sin título',
+        content_author: newsBefore.author || 'Amiko',
+        deleted_by_user_id: auth.user.id,
+        deleted_by_email: auth.user.email,
+        original_data: newsBefore,
+      })
     }
 
     console.log('[NEWS_DELETE] 뉴스 삭제 성공:', newsId)
@@ -367,6 +391,28 @@ export async function PUT(request: NextRequest) {
       }
 
       console.log('[NEWS_UPDATE] 고정 상태 변경 성공:', data[0])
+      return NextResponse.json({
+        success: true,
+        newsItem: data[0]
+      })
+    }
+
+    // 게시/임시저장 상태만 변경하는 경우
+    if (published !== undefined && !title && !content && !author) {
+      console.log('[NEWS_UPDATE] 게시 상태만 변경:', { id, published })
+
+      const { data, error } = await supabaseServer
+        .from('korean_news')
+        .update({ published, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+
+      if (error) {
+        console.error('[NEWS_UPDATE] 게시 상태 변경 오류:', error)
+        return NextResponse.json({ error: '게시 상태 변경 실패: ' + error.message }, { status: 500 })
+      }
+
+      console.log('[NEWS_UPDATE] 게시 상태 변경 성공:', data[0])
       return NextResponse.json({
         success: true,
         newsItem: data[0]

@@ -27,6 +27,7 @@ import {
   ChevronDown,
   ChevronRight,
   UserCheck,
+  Home,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -128,6 +129,12 @@ const navSections: NavSection[] = [
   {
     title: { ko: '콘텐츠', es: 'Contenido' },
     items: [
+      {
+        href: '/admin/inicio',
+        label: { ko: '홈(인트로)', es: 'Inicio' },
+        icon: Home,
+        description: { ko: '게시글 삭제, 홈 배너 관리', es: 'Eliminar posts, gestionar banners' },
+      },
       {
         href: '/admin/news',
         label: { ko: '뉴스 관리', es: 'Noticias' },

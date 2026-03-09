@@ -3,44 +3,18 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Plus, Edit, Trash2, Save, ArrowLeft, Upload } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, ArrowLeft, Upload, Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
 import { toast } from 'react-hot-toast'
 import { useLanguage } from '@/context/LanguageContext'
-
-// 운영자 권한 체크
-const isOperator = async (): Promise<boolean> => {
-  try {
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return false
-    }
-
-    const response = await fetch('/api/admin/check-operator', {
-      headers: {
-        'Authorization': `Bearer ${await supabase.auth.getSession().then((res) => res.data.session?.access_token)}`
-      }
-    })
-
-    if (response.ok) {
-      const result = await response.json()
-      return result.isOperator
-    }
-
-    return false
-  } catch (error) {
-    console.error('Operator check error:', error)
-    return false
-  }
-}
+import { useAuth } from '@/context/AuthContext'
 
 interface NewsItem {
   id: string
@@ -59,6 +33,7 @@ interface NewsItem {
 export default function AdminNewsPage() {
   const router = useRouter()
   const { language } = useLanguage()
+  const { token } = useAuth()
   const t = (ko: string, es: string) => language === 'ko' ? ko : es
   const [news, setNews] = useState<NewsItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -67,7 +42,7 @@ export default function AdminNewsPage() {
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // 뉴스 작성 폼 상태 (CommunityTab.tsx에서 가져옴)
+  // 뉴스 작성 폼 상태
   const [newsWriteForm, setNewsWriteForm] = useState({
     title: '',
     title_es: '',
@@ -76,7 +51,8 @@ export default function AdminNewsPage() {
     source: '',
     author: '',
     date: '',
-    category: 'entertainment'
+    category: 'entertainment',
+    published: true,
   })
   
   // 이미지 관련 상태
@@ -85,25 +61,24 @@ export default function AdminNewsPage() {
 
   // 운영자 권한 체크
   useEffect(() => {
-    const checkOperator = async () => {
-      const isOp = await isOperator()
-      if (!isOp) {
+    if (!token) return
+    fetch('/api/admin/check-operator', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(res => {
+      if (!res.ok) {
         router.push('/')
         return
       }
-      
       loadNews()
-    }
-    
-    checkOperator()
-  }, [router])
+    }).catch(() => router.push('/'))
+  }, [token, router])
 
   // 뉴스 데이터 로드
   const loadNews = async () => {
     setIsLoading(true)
     
     try {
-      const response = await fetch('/api/news')
+      const response = await fetch('/api/news?showAll=true')
       const data = await response.json()
       
       if (data.success) {
@@ -158,49 +133,44 @@ export default function AdminNewsPage() {
     }
   }
 
-  // 뉴스 작성 함수 (CommunityTab.tsx에서 가져옴)
+  // 뉴스 작성 함수
   const handleNewsWrite = async () => {
-    if (!newsWriteForm.title.trim()) {
+    if (!newsWriteForm.title.trim() && !newsWriteForm.title_es.trim()) {
       toast.error(t('제목을 입력해주세요.', 'Por favor, ingrese el título.'))
       return
     }
-    
-    if (!newsWriteForm.content.trim()) {
+    if (!newsWriteForm.content.trim() && !newsWriteForm.content_es.trim()) {
       toast.error(t('내용을 입력해주세요.', 'Por favor, ingrese el contenido.'))
       return
     }
-    
     if (!newsWriteForm.author.trim()) {
       toast.error(t('작성자를 입력해주세요.', 'Por favor, seleccione el autor.'))
+      return
+    }
+    if (!token) {
+      toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
       return
     }
 
     setIsSubmitting(true)
     try {
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
-        return
-      }
-
       const response = await fetch('/api/news', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          title: newsWriteForm.title,
-          title_es: newsWriteForm.title,
-          content: newsWriteForm.content,
-          content_es: newsWriteForm.content,
+          title: newsWriteForm.title || newsWriteForm.title_es,
+          title_es: newsWriteForm.title_es || newsWriteForm.title,
+          content: newsWriteForm.content || newsWriteForm.content_es,
+          content_es: newsWriteForm.content_es || newsWriteForm.content,
           source: newsWriteForm.source,
           author: newsWriteForm.author,
           date: newsWriteForm.date,
-          category: 'entertainment',
+          category: newsWriteForm.category,
           thumbnail: selectedThumbnail || null,
+          published: newsWriteForm.published,
         })
       })
 
@@ -221,49 +191,44 @@ export default function AdminNewsPage() {
     }
   }
 
-  // 뉴스 수정 함수 (CommunityTab.tsx에서 가져옴)
+  // 뉴스 수정 함수
   const handleNewsEdit = async () => {
-    if (!newsWriteForm.title.trim()) {
+    if (!newsWriteForm.title.trim() && !newsWriteForm.title_es.trim()) {
       toast.error(t('제목을 입력해주세요.', 'Por favor, ingrese el título.'))
       return
     }
-    
-    if (!newsWriteForm.content.trim()) {
+    if (!newsWriteForm.content.trim() && !newsWriteForm.content_es.trim()) {
       toast.error(t('내용을 입력해주세요.', 'Por favor, ingrese el contenido.'))
       return
     }
-    
     if (!newsWriteForm.author.trim()) {
       toast.error(t('작성자를 입력해주세요.', 'Por favor, seleccione el autor.'))
+      return
+    }
+    if (!token) {
+      toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
       return
     }
 
     setIsSubmitting(true)
     try {
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
-        return
-      }
-
       const response = await fetch('/api/news', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           id: editingNews?.id,
-          title: newsWriteForm.title,
-          title_es: newsWriteForm.title,
-          content: newsWriteForm.content,
-          content_es: newsWriteForm.content,
+          title: newsWriteForm.title || newsWriteForm.title_es,
+          title_es: newsWriteForm.title_es || newsWriteForm.title,
+          content: newsWriteForm.content || newsWriteForm.content_es,
+          content_es: newsWriteForm.content_es || newsWriteForm.content,
           source: newsWriteForm.source,
           author: newsWriteForm.author,
-          category: 'entertainment',
-          thumbnail: selectedThumbnail || null
+          category: newsWriteForm.category,
+          thumbnail: selectedThumbnail || null,
+          published: newsWriteForm.published,
         })
       })
 
@@ -294,7 +259,8 @@ export default function AdminNewsPage() {
       source: '',
       author: '',
       date: '',
-      category: 'entertainment'
+      category: 'entertainment',
+      published: true,
     })
     setNewsUploadedImages([])
     setSelectedThumbnail('')
@@ -313,7 +279,8 @@ export default function AdminNewsPage() {
       source: newsItem.source,
       author: newsItem.author,
       date: '',
-      category: newsItem.category
+      category: newsItem.category,
+      published: newsItem.published !== false, // default true
     })
     setSelectedThumbnail(newsItem.thumbnail || '')
     setEditingNews(newsItem)
@@ -325,23 +292,15 @@ export default function AdminNewsPage() {
     if (!confirm(t('정말로 이 뉴스를 삭제하시겠습니까?', '¿Está seguro de eliminar esta noticia?'))) {
       return
     }
-    
+    if (!token) {
+      toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
+      return
+    }
     try {
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.access_token) {
-        toast.error(t('로그인이 필요합니다', 'Inicio de sesión requerido'))
-        return
-      }
-
       const response = await fetch(`/api/news?id=${newsId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
-      
       if (response.ok) {
         toast.success(t('뉴스가 삭제되었습니다', 'Noticia eliminada exitosamente'))
         loadNews()
@@ -352,6 +311,31 @@ export default function AdminNewsPage() {
     } catch (error) {
       console.error('뉴스 삭제 오류:', error)
       toast.error(t('뉴스 삭제 중 오류가 발생했습니다', 'Ocurrió un error al eliminar la noticia'))
+    }
+  }
+
+  // 게시/임시저장 토글
+  const handleTogglePublished = async (newsItem: NewsItem) => {
+    if (!token) return
+    try {
+      const response = await fetch('/api/news', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          id: newsItem.id,
+          published: !newsItem.published,
+        })
+      })
+      if (response.ok) {
+        toast.success(
+          !newsItem.published
+            ? t('뉴스가 게시되었습니다', 'Noticia publicada')
+            : t('뉴스가 임시저장으로 변경되었습니다', 'Noticia guardada como borrador')
+        )
+        loadNews()
+      }
+    } catch (error) {
+      console.error('토글 오류:', error)
     }
   }
 
@@ -406,16 +390,32 @@ export default function AdminNewsPage() {
               <Card key={item.id} className="p-6 dark:bg-gray-800 dark:border-gray-700">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{item.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">{item.content}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{item.title_es || item.title}</h3>
+                      <Badge
+                        className={`text-xs ${item.published !== false ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'} text-white`}
+                      >
+                        {item.published !== false ? t('게시됨', 'Publicado') : t('임시저장', 'Borrador')}
+                      </Badge>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">{item.content_es || item.content}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                       <span>{item.source}</span>
                       <span>{item.category}</span>
                       <span>{item.author}</span>
                       <span>{new Date(item.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      title={item.published !== false ? t('임시저장으로 변경', 'Cambiar a borrador') : t('게시', 'Publicar')}
+                      onClick={() => handleTogglePublished(item)}
+                      className={item.published !== false ? 'text-green-600 border-green-300' : 'text-amber-600 border-amber-300'}
+                    >
+                      {item.published !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -569,6 +569,23 @@ export default function AdminNewsPage() {
               </div>
 
               {/* 버튼 */}
+              {/* 게시/임시저장 설정 */}
+              <div className="flex items-center gap-3 pb-2">
+                <Switch
+                  id="published-create"
+                  checked={newsWriteForm.published}
+                  onCheckedChange={(v) => setNewsWriteForm(p => ({ ...p, published: v }))}
+                />
+                <Label htmlFor="published-create" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  {newsWriteForm.published
+                    ? t('게시 (공개 상태)', 'Publicar (visible para todos)')
+                    : t('임시저장 (비공개)', 'Borrador (no visible)')}
+                </Label>
+                <Badge className={`text-xs ml-1 ${newsWriteForm.published ? 'bg-green-500' : 'bg-amber-500'} text-white`}>
+                  {newsWriteForm.published ? t('공개', 'Público') : t('비공개', 'Borrador')}
+                </Badge>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button
                   type="button"
@@ -729,6 +746,23 @@ export default function AdminNewsPage() {
                     <p>{t('이미지를 업로드하면 썸네일로 선택할 수 있습니다', 'Puede seleccionar una miniatura al subir imágenes')}</p>
                   </div>
                 )}
+              </div>
+
+              {/* 게시/임시저장 설정 */}
+              <div className="flex items-center gap-3 pb-2">
+                <Switch
+                  id="published-edit"
+                  checked={newsWriteForm.published}
+                  onCheckedChange={(v) => setNewsWriteForm(p => ({ ...p, published: v }))}
+                />
+                <Label htmlFor="published-edit" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  {newsWriteForm.published
+                    ? t('게시 (공개 상태)', 'Publicado (visible para todos)')
+                    : t('임시저장 (비공개)', 'Borrador (no visible)')}
+                </Label>
+                <Badge className={`text-xs ml-1 ${newsWriteForm.published ? 'bg-green-500' : 'bg-amber-500'} text-white`}>
+                  {newsWriteForm.published ? t('공개', 'Público') : t('비공개', 'Borrador')}
+                </Badge>
               </div>
 
               {/* 버튼 */}

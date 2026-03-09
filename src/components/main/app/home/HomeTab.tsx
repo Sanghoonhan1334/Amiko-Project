@@ -341,37 +341,22 @@ export default function HomeTab() {
   // 실제 데이터 로딩 함수들
   const loadCurrentEvents = async () => {
     try {
-      // 임시 하드코딩된 이벤트 데이터
-      const mockEvents = [
-        {
-          id: "event-opening",
-          title: language === "ko" ? "오픈 이벤트" : "Evento de Apertura",
-          description:
-            language === "ko"
-              ? "¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!"
-              : "¡SUBE TU FOTO DE VERIFICACIÓN EN SNS Y RECIBE UN REGALO!",
-          image: "/banners/event-opening-banner.png",
-          bannerMobile: "/banners/event-opening-banner.png",
-          bannerDesktop: "/banners/event-opening-banner.png",
-          date: language === "ko" ? "진행 중" : "En curso",
-          participants: 0,
-        },
-        {
-          id: "event-korean-meeting",
-          title: language === "ko" ? "한국어 모임" : "Reunión de Coreano",
-          description:
-            language === "ko"
-              ? "2주에 한번씩 한국어 모임을 진행합니다!"
-              : "¡Reunión de coreano cada 2 semanas!",
-          image: "/banners/event-korean-meeting-banner.png",
-          bannerMobile: "/banners/event-korean-meeting-banner.png",
-          bannerDesktop: "/banners/event-korean-meeting-banner.png",
-          date: language === "ko" ? "2주마다 진행" : "Cada 2 semanas",
-          participants: 0,
-        },
-      ];
-
-      setCurrentEvents(mockEvents);
+      const response = await fetch("/api/home-banners");
+      if (!response.ok) throw new Error("Failed to fetch banners");
+      const data = await response.json();
+      const banners: Event[] = (data.banners || []).map((b: any) => ({
+        id: b.id,
+        title: language === "ko" ? (b.title_ko || b.title_es) : (b.title_es || b.title_ko),
+        description: language === "ko"
+          ? (b.description_ko || b.description_es || "")
+          : (b.description_es || b.description_ko || ""),
+        image: b.image_url,
+        bannerMobile: b.image_url,
+        bannerDesktop: b.image_url,
+        date: b.link_url || "",
+        participants: 0,
+      }));
+      setCurrentEvents(banners);
     } catch (error) {
       console.error("이벤트 로딩 실패:", error);
       setCurrentEvents([]);

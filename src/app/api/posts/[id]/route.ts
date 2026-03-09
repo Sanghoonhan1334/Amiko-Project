@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { requireAdmin } from "@/lib/admin-auth";
 
 // 개별 게시글 조회
 export async function GET(
@@ -299,24 +300,38 @@ export async function PUT(
   }
 }
 
-// 게시글 삭제
+// 게시글 삭제 (admin only — soft delete + history)
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   const params = await context.params;
+  if (!supabaseServer) {
+    return NextResponse.json(
+      { error: "데이터베이스 연결이 설정되지 않았습니다." },
+      { status: 500 },
+    );
+  }
+
+  // Require admin authentication
+  const auth = await requireAdmin(request);
+  if (!auth.authenticated) return auth.response;
+
   try {
-    if (!supabaseServer) {
-      return NextResponse.json(
-        { error: "데이터베이스 연결이 설정되지 않았습니다." },
-        { status: 500 },
-      );
-    }
-
     const postId = params.id;
-    console.log("[POST_DELETE] 게시글 삭제:", postId);
+    const body = await request.json().catch(() => ({}));
+    const reason = (body?.reason as string)?.trim() || null;
 
-    // 게시글 삭제 (소프트 삭제)
+    console.log("[POST_DELETE] 게시글 삭제 (admin):", postId, "by", auth.user.email);
+
+    // Fetch post before deleting (for history record)
+    const { data: postBefore } = await supabaseServer
+      .from("gallery_posts")
+      .select("id, title, content, user_id, category, created_at")
+      .eq("id", postId)
+      .single();
+
+    // Soft-delete the post
     const { data: deletedPost, error: deleteError } = await supabaseServer
       .from("gallery_posts")
       .update({
@@ -333,6 +348,41 @@ export async function DELETE(
         { error: "게시글 삭제에 실패했습니다." },
         { status: 500 },
       );
+    }
+
+    // Log to content_deletion_history
+    if (postBefore) {
+      // Resolve author name
+      let authorName = "Anónimo";
+      if (postBefore.user_id) {
+        const { data: profile } = await supabaseServer
+          .from("user_profiles")
+          .select("display_name")
+          .eq("user_id", postBefore.user_id)
+          .single();
+        if (profile?.display_name) {
+          authorName = profile.display_name.split("#")[0];
+        } else {
+          const { data: user } = await supabaseServer
+            .from("users")
+            .select("full_name, spanish_name, korean_name")
+            .eq("id", postBefore.user_id)
+            .single();
+          authorName =
+            user?.korean_name || user?.spanish_name || user?.full_name || "Anónimo";
+        }
+      }
+
+      await supabaseServer.from("content_deletion_history").insert({
+        content_type: "post",
+        content_id: postId,
+        content_title: postBefore.title,
+        content_author: authorName,
+        deleted_by_user_id: auth.user.id,
+        deleted_by_email: auth.user.email,
+        reason,
+        original_data: postBefore,
+      });
     }
 
     console.log("[POST_DELETE] 게시글 삭제 성공:", deletedPost);

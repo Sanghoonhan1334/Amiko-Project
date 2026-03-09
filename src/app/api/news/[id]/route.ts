@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const supabase = createClient(supabaseUrl!, supabaseKey!)
+import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function PUT(
   request: NextRequest,
@@ -11,11 +8,13 @@ export async function PUT(
 ) {
   const params = await context.params
 
+  if (!supabaseServer) {
+    return NextResponse.json({ error: 'Supabase 서버 클라이언트 초기화 실패' }, { status: 500 })
+  }
+
   try {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
-    }
+    const adminCheck = await requireAdmin(request)
+    if (adminCheck) return adminCheck
 
     const body = await request.json()
     const { title, content, source, category, thumbnail } = body
@@ -25,18 +24,18 @@ export async function PUT(
       return NextResponse.json({ error: '필수 필드가 누락되었습니다' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('korean_news')
       .update({
         title,
-        title_es: title, // 일단 같은 값으로
+        title_es: title,
         content,
-        content_es: content, // 일단 같은 값으로
+        content_es: content,
         thumbnail,
         source,
         category,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', params.id)
       .select()
 
@@ -64,14 +63,17 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   const params = await context.params
-  try {
-    // 개발 환경에서는 인증 체크 생략
-    // const authHeader = request.headers.get('Authorization')
-    // if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    //   return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
-    // }
 
-    const { error } = await supabase
+  if (!supabaseServer) {
+    return NextResponse.json({ error: 'Supabase 서버 클라이언트 초기화 실패' }, { status: 500 })
+  }
+
+  try {
+    // Require admin auth for DELETE
+    const adminCheck = await requireAdmin(request)
+    if (adminCheck) return adminCheck
+
+    const { error } = await supabaseServer
       .from('korean_news')
       .delete()
       .eq('id', params.id)
