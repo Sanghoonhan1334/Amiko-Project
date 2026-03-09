@@ -94,6 +94,19 @@ const DanceTab = dynamic(() => import('@/components/main/app/dance/DanceTab'), {
   )
 })
 
+const AmikoMeetTab = dynamic(() => import('@/components/main/app/amiko-meet/AmikoMeetTab'), {
+  loading: () => (
+    <div className="space-y-4 p-4">
+      <Skeleton className="h-40 w-full rounded-2xl" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton className="h-32 rounded-lg" />
+        <Skeleton className="h-32 rounded-lg" />
+      </div>
+    </div>
+  ),
+  ssr: false
+})
+
 function AppPageContent() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -366,6 +379,35 @@ function AppPageContent() {
               <div className="block md:hidden pt-24 pb-20">
                 <div className="px-1">
                   <MeetTab />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'amiko-meet' && (
+              <div className="hidden md:block pt-20 sm:pt-36">
+                <div className="w-full">
+                  <div className="card p-8 pt-12 -mt-12 sm:mt-0">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+                        <Video className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AMIKO Meet</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {language === 'ko' ? '무료 화상 통화' : 'Videollamadas Gratuitas'}
+                        </p>
+                      </div>
+                    </div>
+                    <AmikoMeetTab />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'amiko-meet' && (
+              <div className="block md:hidden pt-24 pb-20">
+                <div className="px-2">
+                  <AmikoMeetTab />
                 </div>
               </div>
             )}

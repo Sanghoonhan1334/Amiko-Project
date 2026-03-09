@@ -5,3 +5,4 @@ export * from './community';
 export * from './me';
 export * from './charging';
 export * from './event';
+export * from './amiko-meet';

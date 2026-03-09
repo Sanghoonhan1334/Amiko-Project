@@ -50,8 +50,8 @@ export default function BottomTabNavigation() {
       const tab = searchParams.get("tab") || "home";
       setActiveTab(tab);
     } else if (pathname.startsWith("/community")) {
-      // 커뮤니티 서브페이지에서는 커뮤니티 탭을 활성화
-      setActiveTab("community");
+      // 커뮤니티 서브페이지에서는 amiko-meet 탭을 활성화
+      setActiveTab("amiko-meet");
     } else if (pathname.startsWith("/education")) {
       // 교육 페이지에서는 education 탭을 활성화
       setActiveTab("education");
@@ -80,16 +80,16 @@ export default function BottomTabNavigation() {
 
   const baseTabs = [
     {
-      id: "meet",
-      label: t("headerNav.videoCall"),
+      id: "amiko-meet",
+      label: "AMIKO Meet",
       icon: Video,
-      path: "/main?tab=meet",
+      path: "/main?tab=amiko-meet",
     },
     {
-      id: "community",
-      label: t("headerNav.community"),
+      id: "meet",
+      label: t("headerNav.videoCall"),
       icon: MessageSquare,
-      path: "/main?tab=community",
+      path: "/main?tab=meet",
     },
     {
       id: "home",

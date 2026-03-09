@@ -102,6 +102,12 @@ const navSections: NavSection[] = [
     title: { ko: '화상 채팅', es: 'Videollamadas' },
     items: [
       {
+        href: '/admin/amiko-meet',
+        label: { ko: 'AMIKO Meet', es: 'AMIKO Meet' },
+        icon: Video,
+        description: { ko: '무료 화상 세션 관리', es: 'Gestionar sesiones gratuitas' },
+      },
+      {
         href: '/admin/conversation-partners',
         label: { ko: '대화 파트너', es: 'Compañeros de Conversación' },
         icon: Video,
