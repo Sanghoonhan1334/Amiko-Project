@@ -77,6 +77,8 @@ export default function LiveClassPage() {
   const [chatInput, setChatInput] = useState('')
   const [participantCount, setParticipantCount] = useState(1)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const lastMsgTimestampRef = useRef<string | null>(null)
+  const remoteUsersSetRef = useRef<Set<number>>(new Set())
 
   // Agora refs
   const clientRef = useRef<ReturnType<typeof import('agora-rtc-sdk-ng').default.createClient> | null>(null)
@@ -218,7 +220,11 @@ export default function LiveClassPage() {
           remoteUser.audioTrack?.play()
         }
 
-        setParticipantCount(prev => prev + 1)
+        // Track unique users to avoid double-counting (audio+video fire separately)
+        if (!remoteUsersSetRef.current.has(remoteUser.uid as number)) {
+          remoteUsersSetRef.current.add(remoteUser.uid as number)
+          setParticipantCount(remoteUsersSetRef.current.size + 1) // +1 for local user
+        }
       })
 
       client.on('user-unpublished', (remoteUser, mediaType) => {
@@ -231,7 +237,8 @@ export default function LiveClassPage() {
       client.on('user-left', (remoteUser) => {
         const el = document.getElementById(`remote-video-${remoteUser.uid}`)
         el?.remove()
-        setParticipantCount(prev => Math.max(1, prev - 1))
+        remoteUsersSetRef.current.delete(remoteUser.uid as number)
+        setParticipantCount(remoteUsersSetRef.current.size + 1) // +1 for local user
       })
 
       // Join channel with the deterministic UID from the token server
@@ -544,6 +551,10 @@ export default function LiveClassPage() {
         const res = await fetch(`/api/education/chat?sessionId=${sessionId}`)
         const data = await res.json()
         if (data.messages) {
+          const lastMsg = data.messages[data.messages.length - 1]
+          if (lastMsg?.created_at) {
+            lastMsgTimestampRef.current = lastMsg.created_at
+          }
           setChatMessages(data.messages.map((m: { id: string; user_id: string; user_name: string; message: string; created_at: string }) => ({
             id: m.id,
             userId: m.user_id,
@@ -562,8 +573,7 @@ export default function LiveClassPage() {
     // Poll for new messages every 5 seconds
     const pollInterval = setInterval(async () => {
       try {
-        const lastMsg = chatMessages[chatMessages.length - 1]
-        const after = lastMsg ? new Date(lastMsg.timestamp).toISOString() : undefined
+        const after = lastMsgTimestampRef.current
         const url = after
           ? `/api/education/chat?sessionId=${sessionId}&after=${after}`
           : `/api/education/chat?sessionId=${sessionId}`
@@ -580,6 +590,10 @@ export default function LiveClassPage() {
               timestamp: new Date(m.created_at)
             }))
           if (newMsgs.length > 0) {
+            const lastNew = data.messages[data.messages.length - 1]
+            if (lastNew?.created_at) {
+              lastMsgTimestampRef.current = lastNew.created_at
+            }
             setChatMessages(prev => [...prev, ...newMsgs])
             setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
           }

@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
 // GET /api/education/chat?sessionId=xxx&after=timestamp - Get chat messages
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get('sessionId')
     const after = searchParams.get('after') // ISO timestamp for polling

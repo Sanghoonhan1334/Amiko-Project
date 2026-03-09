@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +16,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
 
     const { data: session, error } = await supabase
       .from('education_sessions')
