@@ -26,10 +26,10 @@ import {
   AlertCircle,
   CheckCircle,
   User,
+  Play,
 } from "lucide-react";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { PAYPAL_CONFIG } from "@/lib/paypal";
-import PayPalPaymentButton from "@/components/payments/PayPalPaymentButton";
 import RatingModal from "./RatingModal";
 import ReportModal from "./ReportModal";
 
@@ -87,6 +87,8 @@ export default function SessionDetailModal({
   const [showRating, setShowRating] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showPaypal, setShowPaypal] = useState(false);
+  const [vcBookingId, setVcBookingId] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -130,17 +132,20 @@ export default function SessionDetailModal({
     try {
       setBooking(true);
       setError("");
-      const res = await fetch("/api/videocall/bookings", {
+      // Use Phase 1 enrollment endpoint
+      const res = await fetch(`/api/video/sessions/${s.id}/enroll`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: s.id,
-          payment_method: "free",
-        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || t("vcMarketplace.bookingError"));
+        return;
+      }
+      if (data.requires_payment) {
+        // Session requires payment — show PayPal flow
+        setVcBookingId(data.booking.id);
+        setShowPaypal(true);
         return;
       }
       setMyBooking(data.booking);
@@ -157,30 +162,74 @@ export default function SessionDetailModal({
     try {
       setJoining(true);
       setError("");
-      const res = await fetch(`/api/videocall/sessions/${s.id}/join`, {
+      // Use Phase 1 access-token endpoint (validates payment + access)
+      const res = await fetch(`/api/video/sessions/${s.id}/access-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_id: myBooking.id }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || t("vcMarketplace.joinError"));
         return;
       }
-      // Open video room in new window or route
       const params = new URLSearchParams({
         channel: data.channel,
         token: data.token,
         uid: data.uid.toString(),
         appId: data.appId,
         sessionId: s.id,
-        title: s.title,
+        title: data.title || s.title,
+        ...(data.isHost ? { isHost: "true" } : {}),
+        ...(data.token_expires_in
+          ? { tokenExpiresIn: data.token_expires_in.toString() }
+          : {}),
       });
       window.open(`/videocall/room?${params.toString()}`, "_blank");
     } catch {
       setError(t("vcMarketplace.joinError"));
     } finally {
       setJoining(false);
+    }
+  };
+
+  const handleStartSession = async () => {
+    try {
+      setStarting(true);
+      setError("");
+      // Host starts session via access-token (will set session to live)
+      const res = await fetch(`/api/video/sessions/${s.id}/access-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || t("vcMarketplace.startError"));
+        return;
+      }
+      // Open video room
+      const params = new URLSearchParams({
+        channel: data.channel,
+        token: data.token,
+        uid: data.uid.toString(),
+        appId: data.appId,
+        sessionId: s.id,
+        title: data.title || s.title,
+        isHost: "true",
+        ...(data.token_expires_in
+          ? { tokenExpiresIn: data.token_expires_in.toString() }
+          : {}),
+      });
+      window.open(`/videocall/room?${params.toString()}`, "_blank");
+      setSessionDetail((prev: any) => ({
+        ...prev,
+        status: "live",
+        started_at: new Date().toISOString(),
+      }));
+      setSuccess(t("vcMarketplace.sessionStarted"));
+    } catch {
+      setError(t("vcMarketplace.startError"));
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -372,7 +421,7 @@ export default function SessionDetailModal({
                 </div>
               )}
 
-              {/* PayPal Payment Section */}
+              {/* PayPal Payment Section — uses VC-specific routes */}
               {showPaypal && s.price_usd > 0 && user && (
                 <div className="border border-purple-200 dark:border-purple-700 rounded-lg p-3">
                   <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
@@ -385,16 +434,71 @@ export default function SessionDetailModal({
                       intent: "capture",
                     }}
                   >
-                    <PayPalPaymentButton
-                      amount={s.price_usd}
-                      orderId={`vc-${s.id}-${Date.now()}`}
-                      orderName={s.title}
-                      customerName={user.email || ""}
-                      customerEmail={user.email || ""}
-                      userId={user.id}
-                      bookingId={undefined}
-                      productType="videocall_session"
-                      productData={{ session_id: s.id }}
+                    <PayPalButtons
+                      style={{
+                        layout: "vertical",
+                        shape: "rect",
+                        label: "pay",
+                        height: 40,
+                      }}
+                      createOrder={async () => {
+                        const res = await fetch("/api/videocall/pay", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ session_id: s.id }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok)
+                          throw new Error(data.error || "Payment failed");
+                        if (data.type === "free") {
+                          setMyBooking(data.booking);
+                          setSuccess(t("vcMarketplace.bookingSuccess"));
+                          setShowPaypal(false);
+                          setTimeout(() => onBookingComplete(), 1500);
+                          throw new Error("FREE_BOOKING_COMPLETED");
+                        }
+                        setVcBookingId(data.bookingId);
+                        return data.paypalOrderId;
+                      }}
+                      onApprove={async (data) => {
+                        try {
+                          const res = await fetch(
+                            "/api/videocall/pay/capture",
+                            {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                paypal_order_id: data.orderID,
+                                booking_id: vcBookingId,
+                              }),
+                            },
+                          );
+                          const result = await res.json();
+                          if (!res.ok) {
+                            setError(
+                              result.error || t("vcMarketplace.payment.failed"),
+                            );
+                            return;
+                          }
+                          setMyBooking({
+                            id: vcBookingId,
+                            status: "confirmed",
+                          });
+                          setSuccess(t("vcMarketplace.bookingSuccess"));
+                          setShowPaypal(false);
+                          setTimeout(() => onBookingComplete(), 1500);
+                        } catch {
+                          setError(t("vcMarketplace.payment.failed"));
+                        }
+                      }}
+                      onError={(err) => {
+                        if (String(err).includes("FREE_BOOKING_COMPLETED"))
+                          return;
+                        setError(t("vcMarketplace.payment.failed"));
+                      }}
+                      onCancel={() => {
+                        setShowPaypal(false);
+                      }}
                     />
                   </PayPalScriptProvider>
                 </div>
@@ -436,9 +540,51 @@ export default function SessionDetailModal({
 
               {/* Action buttons */}
               {isHost ? (
-                <Badge variant="secondary" className="text-xs py-1 px-3">
-                  {t("vcMarketplace.youAreHost")}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {(s.status === "scheduled" || s.status === "upcoming") && (
+                    <Button
+                      size="sm"
+                      onClick={handleStartSession}
+                      disabled={starting}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-xs"
+                    >
+                      {starting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />{" "}
+                          {t("vcMarketplace.starting")}
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 mr-1" />{" "}
+                          {t("vcMarketplace.startSession")}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {s.status === "live" && (
+                    <Button
+                      size="sm"
+                      onClick={handleJoinSession}
+                      disabled={joining}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-xs"
+                    >
+                      {joining ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />{" "}
+                          {t("vcMarketplace.joining")}
+                        </>
+                      ) : (
+                        <>
+                          <Video className="w-3.5 h-3.5 mr-1" />{" "}
+                          {t("vcMarketplace.joinSession")}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <Badge variant="secondary" className="text-xs py-1 px-3">
+                    {t("vcMarketplace.youAreHost")}
+                  </Badge>
+                </div>
               ) : myBooking ? (
                 <>
                   {sessionEnded && !hasRated ? (

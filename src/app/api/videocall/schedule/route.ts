@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
           price_usd: schedule.price_usd || 5.0,
           max_slots: schedule.max_slots || 10,
           is_active: schedule.is_active !== false,
+          timezone: schedule.timezone || "Asia/Seoul",
           created_by: user.id,
         })
         .select()

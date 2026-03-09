@@ -35,7 +35,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import RatingModal from "./RatingModal";
 
 interface VideoRoomProps {
   channel: string;
@@ -45,8 +44,6 @@ interface VideoRoomProps {
   sessionId: string;
   title: string;
   durationMinutes?: number;
-  isHost?: boolean;
-  tokenExpiresIn?: number;
   onLeave?: () => void;
 }
 
@@ -75,8 +72,6 @@ export default function VideoRoom({
   sessionId,
   title,
   durationMinutes = 30,
-  isHost = false,
-  tokenExpiresIn,
   onLeave,
 }: VideoRoomProps) {
   const { t } = useLanguage();
@@ -101,11 +96,7 @@ export default function VideoRoom({
   const [showReactions, setShowReactions] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [timeLeft, setTimeLeft] = useState(
-    tokenExpiresIn
-      ? Math.min(tokenExpiresIn, durationMinutes * 60)
-      : durationMinutes * 60,
-  );
+  const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState("");
   const [floatingReactions, setFloatingReactions] = useState<
@@ -114,9 +105,6 @@ export default function VideoRoom({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [sessionEnded, setSessionEnded] = useState(false);
-  const [showPostRating, setShowPostRating] = useState(false);
-  const [hostId, setHostId] = useState<string>("");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
@@ -294,6 +282,19 @@ export default function VideoRoom({
         setConnected(true);
         addLocalSystemMessage(t("vcMarketplace.videoRoom.connected"));
         broadcastSystem(`User ${uid} joined`);
+
+        // Report presence join to backend
+        fetch(`/api/video/sessions/${sessionId}/presence/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            device_info: {
+              platform: navigator.platform,
+              language: navigator.language,
+              screen: `${screen.width}x${screen.height}`,
+            },
+          }),
+        }).catch(() => {});
       } catch (err: any) {
         // OPERATION_ABORTED is thrown by Agora when the client is torn down
         // mid-operation (e.g. component unmount). Suppress it — it is not a
@@ -338,66 +339,43 @@ export default function VideoRoom({
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Auto-end the session on the server when timer expires
-          if (sessionId && !sessionId.startsWith("test-")) {
-            fetch(`/api/videocall/sessions/${sessionId}/end`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ auto_ended: true }),
-            }).catch(() => {});
-          }
-          // Show post-session rating for non-host, non-test sessions
-          if (!isHost && sessionId && !sessionId.startsWith("test-")) {
-            setSessionEnded(true);
-            setShowPostRating(true);
-          } else {
-            handleLeave();
-          }
+          handleLeave();
           return 0;
+        }
+        // Show warning at 5 min and 1 min marks
+        if (prev === 300) {
+          addLocalSystemMessage("⚠️ 5 minutes remaining");
+        }
+        if (prev === 60) {
+          addLocalSystemMessage("⚠️ 1 minute remaining");
+        }
+        if (prev === 10) {
+          addLocalSystemMessage("⚠️ Session closing in 10 seconds");
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
-  }, [connected]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Token renewal: refresh Agora token before it expires
-  useEffect(() => {
-    if (!connected || !sessionId || sessionId.startsWith("test-")) return;
+    // Sync with server timer every 60 seconds
+    const timerSync = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/video/sessions/${sessionId}/timer`);
+        const data = await res.json();
+        if (data.status === "completed") {
+          handleLeave();
+        } else if (typeof data.remaining_seconds === "number") {
+          setTimeLeft(data.remaining_seconds);
+        }
+      } catch {
+        // Sync failed, continue with local timer
+      }
+    }, 60000);
 
-    // Fetch session host_id for post-session rating
-    if (!isHost) {
-      fetch(`/api/videocall/sessions/${sessionId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.session?.host_id) setHostId(data.session.host_id);
-        })
-        .catch(() => {});
-    }
-
-    const client = clientRef.current;
-    if (!client) return;
-
-    const handleTokenExpiring = () => {
-      fetch("/api/videocall/token-renew", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, channel }),
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.token) {
-            client.renewToken(data.token);
-          }
-        })
-        .catch((err) => console.warn("[VideoRoom] Token renewal failed:", err));
-    };
-
-    client.on("token-privilege-will-expire", handleTokenExpiring);
     return () => {
-      client.off("token-privilege-will-expire", handleTokenExpiring);
+      clearInterval(interval);
+      clearInterval(timerSync);
     };
-  }, [connected, sessionId, channel]);
+  }, [connected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -511,19 +489,8 @@ export default function VideoRoom({
       event: "chat",
       payload: msg,
     });
-    // Persist to database for audit trail
-    if (sessionId && !sessionId.startsWith("test-")) {
-      fetch(`/api/videocall/sessions/${sessionId}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: chatInput.trim(),
-          message_type: "text",
-        }),
-      }).catch(() => {});
-    }
     setChatInput("");
-  }, [chatInput, uid, sessionId]);
+  }, [chatInput, uid]);
 
   const handleReaction = useCallback(
     (emoji: string) => {
@@ -554,14 +521,11 @@ export default function VideoRoom({
   );
 
   const handleLeave = useCallback(async () => {
-    // Notify backend the user left
-    if (sessionId && !sessionId.startsWith("test-")) {
-      fetch(`/api/videocall/sessions/${sessionId}/leave`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      }).catch(() => {});
-    }
+    // Report presence leave to backend
+    fetch(`/api/video/sessions/${sessionId}/presence/leave`, {
+      method: "POST",
+    }).catch(() => {});
+
     tracksRef.current.audio?.close();
     tracksRef.current.video?.close();
     screenTrackRef.current?.close();
@@ -890,28 +854,6 @@ export default function VideoRoom({
           <PhoneOff className="w-5 h-5" />
         </button>
       </div>
-
-      {/* Post-session rating overlay */}
-      {showPostRating &&
-        sessionId &&
-        !sessionId.startsWith("test-") &&
-        hostId && (
-          <div className="fixed inset-0 z-[100000] bg-black/70 flex items-center justify-center">
-            <RatingModal
-              open={showPostRating}
-              onClose={() => {
-                setShowPostRating(false);
-                handleLeave();
-              }}
-              sessionId={sessionId}
-              hostId={hostId}
-              onRated={() => {
-                setShowPostRating(false);
-                handleLeave();
-              }}
-            />
-          </div>
-        )}
     </div>
   );
 }
