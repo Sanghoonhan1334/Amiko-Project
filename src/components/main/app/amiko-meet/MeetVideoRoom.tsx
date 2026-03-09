@@ -91,6 +91,17 @@ export default function MeetVideoRoom({
     speaking_language: language === 'ko' ? 'ko' : 'es',
   })
 
+  // ── Phase 3: Translation preferences ────────────
+  const [translationPrefs, setTranslationPrefs] = useState<{
+    display_mode: 'none' | 'translated_only' | 'original_and_translated'
+    target_language: 'ko' | 'es'
+    auto_translate: boolean
+  }>({
+    display_mode: 'original_and_translated',
+    target_language: language === 'ko' ? 'es' : 'ko', // read the OTHER language
+    auto_translate: true,
+  })
+
   // ── Timer polling from server ───────────────────
   const pollTimer = useCallback(async () => {
     if (!authToken) return
@@ -188,7 +199,7 @@ export default function MeetVideoRoom({
   useEffect(() => {
     if (!connected || !authToken) return
 
-    // Load preferences
+    // Load caption preferences
     fetch('/api/users/me/caption-preferences', {
       headers: { Authorization: `Bearer ${authToken}` },
     })
@@ -197,6 +208,18 @@ export default function MeetVideoRoom({
         if (data?.preferences && mountedRef.current) {
           setCaptionPrefs(prev => ({ ...prev, ...data.preferences }))
           setCaptionsEnabled(data.preferences.captions_enabled ?? true)
+        }
+      })
+      .catch(() => {})
+
+    // Load translation preferences
+    fetch('/api/users/me/translation-preferences', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.preferences && mountedRef.current) {
+          setTranslationPrefs(prev => ({ ...prev, ...data.preferences }))
         }
       })
       .catch(() => {})
@@ -230,6 +253,21 @@ export default function MeetVideoRoom({
     setCaptionsEnabled(val)
     updateCaptionPrefs({ captions_enabled: val })
   }, [updateCaptionPrefs])
+
+  // ── Phase 3: Save translation prefs ─────────────
+  const updateTranslationPrefs = useCallback((patch: Partial<typeof translationPrefs>) => {
+    setTranslationPrefs(prev => ({ ...prev, ...patch }))
+    if (authToken) {
+      fetch('/api/users/me/translation-preferences', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(patch),
+      }).catch(() => {})
+    }
+  }, [authToken])
 
   // ── Initialize Agora & join ─────────────────────
   useEffect(() => {
@@ -549,6 +587,8 @@ export default function MeetVideoRoom({
           onToggle={toggleCaptions}
           preferences={captionPrefs}
           onPreferencesChange={updateCaptionPrefs}
+          translationPrefs={translationPrefs}
+          onTranslationPrefsChange={updateTranslationPrefs}
         />
         {showCaptionSettings && (
           <div className="absolute inset-0 z-40" onClick={() => setShowCaptionSettings(false)} />

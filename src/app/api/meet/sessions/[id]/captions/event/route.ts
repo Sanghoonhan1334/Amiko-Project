@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { translateCaptionEvent } from '@/lib/meet-translation'
 
 // POST /api/meet/sessions/[id]/captions/event
 // Receives a caption event from a client's Web Speech API
@@ -89,6 +90,24 @@ export async function POST(
     if (insertErr) {
       console.error('[Caption Event Insert]', insertErr)
       return NextResponse.json({ error: 'Failed to save caption' }, { status: 500 })
+    }
+
+    // ── Phase 3: Fire-and-forget translation ──────────
+    // Only translate final captions to avoid wasting API calls on partials.
+    // Translation runs async — the caption response is returned immediately.
+    if (is_final === true && ['ko', 'es'].includes(language)) {
+      translateCaptionEvent({
+        id: event.id,
+        session_id: sessionId,
+        speaker_user_id: user.id,
+        speaker_name: speakerName,
+        content: content.slice(0, 2000),
+        language: language as 'ko' | 'es',
+        is_final: true,
+        sequence_number: event.sequence_number,
+      }).catch(err => {
+        console.error('[Caption Event] Translation fire-and-forget failed:', err)
+      })
     }
 
     return NextResponse.json({

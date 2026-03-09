@@ -1,13 +1,13 @@
 import crypto from 'crypto'
 
 // 번역 서비스 타입
-type TranslationProvider = 'openai' | 'google' | 'mock' | 'libretranslate'
+type TranslationProvider = 'deepseek' | 'google' | 'mock' | 'libretranslate'
 
 // 번역 서비스 래퍼
 export class TranslationService {
   private static instance: TranslationService
   private cache: Map<string, string> = new Map()
-  private provider: TranslationProvider = 'openai'
+  private provider: TranslationProvider = 'deepseek'
 
   static getInstance(): TranslationService {
     if (!TranslationService.instance) {
@@ -46,8 +46,8 @@ export class TranslationService {
       let translated: string
 
       switch (this.provider) {
-        case 'openai':
-          translated = await this.callOpenAI(text, targetLang, sourceLang)
+        case 'deepseek':
+          translated = await this.callDeepSeek(text, targetLang, sourceLang)
           break
         case 'google':
           translated = await this.callGoogleTranslate(text, targetLang, sourceLang)
@@ -70,23 +70,23 @@ export class TranslationService {
     }
   }
 
-  // OpenAI API 호출
-  private async callOpenAI(text: string, targetLang: 'ko' | 'es', sourceLang?: 'ko' | 'es'): Promise<string> {
-    const apiKey = process.env.OPENAI_API_KEY
+  // DeepSeek API 호출
+  private async callDeepSeek(text: string, targetLang: 'ko' | 'es', sourceLang?: 'ko' | 'es'): Promise<string> {
+    const apiKey = process.env.DEEPSEEK_API_KEY
     if (!apiKey) {
-      throw new Error('OpenAI API 키가 설정되지 않았습니다.')
+      throw new Error('DeepSeek API 키가 설정되지 않았습니다.')
     }
 
     const systemPrompt = this.getSystemPrompt(targetLang, sourceLang)
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'deepseek-chat',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
@@ -97,7 +97,7 @@ export class TranslationService {
     })
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`)
+      throw new Error(`DeepSeek API error: ${response.status}`)
     }
 
     const data = await response.json()
@@ -277,9 +277,9 @@ export const initializeTranslationService = (): void => {
   const service = TranslationService.getInstance()
   
   // 환경변수에 따라 자동으로 제공자 선택
-  if (process.env.OPENAI_API_KEY) {
-    service.setProvider('openai')
-    console.log('[TRANSLATION] OpenAI 번역 서비스 활성화')
+  if (process.env.DEEPSEEK_API_KEY) {
+    service.setProvider('deepseek')
+    console.log('[TRANSLATION] DeepSeek 번역 서비스 활성화')
   } else if (process.env.GOOGLE_TRANSLATE_API_KEY) {
     service.setProvider('google')
     console.log('[TRANSLATION] Google Translate 번역 서비스 활성화')
