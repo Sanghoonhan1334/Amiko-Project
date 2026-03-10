@@ -181,6 +181,26 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
+
+        // Verify time aligns to a 20-minute block boundary
+        const [schH, schMin] = scheduledTime.split(':').map(Number)
+        const [stH, stMin] = slotStart.split(':').map(Number)
+        const offsetMin = (schH * 60 + schMin) - (stH * 60 + stMin)
+        if (offsetMin < 0 || offsetMin % 20 !== 0) {
+          return NextResponse.json(
+            { error: 'scheduled_at must align with a 20-minute session block' },
+            { status: 400 }
+          )
+        }
+
+        // Verify session fits before slot end
+        const [enH, enMin] = slotEnd.split(':').map(Number)
+        if ((schH * 60 + schMin) + 20 > (enH * 60 + enMin)) {
+          return NextResponse.json(
+            { error: 'Not enough time in the slot for a 20-minute session' },
+            { status: 400 }
+          )
+        }
       } catch {
         // If timezone conversion fails, skip temporal validation
       }
@@ -202,7 +222,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         language: lang || 'mixed',
         scheduled_at,
-        duration_minutes: 30,
+        duration_minutes: 20,
         max_participants: slotMaxParticipants,
         agora_channel: channelName,
         status: 'scheduled',

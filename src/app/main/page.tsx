@@ -182,7 +182,7 @@ function AppPageContent() {
 
     let targetTab = 'home' // 기본값을 home으로 변경
 
-    if (tabParam && ['home', 'meet', 'community', 'me', 'dance', 'event'].includes(tabParam)) {
+    if (tabParam && ['home', 'meet', 'amiko-meet', 'community', 'me', 'dance', 'event'].includes(tabParam)) {
       // payments를 me로 리다이렉트 (하위 호환성)
       if (tabParam === 'payments') {
         router.replace('/main?tab=me')

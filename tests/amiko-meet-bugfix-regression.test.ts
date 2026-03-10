@@ -100,15 +100,15 @@ describe('FIX: Timer auto-close uses <= 0 instead of === 0', () => {
   it('should mark session completed when time has expired (remainingMs < 0)', async () => {
     mockAuthUser('user-1')
 
-    // Session that started 31 minutes ago (1 min over 30-minute limit)
-    const startedAt = new Date(Date.now() - 31 * 60 * 1000)
+    // Session that started 21 minutes ago (1 min over 20-minute limit)
+    const startedAt = new Date(Date.now() - 21 * 60 * 1000)
     const chain = createChain({
       id: 'session-123',
       status: 'live',
       scheduled_at: startedAt.toISOString(),
       started_at: startedAt.toISOString(),
       ended_at: null,
-      duration_minutes: 30,
+      duration_minutes: 20,
     })
     mockSupabase.from.mockReturnValue(chain)
 
@@ -123,19 +123,19 @@ describe('FIX: Timer auto-close uses <= 0 instead of === 0', () => {
     )
   })
 
-  it('should trigger at exactly 30 minutes (not only == 0)', async () => {
+  it('should trigger at exactly 20 minutes (not only == 0)', async () => {
     mockAuthUser('user-1')
 
-    // Use exact 30 min offset — previously this was missed due to === 0
+    // Use exact 20 min offset — previously this was missed due to === 0
     // In reality timing granularity means we'll almost always be slightly over
-    const startedAt = new Date(Date.now() - 30 * 60 * 1000 - 50) // 50ms over
+    const startedAt = new Date(Date.now() - 20 * 60 * 1000 - 50) // 50ms over
     const chain = createChain({
       id: 'session-123',
       status: 'live',
       scheduled_at: startedAt.toISOString(),
       started_at: startedAt.toISOString(),
       ended_at: null,
-      duration_minutes: 30,
+      duration_minutes: 20,
     })
     mockSupabase.from.mockReturnValue(chain)
 
@@ -432,7 +432,7 @@ describe('FIX: Session creation logs action as session_created', () => {
       host_id: 'host-1',
       title: 'Test',
       scheduled_at: futureDate,
-      duration_minutes: 30,
+      duration_minutes: 20,
       status: 'scheduled',
       agora_channel: 'amiko-meet-abc12345',
     })

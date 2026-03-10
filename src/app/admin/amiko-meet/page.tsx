@@ -53,7 +53,7 @@ export default function AdminAmikoMeetPage() {
   const [newDay, setNewDay] = useState(1)
   const [newStart, setNewStart] = useState('09:00')
   const [newEnd, setNewEnd] = useState('21:00')
-  const [newTz, setNewTz] = useState('America/Bogota')
+  const [newTz, setNewTz] = useState('Asia/Seoul')
   const [saving, setSaving] = useState(false)
 
   const dayNames = language === 'ko' ? DAY_NAMES_KO : DAY_NAMES_ES
@@ -280,7 +280,9 @@ export default function AdminAmikoMeetPage() {
                     onChange={(e) => setNewTz(e.target.value)}
                     className="w-full px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200"
                   >
+                    <option value="Asia/Seoul">Asia/Seoul (KST) ⭐</option>
                     <option value="America/Bogota">America/Bogota (COT)</option>
+                    <option value="America/Caracas">America/Caracas (VET)</option>
                     <option value="America/Mexico_City">America/Mexico_City (CST)</option>
                     <option value="America/Lima">America/Lima (PET)</option>
                     <option value="America/Buenos_Aires">America/Buenos_Aires (ART)</option>
@@ -293,6 +295,12 @@ export default function AdminAmikoMeetPage() {
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
+                <p className="text-xs text-gray-400 flex-1 self-center">
+                  {t(
+                    '20분 블록이 자동 생성됩니다. (예: 9:00~11:00 → 9:00, 9:20, 9:40...)',
+                    'Se generan bloques de 20 min automáticamente. (Ej: 9:00–11:00 → 9:00, 9:20, 9:40...)'
+                  )}
+                </p>
                 <Button variant="outline" size="sm" onClick={() => setShowAddSlot(false)} className="rounded-lg text-xs">
                   {t('취소', 'Cancelar')}
                 </Button>

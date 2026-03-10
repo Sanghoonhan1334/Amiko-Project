@@ -207,13 +207,13 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
     it('should create session with future scheduled_at and correct duration', async () => {
       mockAuthUser(HOST_ID, 'host@amiko.app')
 
-      // Build a future Saturday at 14:15 Asia/Seoul to match slot (day_of_week=6, 14:00-14:30)
+      // Build a future Saturday at 14:00 Asia/Seoul to match slot (day_of_week=6, 14:00-15:00)
       const now = new Date()
       const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7 // always at least 1 day ahead
       const nextSat = new Date(now)
       nextSat.setDate(now.getDate() + daysUntilSat)
-      // Set 14:15 KST (UTC+9) → 05:15 UTC
-      nextSat.setUTCHours(5, 15, 0, 0)
+      // Set 14:00 KST (UTC+9) → 05:00 UTC
+      nextSat.setUTCHours(5, 0, 0, 0)
       const futureDate = nextSat.toISOString()
 
       // Monthly usage check
@@ -234,7 +234,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         host_id: HOST_ID,
         title: 'Korean Practice',
         scheduled_at: futureDate,
-        duration_minutes: 30,
+        duration_minutes: 20,
         status: 'scheduled',
         agora_channel: 'amiko-meet-abc12345',
       })
@@ -271,7 +271,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
 
       const json = await result.json()
       expect(result.status).toBe(201)
-      expect(json.session.duration_minutes).toBe(30)
+      expect(json.session.duration_minutes).toBe(20)
       expect(json.session.status).toBe('scheduled')
       expect(json.session.agora_channel).toBeTruthy()
     })
@@ -323,7 +323,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         scheduled_at: new Date(Date.now() - 600000).toISOString(),
         started_at: new Date(Date.now() - 600000).toISOString(),
         ended_at: null,
-        duration_minutes: 30,
+        duration_minutes: 20,
       })
       mockSupabase.from.mockReturnValue(chain)
 
@@ -443,7 +443,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         agora_channel: 'amiko-meet-abc12345',
         host_id: HOST_ID,
         scheduled_at: new Date(Date.now() - 300000).toISOString(),
-        duration_minutes: 30,
+        duration_minutes: 20,
       })
       // Participant check
       const participantChain = createChain({
@@ -768,7 +768,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
   })
 
   // ─── Step 14: Session lasts 30 minutes ─────────────
-  describe('Step 14 — La sesión dura 30 minutos', () => {
+  describe('Step 14 — La sesión dura 20 minutos', () => {
     it('should enforce 30-minute default duration', () => {
       const durationMinutes = 30
       const durationMs = durationMinutes * 60 * 1000
@@ -778,7 +778,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
     it('should calculate remaining time correctly mid-session', async () => {
       mockAuthUser(USER_ID)
 
-      const startedAt = new Date(Date.now() - 15 * 60 * 1000) // 15 min ago
+      const startedAt = new Date(Date.now() - 10 * 60 * 1000) // 10 min ago
 
       const chain = createChain({
         id: SESSION_ID,
@@ -786,7 +786,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         scheduled_at: startedAt.toISOString(),
         started_at: startedAt.toISOString(),
         ended_at: null,
-        duration_minutes: 30,
+        duration_minutes: 20,
       })
       mockSupabase.from.mockReturnValue(chain)
 
@@ -797,16 +797,16 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
       )
       const json = await result.json()
 
-      // Should have ~15 minutes left (900 seconds ±5)
-      expect(json.remaining_seconds).toBeGreaterThan(890)
-      expect(json.remaining_seconds).toBeLessThan(910)
-      expect(json.duration_minutes).toBe(30)
+      // Should have ~10 minutes left (600 seconds ±5)
+      expect(json.remaining_seconds).toBeGreaterThan(590)
+      expect(json.remaining_seconds).toBeLessThan(610)
+      expect(json.duration_minutes).toBe(20)
     })
 
     it('should include 5-min warning when appropriate', async () => {
       mockAuthUser(USER_ID)
 
-      const startedAt = new Date(Date.now() - 28.5 * 60 * 1000) // 28.5 min ago → 1.5 min left
+      const startedAt = new Date(Date.now() - 18.5 * 60 * 1000) // 18.5 min ago → 1.5 min left
 
       const chain = createChain({
         id: SESSION_ID,
@@ -814,7 +814,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         scheduled_at: startedAt.toISOString(),
         started_at: startedAt.toISOString(),
         ended_at: null,
-        duration_minutes: 30,
+        duration_minutes: 20,
       })
       mockSupabase.from.mockReturnValue(chain)
 
@@ -836,7 +836,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
     it('should auto-close when timer reaches 0', async () => {
       mockAuthUser(USER_ID)
 
-      const startedAt = new Date(Date.now() - 31 * 60 * 1000) // 31 min ago (expired)
+      const startedAt = new Date(Date.now() - 21 * 60 * 1000) // 21 min ago (expired for 20-min session)
 
       const chain = createChain({
         id: SESSION_ID,
@@ -844,7 +844,7 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
         scheduled_at: startedAt.toISOString(),
         started_at: startedAt.toISOString(),
         ended_at: null,
-        duration_minutes: 30,
+        duration_minutes: 20,
       })
       mockSupabase.from.mockReturnValue(chain)
 
@@ -1199,10 +1199,10 @@ describe('Phase 1 Acceptance Checklist', () => {
     expect(isoDate.endsWith('Z')).toBe(true)
   })
 
-  it('✅ Timer 30 min funciona — auto-close + warnings', () => {
-    const durationMinutes = 30
+  it('✅ Timer 20 min funciona — auto-close + warnings', () => {
+    const durationMinutes = 20
     const warningThresholds = [5, 2, 1] // minutes
-    expect(durationMinutes).toBe(30)
+    expect(durationMinutes).toBe(20)
     expect(warningThresholds).toContain(5)
     expect(warningThresholds).toContain(1)
   })

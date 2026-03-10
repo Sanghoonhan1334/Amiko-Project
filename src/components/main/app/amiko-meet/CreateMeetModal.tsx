@@ -4,10 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   X, Calendar, Clock, Globe, Type,
-  FileText, Loader2, AlertCircle, Video, ChevronRight,
+  FileText, Loader2, AlertCircle, Video,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
-import { useAuth } from '@/context/AuthContext'
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+
+const SESSION_DURATION = 20 // minutes
 
 interface Slot {
   id: string
@@ -19,35 +21,92 @@ interface Slot {
   is_active: boolean
 }
 
+interface TimeBlock {
+  date: Date    // UTC Date — when this 20-min block starts
+  slotId: string
+  blockTime: string // original time in slot tz, e.g. "09:00"
+}
+
 interface CreateMeetModalProps {
   onClose: () => void
   onCreated: () => void
 }
 
+// ── Convert "YYYY-MM-DD HH:MM in tz" → UTC Date ──
+function tzToDate(dateStr: string, timeStr: string, tz: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const [hour, minute] = timeStr.split(':').map(Number)
+  const refMs = Date.UTC(year, month - 1, day, hour, minute, 0)
+  const refDate = new Date(refMs)
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(refDate)
+  const pY = parseInt(parts.find(p => p.type === 'year')!.value)
+  const pM = parseInt(parts.find(p => p.type === 'month')!.value)
+  const pD = parseInt(parts.find(p => p.type === 'day')!.value)
+  let pH = parseInt(parts.find(p => p.type === 'hour')!.value)
+  if (pH === 24) pH = 0
+  const pMin = parseInt(parts.find(p => p.type === 'minute')!.value)
+  const displayMs = Date.UTC(pY, pM - 1, pD, pH, pMin, 0)
+  return new Date(refMs - (displayMs - refMs))
+}
+
+// ── Generate 20-min blocks for the next N weeks ───
+function getUpcomingBlocks(slot: Slot, maxBlocks: number = 18): TimeBlock[] {
+  const tz = slot.timezone
+  const now = new Date()
+
+  // Generate block start-times within the slot window
+  const [sH, sM] = slot.start_time.split(':').map(Number)
+  const [eH, eM] = slot.end_time.split(':').map(Number)
+  const startMin = sH * 60 + sM
+  const endMin = eH * 60 + eM
+  const blockTimes: string[] = []
+  for (let m = startMin; m + SESSION_DURATION <= endMin; m += SESSION_DURATION) {
+    const h = Math.floor(m / 60)
+    const min = m % 60
+    blockTimes.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`)
+  }
+
+  const result: TimeBlock[] = []
+  const seenDates = new Set<string>()
+  const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+
+  for (let off = 0; off < 35 && result.length < maxBlocks; off++) {
+    const probe = new Date(now.getTime() + off * 86_400_000)
+    const dateStr = probe.toLocaleDateString('en-CA', { timeZone: tz }) // YYYY-MM-DD
+    if (seenDates.has(dateStr)) continue
+    seenDates.add(dateStr)
+
+    const wd = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(probe)
+    if (dayMap[wd] !== slot.day_of_week) continue
+
+    for (const bt of blockTimes) {
+      const blockDate = tzToDate(dateStr, bt, tz)
+      if (blockDate <= now) continue
+      result.push({ date: blockDate, slotId: slot.id, blockTime: bt })
+      if (result.length >= maxBlocks) break
+    }
+  }
+  return result
+}
+
 export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalProps) {
   const { language } = useLanguage()
-  const { token } = useAuth()
   const t = (ko: string, es: string) => (language === 'ko' ? ko : es)
+  const locale = language === 'ko' ? 'ko-KR' : 'es-ES'
 
   const [title, setTitle] = useState('')
   const [topic, setTopic] = useState('')
   const [description, setDescription] = useState('')
   const [sessionLang, setSessionLang] = useState<'ko' | 'es' | 'mixed'>('mixed')
-  const [scheduledAt, setScheduledAt] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(true)
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
-
-  const dayNamesShort = language === 'ko'
-    ? ['일', '월', '화', '수', '목', '금', '토']
-    : ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-  const dayNamesFull = language === 'ko'
-    ? ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-    : ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+  const [selectedBlock, setSelectedBlock] = useState<TimeBlock | null>(null)
 
   // ── Load available slots ─────────────────────────
   useEffect(() => {
@@ -59,55 +118,30 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
       .finally(() => setLoadingSlots(false))
   }, [])
 
-  // ── Compute next N dates for a given slot ────────
-  const getUpcomingDatesForSlot = (slot: Slot, count: number = 4): Date[] => {
-    const dates: Date[] = []
-    const now = new Date()
-
-    for (let offset = 0; offset < 60 && dates.length < count; offset++) {
-      const candidate = new Date(now)
-      candidate.setDate(now.getDate() + offset)
-
-      if (candidate.getDay() !== slot.day_of_week) continue
-
-      // Build the datetime using the slot's start_time
-      const [h, m] = slot.start_time.split(':').map(Number)
-      const sessionDate = new Date(candidate)
-      sessionDate.setHours(h, m, 0, 0)
-
-      // If today and already past the start time, skip
-      if (sessionDate <= now) continue
-
-      dates.push(sessionDate)
+  // ── Generate all time blocks grouped by local date ─
+  const blocksByDate = useMemo(() => {
+    const all: TimeBlock[] = []
+    for (const slot of slots) {
+      all.push(...getUpcomingBlocks(slot, 18))
     }
-    return dates
-  }
+    all.sort((a, b) => a.date.getTime() - b.date.getTime())
 
-  // ── Upcoming dates for selected slot ─────────────
-  const upcomingDates = useMemo(() => {
-    if (!selectedSlot) return []
-    return getUpcomingDatesForSlot(selectedSlot, 4)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSlot])
+    const groups: { dateLabel: string; blocks: TimeBlock[] }[] = []
+    const seen = new Map<string, number>()
+    for (const block of all) {
+      const key = block.date.toLocaleDateString(locale, {
+        weekday: 'long', month: 'short', day: 'numeric',
+      })
+      if (!seen.has(key)) {
+        seen.set(key, groups.length)
+        groups.push({ dateLabel: key, blocks: [] })
+      }
+      groups[seen.get(key)!].blocks.push(block)
+    }
+    return groups
+  }, [slots, locale])
 
-  // ── When user selects a date from slot ───────────
-  const handleSelectDate = (date: Date) => {
-    setSelectedDate(date.toISOString())
-    setScheduledAt(date.toISOString().slice(0, 16))
-  }
-
-  // ── Format date for display ──────────────────────
-  const formatDateLabel = (date: Date) => {
-    return date.toLocaleDateString(language === 'ko' ? 'ko-KR' : 'es-ES', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const formatTimeRange = (slot: Slot) => {
-    return `${slot.start_time.slice(0, 5)} – ${slot.end_time.slice(0, 5)}`
-  }
+  const noSlotsAvailable = !loadingSlots && slots.length === 0
 
   // ── Submit handler ───────────────────────────────
   const handleSubmit = async () => {
@@ -115,14 +149,8 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
       setError(t('제목을 입력해주세요.', 'Ingresa un título.'))
       return
     }
-    if (!scheduledAt) {
-      setError(t('날짜와 시간을 선택해주세요.', 'Selecciona fecha y hora.'))
-      return
-    }
-
-    const scheduled = new Date(scheduledAt)
-    if (scheduled <= new Date()) {
-      setError(t('미래 시간을 선택해주세요.', 'Selecciona un horario futuro.'))
+    if (!selectedBlock && !noSlotsAvailable) {
+      setError(t('시간을 선택해주세요.', 'Selecciona un bloque horario.'))
       return
     }
 
@@ -130,11 +158,27 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
     setError(null)
 
     try {
+      // Get fresh access token to avoid "Invalid token"
+      const supabase = createSupabaseBrowserClient()
+      const { data: { session: freshSession } } = await supabase.auth.getSession()
+      if (!freshSession?.access_token) {
+        setError(t('로그인이 필요합니다.', 'Debes iniciar sesión.'))
+        setLoading(false)
+        return
+      }
+
+      const scheduled = selectedBlock ? selectedBlock.date : new Date()
+      if (scheduled <= new Date()) {
+        setError(t('미래 시간을 선택해주세요.', 'Selecciona un horario futuro.'))
+        setLoading(false)
+        return
+      }
+
       const res = await fetch('/api/meet/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${freshSession.access_token}`,
         },
         body: JSON.stringify({
           title: title.trim(),
@@ -142,7 +186,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
           description: description.trim() || null,
           language: sessionLang,
           scheduled_at: scheduled.toISOString(),
-          slot_id: selectedSlot?.id || undefined,
+          slot_id: selectedBlock?.slotId || undefined,
         }),
       })
 
@@ -159,9 +203,6 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
       setLoading(false)
     }
   }
-
-  // ── No slots available state ─────────────────────
-  const noSlotsAvailable = !loadingSlots && slots.length === 0
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -193,57 +234,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
             </div>
           )}
 
-          {/* ─── Step 1: Select slot ─────────────── */}
-          {!loadingSlots && slots.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <Calendar className="w-3.5 h-3.5 inline mr-1" />
-                {t('1. 시간대 선택 *', '1. Selecciona un horario *')}
-              </label>
-              <p className="text-xs text-gray-400 mb-2">
-                {t(
-                  '관리자가 설정한 이용 가능 시간대입니다.',
-                  'Estos son los horarios habilitados por el administrador.'
-                )}
-              </p>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {slots.map(slot => (
-                  <button
-                    key={slot.id}
-                    onClick={() => {
-                      setSelectedSlot(slot)
-                      setSelectedDate(null)
-                      setScheduledAt('')
-                    }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all flex items-center justify-between ${
-                      selectedSlot?.id === slot.id
-                        ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-300'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                        selectedSlot?.id === slot.id
-                          ? 'bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-200'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
-                      }`}>
-                        {dayNamesShort[slot.day_of_week]}
-                      </div>
-                      <div>
-                        <span className="font-medium">{dayNamesFull[slot.day_of_week]}</span>
-                        <span className="ml-2 text-gray-400">{formatTimeRange(slot)}</span>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {slot.timezone} · {t(`최대 ${slot.max_participants}명`, `Máx. ${slot.max_participants} personas`)}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-transform ${selectedSlot?.id === slot.id ? 'rotate-90 text-purple-500' : 'text-gray-300'}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
+          {/* ─── Loading ─────────────────────────── */}
           {loadingSlots && (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="w-5 h-5 text-purple-500 animate-spin mr-2" />
@@ -253,47 +244,61 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
             </div>
           )}
 
-          {/* ─── Step 2: Pick a date ─────────────── */}
-          {selectedSlot && upcomingDates.length > 0 && (
+          {/* ─── Step 1: Pick a time block ────────── */}
+          {!loadingSlots && blocksByDate.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <Clock className="w-3.5 h-3.5 inline mr-1" />
-                {t('2. 날짜 선택 *', '2. Elige una fecha *')}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <Calendar className="w-3.5 h-3.5 inline mr-1" />
+                {t('1. 시간 선택 *', '1. Elige un horario *')}
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {upcomingDates.map((date, i) => {
-                  const isSelected = selectedDate === date.toISOString()
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => handleSelectDate(date)}
-                      className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                        isSelected
-                          ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-300'
-                          : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-200'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <p className="font-semibold">{formatDateLabel(date)}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {selectedSlot.start_time.slice(0, 5)}
-                        </p>
-                      </div>
-                    </button>
-                  )
-                })}
+              <p className="text-xs text-gray-400 mb-3">
+                {t(
+                  '아래 시간은 현재 시간대 기준입니다. (20분 세션)',
+                  'Los horarios se muestran en tu zona horaria local. (sesiones de 20 min)'
+                )}
+              </p>
+              <div className="space-y-3 max-h-52 overflow-y-auto pr-1">
+                {blocksByDate.map(group => (
+                  <div key={group.dateLabel}>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 capitalize">
+                      📅 {group.dateLabel}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.blocks.map((block, i) => {
+                        const isSel = selectedBlock?.date.getTime() === block.date.getTime()
+                        const timeLabel = block.date.toLocaleTimeString(locale, {
+                          hour: '2-digit', minute: '2-digit', hour12: false,
+                        })
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setSelectedBlock(block)}
+                            className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                              isSel
+                                ? 'border-purple-400 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 ring-1 ring-purple-300'
+                                : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-purple-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                            }`}
+                          >
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            {timeLabel}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ─── Session details (visible after slot/date selection or when no slots) ── */}
-          {(selectedSlot || noSlotsAvailable) && (
+          {/* ─── Session details ─────────────────── */}
+          {(selectedBlock || noSlotsAvailable) && (
             <>
               {/* ─── Title ─────────────────────────── */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   <Type className="w-3.5 h-3.5 inline mr-1" />
-                  {t(selectedSlot ? '3. 제목 *' : '제목 *', selectedSlot ? '3. Título *' : 'Título *')}
+                  {t(selectedBlock ? '2. 제목 *' : '제목 *', selectedBlock ? '2. Título *' : 'Título *')}
                 </label>
                 <input
                   type="text"
@@ -330,7 +335,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   maxLength={2000}
-                  rows={3}
+                  rows={2}
                   placeholder={t('세션에 대한 자세한 설명...', 'Describe tu sesión...')}
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none resize-none"
                 />
@@ -363,34 +368,11 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
                 </div>
               </div>
 
-              {/* ─── Manual date (when no slots exists) ── */}
-              {noSlotsAvailable && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    <Clock className="w-3.5 h-3.5 inline mr-1" />
-                    {t('날짜 및 시간 *', 'Fecha y Hora *')}
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledAt}
-                    onChange={(e) => setScheduledAt(e.target.value)}
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    {t(
-                      '* 시간은 현재 시간대로 표시됩니다.',
-                      '* La hora se muestra en tu zona horaria local.'
-                    )}
-                  </p>
-                </div>
-              )}
-
               {/* ─── Info banner ───────────────────── */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-300">
                 <p className="font-medium mb-1">{t('📌 알아두세요', '📌 Ten en cuenta')}</p>
                 <ul className="space-y-0.5 list-disc list-inside">
-                  <li>{t('각 세션은 30분입니다.', 'Cada sesión dura 30 minutos.')}</li>
+                  <li>{t('각 세션은 20분입니다.', 'Cada sesión dura 20 minutos.')}</li>
                   <li>{t('월 2회 무료 세션을 이용할 수 있습니다.', 'Tienes 2 sesiones gratis por mes.')}</li>
                   <li>{t('세션은 예정 시간에 자동으로 시작합니다.', 'La sesión comenzará automáticamente a la hora programada.')}</li>
                 </ul>
@@ -415,7 +397,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={loading || !title.trim() || !scheduledAt}
+                  disabled={loading || !title.trim() || (!selectedBlock && !noSlotsAvailable)}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl disabled:opacity-50"
                 >
                   {loading ? (

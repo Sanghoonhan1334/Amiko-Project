@@ -1183,6 +1183,13 @@ export default function HomeTab() {
                           fill
                           className="object-contain"
                           priority={index === 0}
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (target.src !== '/banners/event-banner.png') {
+                              target.src = '/banners/event-banner.png'
+                            }
+                          }}
                         />
                       </div>
                     ))}
