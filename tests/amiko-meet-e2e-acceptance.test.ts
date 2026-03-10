@@ -207,12 +207,27 @@ describe('AMIKO Meet — Full E2E Acceptance Scenario', () => {
     it('should create session with future scheduled_at and correct duration', async () => {
       mockAuthUser(HOST_ID, 'host@amiko.app')
 
-      const futureDate = new Date(Date.now() + 3600000).toISOString()
+      // Build a future Saturday at 14:15 Asia/Seoul to match slot (day_of_week=6, 14:00-14:30)
+      const now = new Date()
+      const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7 // always at least 1 day ahead
+      const nextSat = new Date(now)
+      nextSat.setDate(now.getDate() + daysUntilSat)
+      // Set 14:15 KST (UTC+9) → 05:15 UTC
+      nextSat.setUTCHours(5, 15, 0, 0)
+      const futureDate = nextSat.toISOString()
 
       // Monthly usage check
       const usageChain = createChain([])
-      // Slot check
-      const slotChain = createChain({ id: SLOT_ID, is_active: true })
+      // Slot check — include all fields for day/time validation
+      const slotChain = createChain({
+        id: SLOT_ID,
+        is_active: true,
+        day_of_week: 6,
+        start_time: '14:00',
+        end_time: '14:30',
+        timezone: 'Asia/Seoul',
+        max_participants: 6,
+      })
       // Session insert
       const sessionChain = createChain({
         id: SESSION_ID,

@@ -129,8 +129,8 @@ export default function AmikoMeetTab() {
           </h1>
           <p className="text-sm md:text-base opacity-90 max-w-lg">
             {t(
-              '무료 화상 통화로 전 세계 친구들을 만나보세요! 매월 2회, 각 20분씩 무료로 화상 통화를 즐길 수 있습니다.',
-              '¡Conoce amigos de todo el mundo con videollamadas gratuitas! 2 sesiones gratis al mes, 20 minutos cada una.'
+              '무료 화상 통화로 전 세계 친구들을 만나보세요! 매월 2회, 각 30분씩 무료로 화상 통화를 즐길 수 있습니다.',
+              '¡Conoce amigos de todo el mundo con videollamadas gratuitas! 2 sesiones gratis al mes, 30 minutos cada una.'
             )}
           </p>
           <div className="flex flex-wrap items-center gap-3 mt-4">
@@ -140,7 +140,7 @@ export default function AmikoMeetTab() {
             </div>
             <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
               <Clock className="w-3.5 h-3.5" />
-              {t('20분 세션', '20 min/sesión')}
+              {t('30분 세션', '30 min/sesión')}
             </div>
             <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
               <Globe className="w-3.5 h-3.5" />

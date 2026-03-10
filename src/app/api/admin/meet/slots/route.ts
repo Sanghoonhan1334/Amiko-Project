@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
         timezone: timezone || 'Asia/Seoul',
         max_participants: max_participants || 6,
         is_active: true,
+        created_by: auth.user?.id || null,
       } as any)
       .select()
       .single()

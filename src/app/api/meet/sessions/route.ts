@@ -130,7 +130,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate slot if provided
+    // Validate slot if provided and verify temporal consistency
+    let slotMaxParticipants = 6
     if (slot_id) {
       const { data: slot } = await supabaseServer
         .from('amiko_meet_slots')
@@ -142,6 +143,49 @@ export async function POST(request: NextRequest) {
       if (!slot) {
         return NextResponse.json({ error: 'Invalid or inactive slot' }, { status: 400 })
       }
+
+      // Verify scheduled_at falls on the correct day_of_week
+      // Convert scheduled_at to the slot's timezone to check day/time
+      const slotTz = (slot as any).timezone || 'UTC'
+      let scheduledInTz: Date
+      try {
+        // Get the date in the slot's timezone
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: slotTz,
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+        const parts = formatter.formatToParts(scheduledDate)
+        const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+        const dayPart = parts.find(p => p.type === 'weekday')?.value || ''
+        const scheduledDow = dayMap[dayPart]
+        const hourPart = parts.find(p => p.type === 'hour')?.value || '0'
+        const minutePart = parts.find(p => p.type === 'minute')?.value || '0'
+        const scheduledTime = `${hourPart.padStart(2, '0')}:${minutePart.padStart(2, '0')}`
+
+        if (scheduledDow !== (slot as any).day_of_week) {
+          return NextResponse.json(
+            { error: 'scheduled_at does not match the slot day of the week' },
+            { status: 400 }
+          )
+        }
+
+        // Verify time falls within slot range
+        const slotStart = ((slot as any).start_time as string).slice(0, 5)
+        const slotEnd = ((slot as any).end_time as string).slice(0, 5)
+        if (scheduledTime < slotStart || scheduledTime >= slotEnd) {
+          return NextResponse.json(
+            { error: `scheduled_at time must be between ${slotStart} and ${slotEnd} in ${slotTz}` },
+            { status: 400 }
+          )
+        }
+      } catch {
+        // If timezone conversion fails, skip temporal validation
+      }
+
+      slotMaxParticipants = (slot as any).max_participants || 6
     }
 
     // Generate unique Agora channel name
@@ -159,7 +203,7 @@ export async function POST(request: NextRequest) {
         language: lang || 'mixed',
         scheduled_at,
         duration_minutes: 30,
-        max_participants: 6,
+        max_participants: slotMaxParticipants,
         agora_channel: channelName,
         status: 'scheduled',
       } as any)
@@ -175,7 +219,7 @@ export async function POST(request: NextRequest) {
     await supabaseServer
       .from('amiko_meet_participants')
       .insert({
-        session_id: session.id,
+        session_id: session!.id,
         user_id: user.id,
         role: 'host',
         status: 'enrolled',
@@ -185,7 +229,7 @@ export async function POST(request: NextRequest) {
     await supabaseServer
       .from('amiko_meet_access_logs')
       .insert({
-        session_id: session.id,
+        session_id: session!.id,
         user_id: user.id,
         action: 'session_created',
         metadata: { event: 'session_created' },
