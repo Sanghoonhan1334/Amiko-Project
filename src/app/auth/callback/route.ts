@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
   const errorDescription = requestUrl.searchParams.get('error_description')
-  const next = requestUrl.searchParams.get('next') || '/main'
+  const rawNext = requestUrl.searchParams.get('next') || '/main'
+  // Open Redirect 방지: 반드시 상대 경로만 허용
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/main'
 
   // 에러 처리
   if (error) {

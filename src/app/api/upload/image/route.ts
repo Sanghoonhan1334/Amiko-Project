@@ -78,12 +78,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 폴더 경로 화이트리스트 (경로 순회 공격 방지)
+    const ALLOWED_FOLDERS = ['posts', 'profiles', 'stories', 'galleries', 'community', 'chat', 'education']
+    const sanitizedFolder = (folder || 'posts').replace(/[^a-zA-Z0-9_-]/g, '')
+    if (!ALLOWED_FOLDERS.includes(sanitizedFolder)) {
+      return NextResponse.json(
+        { error: '허용되지 않는 업로드 폴더입니다.' },
+        { status: 400 }
+      )
+    }
+
     // 파일명 생성 (타임스탬프 + 랜덤 문자열)
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 8)
-    const fileExtension = file.name.split('.').pop()
+    const fileExtension = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'bin'
     const fileName = `${timestamp}_${randomString}.${fileExtension}`
-    const filePath = `${folder}/${tokenUser.id}/${fileName}`
+    const filePath = `${sanitizedFolder}/${tokenUser.id}/${fileName}`
 
     console.log('[UPLOAD_IMAGE] 파일 업로드 시작:', {
       fileName,
@@ -186,6 +196,20 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: '삭제할 파일 경로가 제공되지 않았습니다.' },
         { status: 400 }
+      )
+    }
+
+    // 소유권 확인: 경로가 반드시 자신의 userId 폴더 내에 있어야 함
+    // 형식: {folder}/{userId}/{filename}
+    const pathParts = filePath.split('/')
+    if (pathParts.length < 3 || pathParts[1] !== tokenUser.id) {
+      console.warn('[UPLOAD_IMAGE] 권한 없는 파일 삭제 시도:', {
+        requestedPath: filePath,
+        authenticatedUserId: tokenUser.id
+      })
+      return NextResponse.json(
+        { error: '이 파일을 삭제할 권한이 없습니다.' },
+        { status: 403 }
       )
     }
 

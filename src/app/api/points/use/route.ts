@@ -4,11 +4,25 @@ import { createClient } from '@/lib/supabase/server'
 // 포인트 사용 API
 export async function POST(request: NextRequest) {
   try {
-    const { userId, amount, description, relatedId, relatedType } = await request.json()
+    // Supabase 클라이언트 생성 및 세션 검증 (IDOR 방지)
+    const supabase = createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (!userId || !amount || !description) {
+    if (sessionError || !session) {
       return NextResponse.json(
-        { error: 'userId, amount, description이 필요합니다.' },
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+
+    // userId는 항상 세션 토큰에서 추출 — body의 userId는 무시 (IDOR 방지)
+    const authenticatedUserId = session.user.id
+
+    const { amount, description, relatedId, relatedType } = await request.json()
+
+    if (!amount || !description) {
+      return NextResponse.json(
+        { error: 'amount, description이 필요합니다.' },
         { status: 400 }
       )
     }
@@ -20,13 +34,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Supabase 클라이언트 생성
-    const supabase = createClient()
-
     // 통합 포인트 사용 함수 호출
     const { data: result, error: useError } = await supabase
       .rpc('use_points', {
-        p_user_id: userId,
+        p_user_id: authenticatedUserId,
         p_amount: amount,
         p_description: description,
         p_related_id: relatedId,
@@ -53,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // 사용 후 포인트 정보 조회
     const { data: pointsData, error: pointsError } = await supabase
-      .rpc('get_user_points_summary', { p_user_id: userId })
+      .rpc('get_user_points_summary', { p_user_id: authenticatedUserId })
 
     if (pointsError) {
       console.error('포인트 정보 조회 실패:', pointsError)

@@ -5,18 +5,23 @@ import { createClient } from '@/lib/supabase/server'
 export async function POST(request: NextRequest) {
   try {
     console.log('포인트 지급 API 호출 시작')
-    const { userId, activityType, postId, title } = await request.json()
-    console.log('요청 데이터:', { userId, activityType, postId, title })
-    
-    if (!userId || !activityType) {
+
+    // Supabase 클라이언트 생성 및 세션 검증
+    const supabase = createClient()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
       return NextResponse.json(
-        { error: 'userId and activityType are required' },
-        { status: 400 }
+        { error: 'Authentication required' },
+        { status: 401 }
       )
     }
 
-    // Supabase 클라이언트 생성
-    const supabase = createClient()
+    // userId는 항상 토큰에서 추출 — body의 userId는 무시
+    const authenticatedUserId = session.user.id
+
+    const { activityType, postId, title } = await request.json()
+    console.log('요청 데이터:', { userId: authenticatedUserId, activityType, postId, title })
 
     // 포인트 지급 규칙 (75점 체계)
     const pointRules: { [key: string]: number } = {
@@ -34,6 +39,13 @@ export async function POST(request: NextRequest) {
       'share': 3                   // 공유 (max 5)
     }
 
+    if (!activityType) {
+      return NextResponse.json(
+        { error: 'activityType is required' },
+        { status: 400 }
+      )
+    }
+
     const points = pointRules[activityType]
     if (!points) {
       return NextResponse.json(
@@ -45,7 +57,7 @@ export async function POST(request: NextRequest) {
     // 통합 포인트 함수 사용
     const { data: result, error: pointError } = await supabase
       .rpc('add_points_with_limit', {
-        p_user_id: userId,
+        p_user_id: authenticatedUserId,
         p_type: activityType,
         p_amount: points,
         p_description: `${title || activityType} 작성으로 ${points}포인트 획득`,
@@ -75,7 +87,7 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('notifications')
       .insert({
-        user_id: userId,
+        user_id: authenticatedUserId,
         type: 'point_earned',
         title: '포인트 획득! 🎉',
         message: `${points}포인트를 획득했습니다! (${title || activityType})`,

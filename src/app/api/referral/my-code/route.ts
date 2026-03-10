@@ -4,17 +4,17 @@ import { createClient } from '@/lib/supabase/server'
 // 나의 추천인 코드 조회
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    
-    if (!userId) {
+    const supabase = createClient()
+
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
       )
     }
-
-    const supabase = createClient()
+    const userId = session.user.id
 
     // 추천인 코드 조회
     console.log('[REFERRAL CODE] UserId:', userId)

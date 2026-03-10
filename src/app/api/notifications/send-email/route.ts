@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { sendVerificationEmail } from '@/lib/emailService'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // 이메일 발송 API (하이웍스 SMTP 사용)
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Require admin auth — unauthenticated access = open email relay
+  const auth = await requireAdmin(request)
+  if (!auth.authenticated) return auth.response
+
   try {
     const body = await request.json()
     const { to, type, data } = body

@@ -27,14 +27,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    // Verify PayPal webhook signature when webhook ID is configured
+    // Verify PayPal webhook signature — mandatory, reject if PAYPAL_WEBHOOK_ID not configured
     const webhookId = process.env.PAYPAL_WEBHOOK_ID
-    if (webhookId) {
-      const verified = await verifyWebhookSignature(request.headers, rawBody, webhookId)
-      if (!verified) {
-        console.warn('[Education Webhook] PayPal signature verification failed')
-        return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
-      }
+    if (!webhookId) {
+      console.error('[Education Webhook] PAYPAL_WEBHOOK_ID not configured — rejecting webhook')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+    const verified = await verifyWebhookSignature(request.headers, rawBody, webhookId)
+    if (!verified) {
+      console.warn('[Education Webhook] PayPal signature verification failed')
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
     }
 
     const eventType = event.event_type as string

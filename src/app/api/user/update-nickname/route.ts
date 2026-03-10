@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer, supabaseClient } from '@/lib/supabaseServer'
 
 // 닉네임 변경 API
 export async function POST(request: NextRequest) {
   try {
-    const { userId, nickname } = await request.json()
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    if (!supabaseServer || !supabaseClient) {
+      return NextResponse.json(
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
+      )
+    }
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const authenticatedUserId = user.id
 
-    console.log('[UPDATE_NICKNAME] 닉네임 변경 요청:', { userId, nickname })
+    const { nickname } = await request.json()
+
+    console.log('[UPDATE_NICKNAME] 닉네임 변경 요청:', { userId: authenticatedUserId, nickname })
 
     // 입력 검증
     if (!userId || !nickname) {
@@ -44,7 +62,7 @@ export async function POST(request: NextRequest) {
       .from('users')
       .select('id')
       .eq('nickname', nickname.toLowerCase())
-      .neq('id', userId) // 본인은 제외
+      .neq('id', authenticatedUserId) // 본인은 제외
       .maybeSingle()
 
     if (checkError) {
@@ -66,7 +84,7 @@ export async function POST(request: NextRequest) {
     const { data: updatedUser, error: updateError } = await supabaseServer
       .from('users')
       .update({ nickname: nickname.toLowerCase() })
-      .eq('id', userId)
+      .eq('id', authenticatedUserId)
       .select('id, full_name, nickname, avatar_url')
       .single()
 

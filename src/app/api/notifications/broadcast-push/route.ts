@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
 import { sendFCMv1Notification } from '@/lib/fcm-v1'
+import { requireAdmin } from '@/lib/admin-auth'
+import { NextRequest } from 'next/server'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -22,8 +24,12 @@ if (vapidPublicKey && vapidPrivateKey) {
   console.warn('[BROADCAST_PUSH] VAPID 키가 설정되지 않았습니다. 푸시 알림 기능이 비활성화됩니다.')
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Admin authentication required — unauthenticated broadcast would allow any user to spam all users
+    const auth = await requireAdmin(request)
+    if (!auth.authenticated) return auth.response
+
     // VAPID 키가 설정되지 않았으면 오류 반환
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.warn('[BROADCAST_PUSH] VAPID 키가 설정되지 않아 푸시 알림을 발송할 수 없습니다.')

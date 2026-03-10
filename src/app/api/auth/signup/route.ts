@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 import { countries, getCountryByCode } from '@/constants/countries'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 // 개발 환경용 전역 변수 기반 중복 검증
 declare global {
@@ -21,6 +22,19 @@ function clearRegisteredEmails() {
 
 // 회원가입 처리
 export async function POST(request: NextRequest) {
+  // Rate limiting: IP당 30분에 5회
+  const ip = getClientIp(request)
+  const rl = checkRateLimit(`signup:${ip}`, { limit: 5, windowMs: 30 * 60 * 1000 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfter) }
+      }
+    )
+  }
+
   try {
     const { 
       email, 
@@ -66,10 +80,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 비밀번호 검증
+    // 비밀번호 검증 (서버사이드 복잡도 체크)
     if (password.length < 8) {
       return NextResponse.json(
         { error: '비밀번호는 최소 8자 이상이어야 합니다.' },
+        { status: 400 }
+      )
+    }
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: '비밀번호에 숫자가 포함되어야 합니다.' },
+        { status: 400 }
+      )
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\/~`]/.test(password)) {
+      return NextResponse.json(
+        { error: '비밀번호에 특수문자가 포함되어야 합니다.' },
+        { status: 400 }
+      )
+    }
+    if (/(.)(\1{2,})/.test(password)) {
+      return NextResponse.json(
+        { error: '비밀번호에 동일한 문자를 3번 이상 연속으로 사용할 수 없습니다.' },
         { status: 400 }
       )
     }

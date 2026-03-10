@@ -145,8 +145,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // 관리자 권한 체크 (사용자 메타데이터에서 확인)
-    const userRole = session.user?.user_metadata?.role
+    // 관리자 권한 체크 (app_metadata에서 확인 — user_metadata는 클라이언트가 수정 가능)
+    const userRole = session.user?.app_metadata?.role
     const userEmail = session.user?.email
     
     // 환경변수에서 관리자 이메일 확인

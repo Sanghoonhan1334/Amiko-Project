@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from '@supabase/supabase-js';
+import { createSupabaseClient } from '@/lib/supabase';
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   try {
+    // 세션 검증 — 인증 없이 누구나 예약 취소 가능 (IDOR 방지)
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
     const { cancelReason } = await req.json();
     
     console.log('🔍 [BOOKING CANCEL] 예약 취소 요청:', { id, cancelReason });
@@ -33,6 +43,11 @@ export async function POST(
         { error: '예약을 찾을 수 없습니다.' },
         { status: 404 }
       );
+    }
+
+    // Ownership check — only the booking owner can cancel
+    if (booking.user_id !== authenticatedUserId) {
+      return NextResponse.json({ error: '예약을 취소할 권한이 없습니다.' }, { status: 403 })
     }
 
     console.log('✅ 예약 조회 성공:', booking);

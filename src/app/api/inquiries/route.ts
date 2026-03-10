@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // 문의 목록 조회
 export async function GET(request: NextRequest) {
@@ -11,13 +13,32 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // 세션 검증
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const requestedUserId = searchParams.get('userId')
     const status = searchParams.get('status')
     const type = searchParams.get('type')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
+
+    // Check if admin — admins can query any user, regular users only their own
+    const { data: adminData } = await supabaseServer
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+    const isAdmin = !!adminData
+
+    // Non-admins can only see their own inquiries
+    const userId = isAdmin ? (requestedUserId || session.user.id) : session.user.id
 
     let query = supabaseServer
       .from('inquiries')
@@ -85,10 +106,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { userId, type, subject, content, priority = 'medium', language = 'ko', attachments = [] } = await request.json()
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
+    const { type, subject, content, priority = 'medium', language = 'ko', attachments = [] } = await request.json()
 
     // 입력 검증
-    if (!userId || !type || !subject || !content) {
+    if (!type || !subject || !content) {
       return NextResponse.json(
         { error: '필수 필드가 누락되었습니다.' },
         { status: 400 }
@@ -112,7 +141,7 @@ export async function POST(request: NextRequest) {
     const { data: inquiry, error } = await (supabaseServer as any)
       .from('inquiries')
       .insert({
-        user_id: userId,
+        user_id: authenticatedUserId,
         type,
         subject,
         content,

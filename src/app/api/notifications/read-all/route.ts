@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // 모든 알림 읽음 처리
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId } = body
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
-      )
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ success: false, error: '인증이 필요합니다.' }, { status: 401 })
     }
+    const userId = session.user.id
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     

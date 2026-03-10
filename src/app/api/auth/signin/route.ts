@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseClient } from '@/lib/supabase'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 // 로그인 처리
 export async function POST(request: NextRequest) {
+  // Rate limiting: IP당 15분에 10회
+  const ip = getClientIp(request)
+  const rl = checkRateLimit(`signin:${ip}`, { limit: 10, windowMs: 15 * 60 * 1000 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfter) }
+      }
+    )
+  }
+
   try {
     const { identifier, password } = await request.json()
 

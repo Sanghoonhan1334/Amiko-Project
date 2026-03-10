@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/admin-auth'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,7 +14,11 @@ const supabaseAdmin = createClient(
   }
 )
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Admin-only — service_role operation must not be publically accessible
+  const auth = await requireAdmin(request)
+  if (!auth.authenticated) return auth.response
+
   try {
     // 이미 아미코 채팅방이 있는지 확인 (is_active 상태와 관계없이)
     const { data: existingRooms, error: checkError } = await supabaseAdmin

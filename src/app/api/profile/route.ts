@@ -43,13 +43,12 @@ async function handleProfileUpdate(request: NextRequest) {
       career,
       introduction,
       interests,
-      is_verified,           // 인증 완료 여부
-      verification_completed, // 인증 완료 플래그
-      korean_level,          // 한국어 수준
-      spanish_level,         // 스페인어 수준
-      english_level,         // 영어 수준
-      academic_info_public,  // 학업 정보 공개 설정
-      job_info_public        // 직업 정보 공개 설정
+      // ⚠️ is_verified y verification_completed se omiten intencionalmente — no se aceptan del body
+      korean_level,
+      spanish_level,
+      english_level,
+      academic_info_public,
+      job_info_public
     } = body
 
     // Authorization 헤더에서 토큰 추출
@@ -142,14 +141,8 @@ async function handleProfileUpdate(request: NextRequest) {
     if (korean_level !== undefined) updateData.korean_level = korean_level
     if (spanish_level !== undefined) updateData.spanish_level = spanish_level
     if (english_level !== undefined) updateData.english_level = english_level
-    if (is_verified !== undefined) {
-      updateData.is_verified = is_verified
-      console.log('[PROFILE] is_verified 설정:', { is_verified, type: typeof is_verified })
-    }
-    if (verification_completed !== undefined) {
-      updateData.verification_completed = verification_completed
-      console.log('[PROFILE] verification_completed 설정:', { verification_completed, type: typeof verification_completed })
-    }
+    // ⚠️ SEGURIDAD: is_verified y verification_completed NUNCA se aceptan del body del usuario.
+    // Solo se actualizan mediante procesos de backend con privilegios de admin.
     if (academic_info_public !== undefined) {
       updateData.academic_info_public = academic_info_public
     }

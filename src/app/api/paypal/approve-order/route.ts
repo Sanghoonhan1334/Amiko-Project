@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createSupabaseClient } from "@/lib/supabase";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -14,6 +15,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: NextRequest) {
   try {
+    // 세션 검증 — 인증된 사용자만 결제 승인 가능
+    const supabaseClient = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
     const body = await request.json();
     const { orderId } = body;
 
@@ -22,6 +31,32 @@ export async function POST(request: NextRequest) {
         { error: "Order ID is required" },
         { status: 400 },
       );
+    }
+
+    // 소유권 확인 — 이 주문이 인증된 사용자에게 속하는지 검증
+    const { data: purchase, error: ownershipError } = await supabase
+      .from("purchases")
+      .select("*")
+      .eq("payment_id", orderId)
+      .single()
+
+    if (ownershipError || !purchase) {
+      return NextResponse.json({ error: "Purchase record not found" }, { status: 404 })
+    }
+
+    if (purchase.user_id !== authenticatedUserId) {
+      console.warn("[ApproveOrder] Ownership mismatch:", {
+        requestUser: authenticatedUserId,
+        purchaseUser: purchase.user_id,
+      })
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    if (purchase.status !== "pending") {
+      return NextResponse.json(
+        { error: "Order is not in pending state" },
+        { status: 400 }
+      )
     }
 
     // PayPal 주문 승인
@@ -67,21 +102,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Get purchase record to determine product type
-    const { data: purchase, error: purchaseError } = await supabase
-      .from("purchases")
-      .select("*")
-      .eq("order_id", referenceId)
-      .single();
-
-    if (purchaseError || !purchase) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[PayPal] Purchase not found:", purchaseError);
-      }
-      return NextResponse.json(
-        { error: "Purchase record not found" },
-        { status: 404 },
-      );
+    // 소유권 확인이 이미 완료된 purchase 레코드 재사용 (중복 조회 방지)
+    // referenceId crosscheck for integrity
+    if (purchase.order_id && purchase.order_id !== referenceId) {
+      console.error("[PayPal] Order reference mismatch:", { dbOrderId: purchase.order_id, paypalReferenceId: referenceId })
+      return NextResponse.json({ error: "Order reference mismatch" }, { status: 400 })
     }
 
     // Update purchase status to paid

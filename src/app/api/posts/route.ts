@@ -726,9 +726,8 @@ export async function POST(request: NextRequest) {
       userId = user.id
       console.log('[POST_CREATE] 인증된 사용자 ID 사용:', userId)
     } else {
-      // 개발 환경에서는 기본 사용자로 인증 우회
-      console.log('[POST_CREATE] 토큰 없음 - 개발 환경 인증 우회')
-      userId = '5f83ab21-fd61-4666-94b5-087d73477476'
+      // 인증 토큰이 없으면 거부 (개발 환경 우회 제거)
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
     }
 
     // 기본 갤러리 ID 설정 (갤러리가 없을 경우 'free' 갤러리 사용)

@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyTwilioAccount, calculateSMSCost } from '@/lib/twilioService'
 
 export async function GET() {
+  // 프로덕션에서 완전 차단 (테스트/디버그 엔드포인트)
+  if (process.env.NODE_ENV !== 'development') {
+    return new (require('next/server').NextResponse)(null, { status: 404 })
+  }
+
+
   try {
     // Twilio 계정 정보 확인
     const accountInfo = await verifyTwilioAccount()

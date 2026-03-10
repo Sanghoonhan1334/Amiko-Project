@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyPayPalWebhook, extractWebhookHeaders } from "@/lib/paypal-webhook-verify";
 
 // POST /api/webhooks/paypal — PayPal webhook handler for videocall payments
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
+
+    // ⚠️ SEGURIDAD CRÍTICA: Verificar firma PayPal antes de procesar cualquier evento
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID_VC || process.env.PAYPAL_WEBHOOK_ID
+    if (!webhookId) {
+      console.error('[VC_WEBHOOK] PAYPAL_WEBHOOK_ID not configured')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    const headers = extractWebhookHeaders(request)
+    const isValid = await verifyPayPalWebhook(body, headers, webhookId)
+    if (!isValid) {
+      console.error('[VC_WEBHOOK] INVALID SIGNATURE — request rejected')
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
+    }
+
     const webhookData = JSON.parse(body);
 
     const eventType = webhookData.event_type;

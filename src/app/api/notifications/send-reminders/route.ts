@@ -2,8 +2,15 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendVerificationEmail } from '@/lib/emailService'
 
-// 상담 시작 1시간 전 알림 이메일 발송
-export async function POST() {
+// 상담 시작 1시간 전 알림 이메일 발송 (cron internal endpoint)
+export async function POST(request: Request) {
+  // Internal-only endpoint: must be called with INTERNAL_API_SECRET header
+  if (process.env.NODE_ENV === 'production') {
+    const secret = (request as Request & { headers: Headers }).headers.get('x-internal-secret')
+    if (!secret || secret !== process.env.INTERNAL_API_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
   try {
     console.log('[REMINDER] 상담 알림 이메일 발송 시작')
 

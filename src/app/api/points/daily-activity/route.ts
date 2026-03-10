@@ -1,25 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer, supabaseClient } from '@/lib/supabaseServer'
 
 export async function GET(request: NextRequest) {
   try {
-    if (!supabaseServer) {
+    if (!supabaseServer || !supabaseClient) {
       return NextResponse.json(
         { error: '데이터베이스 연결이 설정되지 않았습니다.' },
         { status: 500 }
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
-
-    if (!userId) {
+    // 세션 검증 — 자신의 데이터만 조회 가능 (프라이버시 보호)
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
       )
     }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: '유효하지 않은 토큰입니다.' },
+        { status: 401 }
+      )
+    }
+
+    const { searchParams } = new URL(request.url)
+    const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
+
+    // userId는 항상 세션에서 추출 — query param의 userId는 무시 (IDOR/프라이버시 방지)
+    const userId = user.id
 
     // 오늘의 활동 데이터 가져오기
     const { data: activity, error } = await supabaseServer

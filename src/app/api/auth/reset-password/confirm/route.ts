@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createHmac, timingSafeEqual } from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,33 +22,66 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 토큰 디코딩 (이메일:타임스탬프 형식)
+    // 토큰 디코딩 및 HMAC 서명 검증 (이메일:타임스탬프:hmac 형식)
     let email: string
     try {
-      const decodedToken = Buffer.from(token, 'base64').toString('utf-8')
-      const [tokenEmail, timestamp] = decodedToken.split(':')
-      
-      if (!tokenEmail || !timestamp) {
+      const secret = process.env.RESET_TOKEN_SECRET
+      if (!secret) {
+        console.error('[RESET_PASSWORD_CONFIRM] RESET_TOKEN_SECRET 환경변수가 설정되지 않음')
+        return NextResponse.json(
+          { success: false, error: '서버 설정 오류가 발생했습니다.' },
+          { status: 500 }
+        )
+      }
+
+      const decodedToken = Buffer.from(token, 'base64url').toString('utf-8')
+      // 형식: email:timestamp:hmac (hmac은 hex이므로 마지막 64자)
+      const lastColon = decodedToken.lastIndexOf(':')
+      const secondLastColon = decodedToken.lastIndexOf(':', lastColon - 1)
+
+      if (lastColon === -1 || secondLastColon === -1) {
         throw new Error('Invalid token format')
       }
-      
+
+      const payload = decodedToken.substring(0, lastColon)           // email:timestamp
+      const receivedHmac = decodedToken.substring(lastColon + 1)     // hmac hex
+      const tokenEmail = decodedToken.substring(0, secondLastColon)  // email
+      const timestamp = decodedToken.substring(secondLastColon + 1, lastColon) // timestamp
+
+      if (!tokenEmail || !timestamp || !receivedHmac) {
+        throw new Error('Invalid token structure')
+      }
+
+      // HMAC 서명 검증 (타이밍 어택 방지를 위해 timingSafeEqual 사용)
+      const expectedHmac = createHmac('sha256', secret).update(payload).digest('hex')
+      const receivedBuf = Buffer.from(receivedHmac, 'hex')
+      const expectedBuf = Buffer.from(expectedHmac, 'hex')
+
+      if (receivedBuf.length !== expectedBuf.length || !timingSafeEqual(receivedBuf, expectedBuf)) {
+        console.error('[RESET_PASSWORD_CONFIRM] HMAC 서명 불일치 - 위조된 토큰')
+        return NextResponse.json(
+          { success: false, error: '유효하지 않은 비밀번호 재설정 링크입니다.' },
+          { status: 400 }
+        )
+      }
+
       email = tokenEmail
-      
+
       // 토큰 만료 확인 (24시간)
       const tokenTime = parseInt(timestamp)
       const now = Date.now()
       const tokenAge = now - tokenTime
       const maxAge = 24 * 60 * 60 * 1000 // 24시간
-      
-      if (tokenAge > maxAge) {
+
+      if (Number.isNaN(tokenTime) || tokenAge > maxAge) {
         return NextResponse.json(
           { success: false, error: '비밀번호 재설정 링크가 만료되었습니다.' },
           { status: 400 }
         )
       }
-      
-      console.log('[RESET_PASSWORD_CONFIRM] 토큰 검증 성공:', { email, tokenAge: Math.round(tokenAge / 1000 / 60) + '분 전' })
-      
+
+      console.log('[RESET_PASSWORD_CONFIRM] 토큰 HMAC 검증 성공:', { email, tokenAge: Math.round(tokenAge / 1000 / 60) + '분 전' })
+
     } catch (error) {
       console.error('[RESET_PASSWORD_CONFIRM] 토큰 디코딩 실패:', error)
       return NextResponse.json(
@@ -97,23 +131,11 @@ export async function POST(request: NextRequest) {
     const user = authUsers.users.find(u => u.email === email)
     
     if (!user) {
-      console.error('[RESET_PASSWORD_CONFIRM] 사용자 찾기 실패:', { 
-        email, 
-        availableEmails: authUsers.users.map(u => u.email).slice(0, 5) // 처음 5개만 로그
-      })
-      
-      // 테스트용 이메일인 경우 성공 응답 반환
-      if (email === 'test@example.com') {
-        console.log('[RESET_PASSWORD_CONFIRM] 테스트용 이메일 - 성공 응답 반환')
-        return NextResponse.json({
-          success: true,
-          message: '테스트용 비밀번호 재설정이 완료되었습니다.'
-        })
-      }
-      
+      console.error('[RESET_PASSWORD_CONFIRM] 사용자 찾기 실패 (email 비공개 처리)')
+      // 사용자 열거 공격 방지: 등록된 이메일 여부를 외부에 노출하지 않음
       return NextResponse.json(
-        { success: false, error: '해당 이메일로 등록된 사용자를 찾을 수 없습니다.', details: `이메일: ${email}` },
-        { status: 404 }
+        { success: false, error: '유효하지 않은 비밀번호 재설정 링크입니다.' },
+        { status: 400 }
       )
     }
 

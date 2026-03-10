@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationEmail, getEmailServiceStatus } from '@/lib/emailService'
 
-// 이메일 전송 테스트 API (디버깅용)
+// 이메일 전송 테스트 API (디버깅용) — 개발 환경에서만 사용 가능
 export async function POST(request: NextRequest) {
+  // 프로덕션에서 완전 차단
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   try {
     const body = await request.json()
     const { email, testType = 'verification' } = body

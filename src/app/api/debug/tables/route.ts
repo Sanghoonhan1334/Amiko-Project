@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function GET() {
+  // 프로덕션에서 완전 차단 (데이터베이스 구조 노출 방지)
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   try {
     if (!supabaseServer) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })

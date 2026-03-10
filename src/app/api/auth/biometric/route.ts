@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // 지문 인증 목록 조회
 export async function GET(request: NextRequest) {
@@ -19,7 +20,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('[BIOMETRIC_LIST] 지문 인증 목록 조회 시작:', { userId })
+    // 세션 확인: 인증된 사용자인지 검사
+    const supabaseClient = await createSupabaseClient()
+    const { data: { session } } = await supabaseClient.auth.getSession()
+    const isAuthenticated = !!session && session.user?.id === userId
+
+    console.log('[BIOMETRIC_LIST] 지문 인증 목록 조회 시작:', { userId, isAuthenticated })
 
     // 데이터베이스에서 등록된 인증기 조회
     const { data: credentials, error: fetchError } = await supabaseServer
@@ -54,15 +60,22 @@ export async function GET(request: NextRequest) {
     }
 
     // 데이터 형식 변환
-    const formattedCredentials = (credentials || []).map(cred => ({
-      id: cred.credential_id, // credential_id를 id로 사용 (클라이언트에서 사용하는 형식)
-      credentialId: cred.credential_id,
-      deviceName: cred.device_name || 'Unknown Device',
-      deviceType: cred.device_type || 'fingerprint',
-      lastUsedAt: cred.last_used_at || cred.created_at,
-      createdAt: cred.created_at,
-      counter: cred.counter || 0
-    }))
+    // 인증되지 않은 요청(로그인 전 생체인증 버튼 표시용)은 기기 정보를 노출하지 않음
+    const formattedCredentials = (credentials || []).map(cred => {
+      if (!isAuthenticated) {
+        // 비인증 요청: 최소 정보만 반환 (존재 여부 확인용)
+        return { id: cred.credential_id }
+      }
+      return {
+        id: cred.credential_id,
+        credentialId: cred.credential_id,
+        deviceName: cred.device_name || 'Unknown Device',
+        deviceType: cred.device_type || 'fingerprint',
+        lastUsedAt: cred.last_used_at || cred.created_at,
+        createdAt: cred.created_at,
+        counter: cred.counter || 0
+      }
+    })
 
     console.log('[BIOMETRIC_LIST] 조회 성공:', { 
       userId, 
@@ -104,6 +117,24 @@ export async function DELETE(request: NextRequest) {
           error_es: 'Se requiere ID de usuario e ID de credencial.'
         },
         { status: 400 }
+      )
+    }
+
+    // 인증 확인: 세션이 있어야 하며 본인의 자격증명만 삭제 가능
+    const supabaseClient = await createSupabaseClient()
+    const { data: { session } } = await supabaseClient.auth.getSession()
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.', error_es: 'Se requiere autenticaci\u00f3n.' },
+        { status: 401 }
+      )
+    }
+
+    if (session.user?.id !== userId) {
+      return NextResponse.json(
+        { success: false, error: '권한이 없습니다.', error_es: 'No autorizado.' },
+        { status: 403 }
       )
     }
 

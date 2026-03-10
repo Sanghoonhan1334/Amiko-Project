@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // 간단한 하이웍스 이메일 발송 테스트
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   try {
     console.log('🧪 [SIMPLE EMAIL TEST] 간단한 이메일 발송 테스트 시작')
     

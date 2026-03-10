@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseClient } from '@/lib/supabaseServer';
+import { verifyPayPalWebhook, extractWebhookHeaders } from '@/lib/paypal-webhook-verify';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = request.headers.get('paypal-transmission-id');
-    const certId = request.headers.get('paypal-cert-id');
-    const authAlgo = request.headers.get('paypal-auth-algo');
-    const transmissionSig = request.headers.get('paypal-transmission-sig');
-    const transmissionTime = request.headers.get('paypal-transmission-time');
 
-    // PayPal webhook 검증 (실제 운영에서는 검증 로직 추가)
+    // ⚠️ SEGURIDAD CRÍTICA: Verificar firma PayPal antes de procesar cualquier evento
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID
+    if (!webhookId) {
+      console.error('[PayPal Webhook] PAYPAL_WEBHOOK_ID not configured')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    const headers = extractWebhookHeaders(request)
+    const isValid = await verifyPayPalWebhook(body, headers, webhookId)
+    if (!isValid) {
+      console.error('[PayPal Webhook] INVALID SIGNATURE — request rejected')
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
+    }
+
     const webhookData = JSON.parse(body);
     
     if (process.env.NODE_ENV === 'development') {
-      console.log('[PayPal Webhook] Received:', { eventType: webhookData.event_type, paymentId: webhookData.resource?.id });
+      console.log('[PayPal Webhook] Verified event:', { eventType: webhookData.event_type, paymentId: webhookData.resource?.id });
     }
 
     // 이벤트 타입 확인

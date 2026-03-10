@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function POST(request: NextRequest) {
+  // Require admin — unauthenticated access lets anyone spam-notify all users
+  const auth = await requireAdmin(request)
+  if (!auth.authenticated) return auth.response
+
   try {
     if (!supabaseServer) {
       return NextResponse.json(

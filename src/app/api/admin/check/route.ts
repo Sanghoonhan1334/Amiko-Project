@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer, supabaseClient } from '@/lib/supabaseServer'
 import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
-    if (!supabaseServer) {
+    if (!supabaseServer || !supabaseClient) {
       return NextResponse.json({
         success: true,
         isAdmin: false,
@@ -13,9 +13,47 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Require authentication to prevent admin enumeration
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user: authedUser }, error: authedError } = await supabaseClient.auth.getUser(token)
+    if (authedError || !authedUser) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid authentication token' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const email = searchParams.get('email')
+
+    // Users may only check their own admin status unless they are already admin
+    const targetUserId = userId || authedUser.id
+    const targetEmail = email || authedUser.email
+    const isSelfCheck = targetUserId === authedUser.id || targetEmail === authedUser.email
+
+    if (!isSelfCheck) {
+      // Only admins can check other users' admin status
+      const { data: selfAdmin } = await supabaseServer
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', authedUser.id)
+        .eq('is_active', true)
+        .maybeSingle()
+      if (!selfAdmin) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden' },
+          { status: 403 }
+        )
+      }
+    }
 
     if (!userId && !email) {
       // 에러 대신 기본값 반환

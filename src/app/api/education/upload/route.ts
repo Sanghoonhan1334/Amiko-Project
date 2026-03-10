@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireEducationAuth } from '@/lib/education-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,6 +36,10 @@ const ALLOWED_TYPES: Record<string, string[]> = {
 // POST /api/education/upload - Upload a file to Supabase Storage
 export async function POST(request: NextRequest) {
   try {
+    // Require auth — service_role bucket without auth = any user can upload 50MB files
+    const auth = await requireEducationAuth(request)
+    if (auth.error) return auth.error
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const courseId = formData.get('course_id') as string

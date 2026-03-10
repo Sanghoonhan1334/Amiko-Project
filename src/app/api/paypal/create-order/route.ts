@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createSupabaseClient } from "@/lib/supabase";
+import { validateProductAndAmount } from "@/lib/paypal-products";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -14,21 +16,40 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: NextRequest) {
   try {
+    // 세션 검증 — userId는 항상 토큰에서 추출, body에서 절대 신뢰하지 않음
+    const supabaseClient = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
     const body = await request.json();
     const {
-      amount,
       orderId,
       orderName,
       customerName,
       customerEmail,
-      userId,
       bookingId,
-      productType,
-      productData,
+      productId,   // ID del catálogo servidor — reemplaza amount/productType/productData del cliente
+      // amount, userId, productType, productData ignorados (se obtienen del catálogo)
     } = body;
 
+    // Validar producto y precio desde el catálogo servidor (nunca del cliente)
+    const clientAmount = Number(body.amount)
+    if (!productId) {
+      return NextResponse.json({ error: "productId is required" }, { status: 400 })
+    }
+    const product = validateProductAndAmount(productId, clientAmount)
+    if (!product) {
+      return NextResponse.json(
+        { error: "Invalid product or tampered amount" },
+        { status: 400 }
+      )
+    }
+
     // 필수 필드 검증
-    if (!amount || !orderId || !orderName || !userId) {
+    if (!orderId || !orderName) {
       return NextResponse.json(
         { error: "Required fields are missing" },
         { status: 400 },
@@ -43,9 +64,9 @@ export async function POST(request: NextRequest) {
           reference_id: orderId,
           amount: {
             currency_code: "USD",
-            value: Number(amount).toFixed(2), // amount ya viene en dólares desde el cliente
+            value: product.amountUsd.toFixed(2), // precio canónico del servidor
           },
-          description: orderName,
+          description: product.name,
           custom_id: bookingId || "",
         },
       ],
@@ -87,16 +108,16 @@ export async function POST(request: NextRequest) {
 
     // 구매 기록 생성 (pending 상태)
     const purchaseRecord = {
-      user_id: userId,
+      user_id: authenticatedUserId,  // siempre del token, nunca del body
       provider: "paypal",
       payment_id: paypalData.id,
       order_id: orderId,
-      amount: Number(amount),
+      amount: product.amountUsd,     // precio canónico del servidor
       currency: "USD",
       country: "US",
       status: "pending",
-      product_type: productType || "coupon",
-      product_data: productData || {},
+      product_type: product.productType,
+      product_data: product.meta,
       paypal_data: paypalData,
     };
 

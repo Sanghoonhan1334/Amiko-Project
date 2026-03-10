@@ -1,13 +1,23 @@
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // 예약 수정
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
+    // 세션 검증 — 승인 없이 누구나 남의 예약을 수정 가능 (IDOR 방지)
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ success: false, error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const body = await request.json()
     
@@ -33,6 +43,11 @@ export async function PUT(
         { success: false, error: '예약을 찾을 수 없습니다.' },
         { status: 404 }
       )
+    }
+
+    // Ownership check — only the booking owner can edit
+    if (existingBooking.user_id !== authenticatedUserId) {
+      return NextResponse.json({ success: false, error: '예약을 수정할 권한이 없습니다.' }, { status: 403 })
     }
 
     // 예약 변경 불가능한 상태 체크

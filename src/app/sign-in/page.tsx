@@ -320,8 +320,8 @@ export default function SignInPage() {
         const params = new URLSearchParams(window.location.search)
         const redirectPath = params.get('redirect') || params.get('redirectTo')
 
-        // redirect 파라미터가 있으면 해당 경로로 이동
-        if (redirectPath) {
+        // redirect 파라미터가 있으면 해당 경로로 이동 (Open Redirect 방지: 반드시 상대 경로만 허용)
+        if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
           router.push(redirectPath)
           return
         }

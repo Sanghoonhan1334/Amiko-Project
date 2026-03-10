@@ -252,9 +252,45 @@ export async function PUT(
       );
     }
 
+    // Require authentication — no auth = anyone could edit any post (IDOR)
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const token = authHeader.split(' ')[1]
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+
     const postId = params.id;
     const body = await request.json();
     const { title, content, images, category } = body;
+
+    // Ownership check: only the post author or an admin may edit
+    const { data: existingPost, error: fetchError } = await supabaseServer
+      .from('gallery_posts')
+      .select('id, user_id')
+      .eq('id', postId)
+      .eq('is_deleted', false)
+      .single()
+
+    if (fetchError || !existingPost) {
+      return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    // Check if user is admin
+    const { data: adminData } = await supabaseServer
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+    const isAdmin = !!adminData
+
+    if (existingPost.user_id !== user.id && !isAdmin) {
+      return NextResponse.json({ error: '게시글을 수정할 권한이 없습니다.' }, { status: 403 })
+    }
 
     console.log("[POST_PUT] 게시글 수정:", {
       postId,

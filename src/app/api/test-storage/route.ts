@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function GET() {
+  // 프로덕션에서 완전 차단 (테스트/디버그 엔드포인트)
+  if (process.env.NODE_ENV !== 'development') {
+    return new (require('next/server').NextResponse)(null, { status: 404 })
+  }
+
+
   try {
     console.log('[TEST_STORAGE] 테스트 시작')
     

@@ -51,34 +51,39 @@ function ResetPasswordForm() {
         mode: urlToken ? '커스텀 토큰' : accessToken ? 'Supabase 해시' : '토큰 없음'
       })
 
-      // 커스텀 토큰 방식인 경우 토큰 유효성 검증
+      // 커스텀 토큰 방식인 경우 토큰 유효성 검증 (형식 + 만료만 클라이언트 체크, HMAC은 서버에서 검증)
       if (urlToken) {
         console.log('✅ 커스텀 토큰 방식 - 토큰 유효성 검증 중...')
         try {
-          // 토큰 디코딩하여 형식 확인
-          const decodedToken = Buffer.from(urlToken, 'base64').toString('utf-8')
-          const [tokenEmail, timestamp] = decodedToken.split(':')
-          
-          if (!tokenEmail || !timestamp) {
+          // base64url 디코딩 (HMAC 서명 포함 형식: email:timestamp:hmac)
+          const decodedToken = Buffer.from(urlToken, 'base64url').toString('utf-8')
+          const lastColon = decodedToken.lastIndexOf(':')
+          const secondLastColon = decodedToken.lastIndexOf(':', lastColon - 1)
+
+          if (lastColon === -1 || secondLastColon === -1) {
             throw new Error('Invalid token format')
           }
-          
-          // 토큰 만료 확인 (24시간)
+
+          const timestamp = decodedToken.substring(secondLastColon + 1, lastColon)
+
+          // 토큰 만료 확인 (24시간) — UX 전용, HMAC 검증은 서버에서 수행
           const tokenTime = parseInt(timestamp)
+          if (Number.isNaN(tokenTime)) throw new Error('Invalid timestamp')
+
           const now = Date.now()
           const tokenAge = now - tokenTime
           const maxAge = 24 * 60 * 60 * 1000 // 24시간
-          
+
           if (tokenAge > maxAge) {
             setIsTokenValid(false)
             setTokenError(t('auth.resetPassword.linkExpired'))
             console.error('❌ 토큰 만료:', { tokenAge: Math.round(tokenAge / 1000 / 60) + '분' })
             return
           }
-          
+
           setIsTokenValid(true)
           setTokenError(null)
-          console.log('✅ 커스텀 토큰 유효:', { email: tokenEmail, tokenAge: Math.round(tokenAge / 1000 / 60) + '분 전' })
+          console.log('✅ 커스텀 토큰 형식 유효 (HMAC 검증은 서버에서 수행)')
         } catch (error) {
           setIsTokenValid(false)
           setTokenError(t('auth.resetPassword.linkInvalid'))

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/admin-auth';
 
-// 이벤트/추첨 대상자 조회: Lv1(75점+), VIP, 또는 Rose(3500+점) 필터 분기
+// 이벤트/추첨 대상자 조회: Lv1(75점+), VIP, 또는 Rose(3500+점) 필터 분기 (admin only)
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.authenticated) return auth.response;
+
   try {
     const supabase = createClient();
     const { searchParams } = new URL(request.url);

@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // 하이웍스 SMTP 고급 설정 테스트 API
 export async function POST(request: NextRequest) {
+  // 프로덕션에서 완전 차단 (테스트/디버그 엔드포인트)
+  if (process.env.NODE_ENV !== 'development') {
+    return new (require('next/server').NextResponse)(null, { status: 404 })
+  }
+
+
   try {
     console.log('🔍 [HIWORKS ADVANCED TEST] 고급 설정 테스트 시작')
     

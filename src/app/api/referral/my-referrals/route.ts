@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { supabaseServer, supabaseClient } from '@/lib/supabaseServer'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
+    if (!supabaseServer || !supabaseClient) {
       return NextResponse.json(
-        { error: '사용자 ID가 필요합니다.' },
-        { status: 400 }
+        { error: '데이터베이스 연결이 설정되지 않았습니다.' },
+        { status: 500 }
       )
     }
+
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR + 개인정보 유출 방지)
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+
+    const userId = user.id
 
     console.log('[MY_REFERRALS] 조회 시작:', userId)
 

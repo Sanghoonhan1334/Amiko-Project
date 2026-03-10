@@ -3,9 +3,16 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient();
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
+    const authenticatedUserId = session.user.id;
+
     const body = await request.json();
     const {
-      userId,
       eventType,
       oldLevel,
       newLevel,
@@ -14,14 +21,13 @@ export async function POST(request: NextRequest) {
       sourcePage,
       extra
     } = body || {};
-    if (!(userId && eventType)) {
-      return NextResponse.json({ error: 'userId, eventType 필수' }, { status: 400 });
+    if (!eventType) {
+      return NextResponse.json({ error: 'eventType 필수' }, { status: 400 });
     }
-    const supabase = createClient();
     const { error } = await supabase
       .from('level_event_log')
       .insert({
-        user_id: userId,
+        user_id: authenticatedUserId,
         event_type: eventType,
         old_level: oldLevel,
         new_level: newLevel,

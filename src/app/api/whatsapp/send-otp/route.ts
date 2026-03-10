@@ -20,6 +20,13 @@ export const runtime = 'nodejs'
  * - TWILIO_WHATSAPP_TEMPLATE_SID: WhatsApp 템플릿 SID (필수, 템플릿 승인 후 Twilio 콘솔에서 확인)
  */
 export async function POST(request: NextRequest) {
+  // Rate-limit to OTP flows only — block unauthenticated Twilio calls to prevent cost attacks
+  if (process.env.NODE_ENV !== 'development') {
+    const internalSecret = request.headers.get('x-internal-secret')
+    if (!internalSecret || internalSecret !== process.env.INTERNAL_API_SECRET) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+  }
   try {
     const body = await request.json()
     const { phoneNumber, otp } = body

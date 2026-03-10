@@ -1,21 +1,34 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createSupabaseClient } from '@/lib/supabase'
 import { sendVerificationEmail } from '@/lib/emailService'
 
 // CORS 프리: 내부 API이므로 CORS 설정 불필요
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // 세션 검증 — userId는 항상 토큰에서 추출 (IDOR 방지)
+    const authSupabase = await createSupabaseClient()
+    const { data: { session }, error: sessionError } = await authSupabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.' },
+        { status: 401 }
+      )
+    }
+    const authenticatedUserId = session.user.id
+
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     const body = await request.json()
     console.log('[BOOKING] 받은 데이터:', body)
     
-    const { userId, topic, startAt, endAt, price, description, consultantId, duration, meetUrl } = body
+    // userId는 body에서 받지 않고 세션에서 추출 (IDOR 방지)
+    const { topic, startAt, endAt, price, description, consultantId, duration, meetUrl } = body
 
     // 유효성 검사
-    if (!userId || !topic || !startAt || !endAt || !price || !consultantId) {
-      console.log('[BOOKING] 필수 필드 누락:', { userId, topic, startAt, endAt, price, consultantId })
+    if (!topic || !startAt || !endAt || !price || !consultantId) {
+      console.log('[BOOKING] 필수 필드 누락:', { userId: authenticatedUserId, topic, startAt, endAt, price, consultantId })
       return NextResponse.json(
         { success: false, error: '필수 필드가 누락되었습니다.' },
         { status: 400 }
@@ -89,7 +102,7 @@ export async function POST(request: Request) {
 
     // Supabase에 예약 저장
     const insertData: any = {
-      user_id: userId,
+      user_id: authenticatedUserId,
       consultant_id: consultantId,
       topic,
       description: description || '',
@@ -126,7 +139,7 @@ export async function POST(request: Request) {
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('email, name')
-      .eq('id', userId)
+      .eq('id', authenticatedUserId)
       .single()
 
     if (!userError && user) {

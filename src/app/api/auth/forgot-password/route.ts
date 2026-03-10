@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabaseServer'
 import { sendPasswordResetEmail } from '@/lib/emailService'
+import { createHmac } from 'crypto'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: IP당 15분에 5회 (이메일 스팸 방지)
+  const ip = getClientIp(request)
+  const rl = checkRateLimit(`forgot-password:${ip}`, { limit: 5, windowMs: 15 * 60 * 1000 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfter) }
+      }
+    )
+  }
+
   try {
     const { email, language = 'ko' } = await request.json()
 
@@ -49,15 +64,24 @@ export async function POST(request: NextRequest) {
     // 사용자의 언어 설정 사용 (없으면 요청에서 받은 언어 사용)
     const userLanguage = userData.language || language
 
-    // 커스텀 비밀번호 재설정 토큰 생성 (Supabase Auth 완전 우회)
-    // Supabase의 resetPasswordForEmail을 호출하지 않음으로써 기본 이메일 발송 방지
-    const resetToken = Buffer.from(`${email}:${Date.now()}`).toString('base64')
+    // 커스텀 비밀번호 재설정 토큰 생성 (HMAC-SHA256 서명)
+    const secret = process.env.RESET_TOKEN_SECRET
+    if (!secret) {
+      console.error('[FORGOT_PASSWORD] RESET_TOKEN_SECRET 환경변수가 설정되지 않음')
+      return NextResponse.json(
+        { error: userLanguage === 'es' ? 'Error de configuración del servidor.' : '서버 설정 오류가 발생했습니다.' },
+        { status: 500 }
+      )
+    }
+    const timestamp = Date.now().toString()
+    const payload = `${email}:${timestamp}`
+    const hmac = createHmac('sha256', secret).update(payload).digest('hex')
+    const resetToken = Buffer.from(`${payload}:${hmac}`).toString('base64url')
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://helloamiko.com'
     const resetLink = `${baseUrl}/reset-password?token=${resetToken}`
 
-    console.log('[FORGOT_PASSWORD] 커스텀 비밀번호 재설정 토큰 생성 (Supabase 기본 이메일 우회):', { 
+    console.log('[FORGOT_PASSWORD] HMAC 서명 비밀번호 재설정 토큰 생성:', { 
       email,
-      resetLink,
       language: userLanguage
     })
 

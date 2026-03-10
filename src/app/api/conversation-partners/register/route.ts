@@ -7,15 +7,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const supabase = createClient()
 
+    // 세션 검증 — user_id는 항상 토큰에서 추출 (IDOR 방지)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+    }
+    const authenticatedUserId = session.user.id
+
     // 한국인 판정: (1) 인증센터 is_korean OR (2) users 테이블 is_korean OR (3) country === 'KR' OR (4) 관리자 승인 플래그
-    let isKoreanAllowed = Boolean(body.is_korean)
+    let isKoreanAllowed = false
 
     try {
       // users 테이블에서 국적/플래그 조회
       const { data: userRow } = await supabase
         .from('users')
         .select('is_korean, country, admin_partner_override')
-        .eq('id', body.user_id)
+        .eq('id', authenticatedUserId)
         .single()
 
       const adminOverride = Boolean(userRow?.admin_partner_override)
@@ -38,7 +45,7 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await supabase
       .from('conversation_partners')
       .select('id')
-      .eq('user_id', body.user_id)
+      .eq('user_id', authenticatedUserId)
       .single()
 
     if (existing) {
@@ -52,7 +59,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase
       .from('conversation_partners')
       .insert({
-        user_id: body.user_id,
+        user_id: authenticatedUserId,
         name: body.name,
         language_level: body.language_level,
         country: body.country,
