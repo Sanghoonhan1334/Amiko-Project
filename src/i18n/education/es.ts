@@ -65,6 +65,9 @@ export const educationEs = {
       enrollNow: 'Inscribirse',
       buyNow: 'Comprar ahora',
       alreadyEnrolled: 'Ya inscrito',
+      free: 'Gratis',
+      enrollFree: 'Inscribirse gratis',
+      goToCourse: 'Ir al curso',
       thumbnail: 'Imagen del curso',
       allowRecording: 'Permitir grabación',
       materials: 'Material educativo',
@@ -188,7 +191,9 @@ export const educationEs = {
       refundRequested: 'Reembolso solicitado',
       refundProcessed: 'Reembolso procesado',
       cancelled: 'Pago cancelado',
-      cancelledDescription: 'Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando quieras.'
+      cancelledDescription: 'Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando quieras.',
+      completePending: 'Completar pago pendiente',
+      pendingDescription: 'Tienes un pago pendiente. Haz clic para completarlo y acceder al curso.'
     },
 
     // Admin

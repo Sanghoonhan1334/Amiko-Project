@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useEducationTranslation } from '@/hooks/useEducationTranslation'
+import { useEducationCaptions } from '@/hooks/useEducationCaptions'
+import EducationCaptionOverlay from '@/components/education/EducationCaptionOverlay'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   Mic, MicOff, Video, VideoOff, PhoneOff, Monitor, MonitorOff,
   MessageCircle, Users, Send, GraduationCap, ArrowLeft, X, Circle,
-  Clock, AlertTriangle
+  Clock, AlertTriangle, Subtitles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SessionAccessStatus, SessionAccessToken, SessionTimerState } from '@/types/education'
@@ -70,6 +72,9 @@ export default function LiveClassPage() {
   const [screenSharing, setScreenSharing] = useState(false)
   const [recording, setRecording] = useState(false)
 
+  // Captions
+  const [captionsEnabled, setCaptionsEnabled] = useState(true)
+
   // Chat
   const [showChat, setShowChat] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
@@ -88,6 +93,28 @@ export default function LiveClassPage() {
   const screenTrackRef = useRef<any>(null)
   const localVideoRef = useRef<HTMLDivElement>(null)
   const remoteVideosRef = useRef<HTMLDivElement>(null)
+
+  // ── Real-time STT captions ──────────────────────────────────────────────
+  const {
+    captions,
+    sseConnected,
+    sttActive,
+    sttLoading,
+    sttError,
+    preferences: captionPreferences,
+    startSTT,
+    stopSTT,
+    updatePreferences: updateCaptionPreferences,
+    translationConnected,
+    translationPrefs,
+    updateTranslationPreferences,
+  } = useEducationCaptions(
+    sessionId ?? null,
+    token ?? null,
+    joinData?.isInstructor ?? false,
+    // Only stream when inside the room and captions are enabled
+    joined && captionsEnabled
+  )
 
   // ────────────────────────────────────────────────────────────────────────
   // STEP 1 — Check access status on mount (no Agora yet, just metadata)
@@ -290,6 +317,24 @@ export default function LiveClassPage() {
     }
   }, [])
 
+  // ── Auto-start STT when instructor joins and session is live ────────────
+  const sttAutoStartedRef = useRef(false)
+  useEffect(() => {
+    if (
+      joined &&
+      joinData?.isInstructor &&
+      !sttAutoStartedRef.current
+    ) {
+      sttAutoStartedRef.current = true
+      // Small delay to let Agora channel settle before STT bot joins
+      const timer = setTimeout(() => {
+        startSTT()
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [joined, joinData?.isInstructor])
+
   // ────────────────────────────────────────────────────────────────────────
   // TIMER — poll backend for session duration state (backend is source of truth)
   // ────────────────────────────────────────────────────────────────────────
@@ -306,6 +351,10 @@ export default function LiveClassPage() {
           // Auto-leave when backend confirms session has ended and we haven't left yet
           if (data.warnings.ended && data.status !== 'live' && !autoClosedRef.current) {
             autoClosedRef.current = true
+            // Stop STT task if instructor (non-blocking)
+            if (joinData?.isInstructor && sttActive) {
+              stopSTT().catch(() => null)
+            }
             // Clean up Agora tracks
             localTracksRef.current.forEach(track => { track.stop(); track.close() })
             await clientRef.current?.leave()
@@ -357,9 +406,10 @@ export default function LiveClassPage() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
       }).catch(err => console.warn('[Education] presence/leave failed:', err))
     }
-    // If instructor, stop recording first
-    if (recording && joinData?.isInstructor) {
-      await toggleRecording()
+    // If instructor, stop STT and recording first
+    if (joinData?.isInstructor) {
+      if (sttActive) stopSTT().catch(() => null)
+      if (recording) await toggleRecording()
     }
     // Clean up screen sharing
     if (screenTrackRef.current) {
@@ -412,12 +462,11 @@ export default function LiveClassPage() {
     if (!joinData?.isInstructor || !joinData?.allowRecording) return
     try {
       const action = recording ? 'stop' : 'start'
-      const res = await fetch('/api/education/recording', {
+      const res = await fetch(`/api/education/sessions/${sessionId}/recording`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           action,
-          session_id: sessionId,
           channel_name: joinData.channelName,
           token: joinData.token,
           uid: 999999 // recording bot UID
@@ -795,7 +844,27 @@ export default function LiveClassPage() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+
+        {/* ── Caption Overlay (renders on top of video area) ── */}
+        <EducationCaptionOverlay
+          captions={captions}
+          sseConnected={sseConnected}
+          sttActive={sttActive}
+          sttLoading={sttLoading}
+          sttError={sttError}
+          enabled={captionsEnabled}
+          preferences={captionPreferences}
+          isInstructor={joinData?.isInstructor ?? false}
+          onToggle={setCaptionsEnabled}
+          onStartSTT={startSTT}
+          onStopSTT={stopSTT}
+          onPreferencesChange={updateCaptionPreferences}
+          translationPrefs={translationPrefs}
+          translationConnected={translationConnected}
+          onTranslationPrefsChange={updateTranslationPreferences}
+        />
+
         {/* Video Area */}
         <div className="flex-1 p-4 overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-auto">
@@ -1000,6 +1069,23 @@ export default function LiveClassPage() {
           title={te('education.liveClass.participants')}
         >
           <Users className="w-5 h-5" />
+        </Button>
+
+        {/* Captions / CC button */}
+        <Button
+          variant={captionsEnabled ? 'default' : 'secondary'}
+          size="icon"
+          className={cn(
+            'rounded-full w-12 h-12 relative',
+            captionsEnabled && sttActive && 'ring-2 ring-green-400/60'
+          )}
+          onClick={() => setCaptionsEnabled(prev => !prev)}
+          title={captionsEnabled ? 'Ocultar subtítulos (CC)' : 'Mostrar subtítulos (CC)'}
+        >
+          <Subtitles className="w-5 h-5" />
+          {sttActive && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          )}
         </Button>
       </div>
     </div>

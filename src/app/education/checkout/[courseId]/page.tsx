@@ -85,6 +85,28 @@ export default function EducationCheckoutPage() {
     fetchCourse()
   }, [courseId, user?.id, router, searchParams, capturePayment])
 
+  const handleFreeEnroll = async () => {
+    if (!course || !user) return
+    setProcessing(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/education/courses/${course.id}/enroll-free`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      })
+      if (res.ok) {
+        setSuccess(true)
+      } else {
+        const data = await res.json()
+        setError(data.error || te('education.payment.failed'))
+      }
+    } catch {
+      setError(te('education.payment.failed'))
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const handlePayPalPayment = async () => {
     if (!course || !user) return
     setProcessing(true)
@@ -229,7 +251,13 @@ export default function EducationCheckoutPage() {
 
             <div className="flex justify-between items-center pt-3 border-t border-border/50">
               <span className="font-medium text-foreground">{te('education.payment.totalAmount')}</span>
-              <span className="text-2xl font-bold text-foreground">${course.price_usd}</span>
+              <span className="text-2xl font-bold text-foreground">
+                {Number(course.price_usd) === 0 ? (
+                  <span className="text-green-600">{te('education.course.free') || 'Gratis'}</span>
+                ) : (
+                  `$${course.price_usd}`
+                )}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -241,26 +269,44 @@ export default function EducationCheckoutPage() {
           </div>
         )}
 
-        {/* PayPal Button */}
-        <Button
-          className="w-full h-12 text-base"
-          onClick={handlePayPalPayment}
-          disabled={processing}
-        >
-          {processing ? (
-            te('education.payment.processing')
-          ) : (
-            <>
-              <ShieldCheck className="w-5 h-5 mr-2" />
-              {te('education.payment.payWithPaypal')} — ${course.price_usd}
-            </>
-          )}
-        </Button>
-
-        <p className="text-[11px] text-muted-foreground text-center mt-3">
-          <ShieldCheck className="w-3 h-3 inline mr-1" />
-          {te('education.securePayment')}
-        </p>
+        {/* Enroll / Pay Button */}
+        {Number(course.price_usd) === 0 ? (
+          <Button
+            className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
+            onClick={handleFreeEnroll}
+            disabled={processing}
+          >
+            {processing ? (
+              te('education.payment.processing')
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5 mr-2" />
+                {te('education.course.enrollFree') || 'Inscribirse gratis'}
+              </>
+            )}
+          </Button>
+        ) : (
+          <>
+            <Button
+              className="w-full h-12 text-base"
+              onClick={handlePayPalPayment}
+              disabled={processing}
+            >
+              {processing ? (
+                te('education.payment.processing')
+              ) : (
+                <>
+                  <ShieldCheck className="w-5 h-5 mr-2" />
+                  {te('education.payment.payWithPaypal')} — ${course.price_usd}
+                </>
+              )}
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center mt-3">
+              <ShieldCheck className="w-3 h-3 inline mr-1" />
+              {te('education.securePayment')}
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

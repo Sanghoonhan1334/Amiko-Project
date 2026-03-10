@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth } from '@/lib/education-auth'
+import {
+  translateEducationCaption,
+  type EducationCaptionForTranslation,
+} from '@/lib/education-translation'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -108,16 +112,45 @@ export async function POST(
     const { data, error } = await supabase
       .from('education_caption_events')
       .insert(records)
-      .select('id, sequence_number')
+      .select('id, sequence_number, source_language, text, is_partial')
 
     if (error) {
       console.error('[Education Captions] insert error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // ── Fire-and-forget translation for FINAL captions only ───────────────
+    // We never translate partials (spec: too noisy for UX).
+    // Each final caption triggers one DeepSeek call stored in education_translation_events.
+    if (data) {
+      const finalInserted = data.filter(row => !row.is_partial)
+      if (finalInserted.length > 0) {
+        // Collect target languages from active translations prefs (best-effort).
+        // For simplicity at insertion time, translate to the session default opposite
+        // language. Per-user filtering happens in the translations/stream SSE route.
+        Promise.allSettled(
+          finalInserted.map(row => {
+            const captionForTranslation: EducationCaptionForTranslation = {
+              id: row.id,
+              session_id: sessionId,
+              course_id: session.course_id,
+              source_language: row.source_language,
+              text: row.text,
+              is_partial: false,
+              sequence_number: row.sequence_number,
+            }
+            return translateEducationCaption(captionForTranslation)
+          })
+        ).catch(err => {
+          // Never let translation errors surface to the caller
+          console.error('[Education Captions] translation fire-and-forget error:', err)
+        })
+      }
+    }
+
     return NextResponse.json({
       inserted: data?.length || 0,
-      events: data,
+      events: data?.map(r => ({ id: r.id, sequence_number: r.sequence_number })),
     }, { status: 201 })
   } catch (err) {
     console.error('[Education Captions] events error:', err)

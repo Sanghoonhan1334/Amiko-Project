@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import {
   Star, Users, Clock, BookOpen, GraduationCap, Calendar, Globe,
   CheckCircle, Video, FileText, Download, ExternalLink,
-  ArrowLeft, DollarSign, Play, Lock, MessageCircle
+  ArrowLeft, DollarSign, Play, Lock, MessageCircle, ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type {
@@ -92,7 +92,10 @@ export default function CourseDetailPage() {
     )
   }
 
-  const isEnrolled = !!enrollment
+  // Only consider truly enrolled if payment was completed
+  const isEnrolled = enrollment?.payment_status === 'completed'
+  // Enrollment exists but payment not yet completed (user started PayPal but didn't finish)
+  const isPendingPayment = !!enrollment && !isEnrolled
   const isInstructor = course.instructor?.user_id === user?.id
   const spotsLeft = course.max_students - course.enrolled_count
   const isFull = spotsLeft <= 0
@@ -446,7 +449,11 @@ export default function CourseDetailPage() {
               <CardContent className="p-5 space-y-4">
                 {/* Price */}
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-foreground">${course.price_usd}</p>
+                  {Number(course.price_usd) === 0 ? (
+                    <p className="text-3xl font-bold text-green-600">{te('education.course.free') || 'Gratis'}</p>
+                  ) : (
+                    <p className="text-3xl font-bold text-foreground">${course.price_usd}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">{te('education.course.priceComplete')}</p>
                 </div>
 
@@ -462,6 +469,19 @@ export default function CourseDetailPage() {
                       {te('education.student.classesCompleted')}: {enrollment!.completed_classes}/{course.total_classes}
                     </p>
                   </div>
+                ) : isPendingPayment ? (
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                      onClick={handleEnroll}
+                    >
+                      <ShieldCheck className="w-4 h-4 mr-2" />
+                      {te('education.payment.completePending') || 'Completar pago'}
+                    </Button>
+                    <p className="text-xs text-center text-yellow-600 dark:text-yellow-400">
+                      {te('education.payment.pendingDescription') || 'Tienes un pago pendiente. Haz clic para completarlo.'}
+                    </p>
+                  </div>
                 ) : isInstructor ? (
                   <Button className="w-full" variant="outline" onClick={() => router.push('/education?tab=instructor')}>
                     {te('education.instructorDashboard')}
@@ -472,8 +492,17 @@ export default function CourseDetailPage() {
                     disabled={isFull}
                     onClick={handleEnroll}
                   >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    {isFull ? te('education.course.full') : te('education.course.buyNow')}
+                    {Number(course.price_usd) === 0 ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        {isFull ? te('education.course.full') : (te('education.course.enrollFree') || 'Inscribirse gratis')}
+                      </>
+                    ) : (
+                      <>
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        {isFull ? te('education.course.full') : te('education.course.buyNow')}
+                      </>
+                    )}
                   </Button>
                 )}
 

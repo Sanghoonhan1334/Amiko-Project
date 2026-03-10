@@ -87,6 +87,18 @@ const navSections: NavSection[] = [
         description: { ko: '과정 승인, 강사 관리', es: 'Aprobar cursos, gestionar docentes' },
       },
       {
+        href: '/admin/education/glossaries',
+        label: { ko: '문화 용어집 (교육)', es: 'Glosarios Culturales' },
+        icon: BookOpen,
+        description: { ko: '번역 용어 및 문화 규칙 관리', es: 'Términos y reglas para traducción educativa' },
+      },
+      {
+        href: '/admin/education/moderation',
+        label: { ko: '수업 모더레이션', es: 'Moderación de Clases' },
+        icon: ShieldAlert,
+        description: { ko: '수업 신고 및 플래그 관리', es: 'Gestionar reportes y alertas de sesiones' },
+      },
+      {
         href: '/admin/consultants',
         label: { ko: '상담사 관리', es: 'Consultores' },
         icon: Calendar,

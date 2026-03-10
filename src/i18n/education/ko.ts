@@ -65,6 +65,9 @@ export const educationKo = {
       enrollNow: '수강 신청',
       buyNow: '구매하기',
       alreadyEnrolled: '이미 등록됨',
+      free: '무료',
+      enrollFree: '무료 등록',
+      goToCourse: '강좌로 이동',
       thumbnail: '썸네일 이미지',
       allowRecording: '녹화 허용',
       materials: '학습 자료',
@@ -188,7 +191,9 @@ export const educationKo = {
       refundRequested: '환불 요청됨',
       refundProcessed: '환불이 완료되었습니다',
       cancelled: '결제 취소됨',
-      cancelledDescription: '결제 과정을 취소했습니다. 원하실 때 다시 시도할 수 있습니다.'
+      cancelledDescription: '결제 과정을 취소했습니다. 원하실 때 다시 시도할 수 있습니다.',
+      completePending: '결제 완료하기',
+      pendingDescription: '미완료된 결제가 있습니다. 완료하면 강좌에 접근할 수 있습니다.'
     },
 
     // Admin
