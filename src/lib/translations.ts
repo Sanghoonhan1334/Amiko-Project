@@ -6391,7 +6391,7 @@ export const translations = {
     // 푸터
     footer: {
       bridgeDescription:
-        "Plataforma Global de Intercambio entre Corea del Sur e Hispanohablantes, AMIKO",
+        "Plataforma Global de Intercambio entre Corea del Sur y Latinoamérica, AMIKO",
       officialSns: "SNS Oficial de AMIKO",
       support: "Soporte al Cliente",
       help: "Ayuda",
