@@ -27,13 +27,16 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== 'all') {
       query = query.eq('status', status)
+      // For completed/cancelled, don't filter by future date
+      if (status === 'scheduled') {
+        query = query.gte('scheduled_at', new Date().toISOString())
+      }
     } else {
       // By default show scheduled + live
       query = query.in('status', ['scheduled', 'live'])
+      // Only show future sessions (or live ones)
+      query = query.or(`status.eq.live,scheduled_at.gte.${new Date().toISOString()}`)
     }
-
-    // Only show future sessions (or live ones)
-    query = query.or(`status.eq.live,scheduled_at.gte.${new Date().toISOString()}`)
 
     const { data, error } = await query
 
@@ -87,6 +90,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate scheduled_at is in the future
+    const scheduledDate = new Date(scheduled_at)
+    if (isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+      return NextResponse.json(
+        { error: 'scheduled_at must be a valid date in the future' },
+        { status: 400 }
+      )
+    }
+
+    // Validate input lengths
+    if (title.length > 200) {
+      return NextResponse.json({ error: 'title must be 200 characters or less' }, { status: 400 })
+    }
+    if (description && description.length > 2000) {
+      return NextResponse.json({ error: 'description must be 2000 characters or less' }, { status: 400 })
+    }
+    if (topic && topic.length > 200) {
+      return NextResponse.json({ error: 'topic must be 200 characters or less' }, { status: 400 })
+    }
+
     // Check if user has already used 2 free sessions this month
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
@@ -135,7 +158,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         language: lang || 'mixed',
         scheduled_at,
-        duration_minutes: 20,
+        duration_minutes: 30,
         max_participants: 6,
         agora_channel: channelName,
         status: 'scheduled',
@@ -164,7 +187,7 @@ export async function POST(request: NextRequest) {
       .insert({
         session_id: session.id,
         user_id: user.id,
-        action: 'token_issued',
+        action: 'session_created',
         metadata: { event: 'session_created' },
       } as any)
 

@@ -77,6 +77,31 @@ vi.mock('@/lib/translation', () => {
   }
 })
 
+// ── Mock Glossary + Moderation (added by Phase 4 integration) ──
+vi.mock('@/lib/meet-glossary', () => ({
+  applyGlossaryPipeline: vi.fn(async (
+    text: string,
+    _srcLang: string,
+    _tgtLang: string,
+    translateFn: (t: string) => Promise<string>
+  ) => {
+    const result = await translateFn(text)
+    return { result, glossaryApplied: false, matchCount: 0 }
+  }),
+  loadGlossary: vi.fn().mockResolvedValue([]),
+  invalidateGlossaryCache: vi.fn(),
+  findMatches: vi.fn().mockReturnValue([]),
+  preProcessText: vi.fn((t: string) => ({ processedText: t, placeholders: [] })),
+  postProcessText: vi.fn((t: string) => t),
+}))
+
+vi.mock('@/lib/meet-moderation', () => ({
+  moderateContent: vi.fn().mockResolvedValue({ flagged: false, flags: [] }),
+  checkContent: vi.fn().mockReturnValue({ flagged: false, flags: [] }),
+  persistFlags: vi.fn().mockResolvedValue(undefined),
+  getHighestSeverity: vi.fn().mockReturnValue(null),
+}))
+
 // ── Helpers ───────────────────────────────────────────
 function createRequest(
   method = 'GET',

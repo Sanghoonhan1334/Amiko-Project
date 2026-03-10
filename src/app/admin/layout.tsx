@@ -28,6 +28,8 @@ import {
   ChevronRight,
   UserCheck,
   Home,
+  BookOpen,
+  Flag,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -106,6 +108,18 @@ const navSections: NavSection[] = [
         label: { ko: 'AMIKO Meet', es: 'AMIKO Meet' },
         icon: Video,
         description: { ko: '무료 화상 세션 관리', es: 'Gestionar sesiones gratuitas' },
+      },
+      {
+        href: '/admin/amiko-meet/glossaries',
+        label: { ko: '문화 용어집', es: 'Glosarios Culturales' },
+        icon: BookOpen,
+        description: { ko: '번역 용어 관리', es: 'Gestionar términos culturales' },
+      },
+      {
+        href: '/admin/amiko-meet/moderation',
+        label: { ko: '콘텐츠 관리', es: 'Moderación' },
+        icon: Flag,
+        description: { ko: '신고/플래그 관리', es: 'Reportes y flags de contenido' },
       },
       {
         href: '/admin/conversation-partners',

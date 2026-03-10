@@ -89,7 +89,7 @@ export async function PATCH(
     // Verify ownership or admin
     const { data: session } = await supabaseServer
       .from('amiko_meet_sessions')
-      .select('host_id')
+      .select('host_id, status')
       .eq('id', id)
       .single()
 
@@ -108,8 +108,35 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    // Validate status transitions
+    const validStatuses = ['scheduled', 'live', 'completed', 'cancelled']
+    if (body.status && !validStatuses.includes(body.status)) {
+      return NextResponse.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, { status: 400 })
+    }
+
+    // Validate state transitions
+    const validTransitions: Record<string, string[]> = {
+      scheduled: ['live', 'cancelled'],
+      live: ['completed', 'cancelled'],
+      completed: [],
+      cancelled: [],
+    }
+    if (body.status && session.host_id) {
+      const currentStatus = (session as any).status || 'scheduled'
+      const allowed = validTransitions[currentStatus] || []
+      if (!allowed.includes(body.status)) {
+        return NextResponse.json(
+          { error: `Cannot transition from '${currentStatus}' to '${body.status}'` },
+          { status: 400 }
+        )
+      }
+    }
+
     const allowedUpdates: Record<string, any> = {}
     if (body.status) allowedUpdates.status = body.status
+    if (body.title) allowedUpdates.title = body.title
+    if (body.description !== undefined) allowedUpdates.description = body.description
+    if (body.topic !== undefined) allowedUpdates.topic = body.topic
     if (body.cancel_reason) allowedUpdates.cancel_reason = body.cancel_reason
     if (body.status === 'cancelled') allowedUpdates.cancel_reason = body.cancel_reason || 'Cancelled by host'
     if (body.status === 'live') allowedUpdates.started_at = new Date().toISOString()

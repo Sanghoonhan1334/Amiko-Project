@@ -13,6 +13,8 @@
 
 import { TranslationService, initializeTranslationService } from '@/lib/translation'
 import { supabaseServer } from '@/lib/supabaseServer'
+import { applyGlossaryPipeline } from '@/lib/meet-glossary'
+import { moderateContent } from '@/lib/meet-moderation'
 
 // ── Types ─────────────────────────────────────────────
 export interface CaptionForTranslation {
@@ -35,6 +37,9 @@ export interface TranslationResult {
   translated_language: string
   provider: string
   translation_ms: number
+  glossary_applied: boolean
+  glossary_match_count: number
+  moderation_flagged: boolean
   error?: string
 }
 
@@ -69,18 +74,51 @@ export async function translateCaptionEvent(
   let translatedContent = caption.content  // fallback = original
   let error: string | undefined
   let success = true
+  let glossaryApplied = false
+  let glossaryMatchCount = 0
+  let moderationFlagged = false
 
   try {
-    translatedContent = await service.translate(
-      caption.content,
-      targetLang,
-      sourceLang,
-    )
+    // ── Phase 4: Apply glossary pipeline ──
+    if (sourceLang) {
+      const glossaryResult = await applyGlossaryPipeline(
+        caption.content,
+        sourceLang,
+        targetLang,
+        async (text) => service.translate(text, targetLang, sourceLang)
+      )
+      translatedContent = glossaryResult.result
+      glossaryApplied = glossaryResult.glossaryApplied
+      glossaryMatchCount = glossaryResult.matchCount
+    } else {
+      // Unknown/mixed language — translate directly
+      translatedContent = await service.translate(
+        caption.content,
+        targetLang,
+        sourceLang,
+      )
+    }
   } catch (err: any) {
     error = err.message || 'Translation failed'
     success = false
     console.error('[MeetTranslation] Failed:', error)
     // Keep translatedContent = original as fallback
+  }
+
+  // ── Phase 4: Auto-moderation check (fire-and-forget) ──
+  try {
+    const flagResult = await moderateContent({
+      session_id: caption.session_id,
+      user_id: caption.speaker_user_id,
+      user_name: caption.speaker_name,
+      content: caption.content,
+      language: caption.language,
+      caption_event_id: caption.id,
+    })
+    moderationFlagged = flagResult.flagged
+  } catch (modErr) {
+    // Moderation errors never block translation
+    console.error('[MeetTranslation] Moderation check failed:', modErr)
   }
 
   const translationMs = Date.now() - start
@@ -122,6 +160,9 @@ export async function translateCaptionEvent(
     translated_language: targetLang,
     provider: service.getProvider(),
     translation_ms: translationMs,
+    glossary_applied: glossaryApplied,
+    glossary_match_count: glossaryMatchCount,
+    moderation_flagged: moderationFlagged,
     error,
   }
 }

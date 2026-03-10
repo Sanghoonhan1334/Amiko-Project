@@ -57,12 +57,12 @@ export async function GET(
     if (remainingMs <= 1 * 60 * 1000 && remainingMs > 0) {
       warnings.push('1_min_warning')
     }
-    if (remainingMs === 0) {
+    if (remainingMs <= 0) {
       warnings.push('session_ended')
     }
 
     // Auto-close if time is up and session is still live
-    if (remainingMs === 0 && session.status === 'live') {
+    if (remainingMs <= 0 && session.status === 'live') {
       await supabaseServer
         .from('amiko_meet_sessions')
         .update({
@@ -86,7 +86,7 @@ export async function GET(
 
     return NextResponse.json({
       session_id: session.id,
-      status: remainingMs === 0 && session.status === 'live' ? 'completed' : session.status,
+      status: remainingMs <= 0 && session.status === 'live' ? 'completed' : session.status,
       scheduled_at: session.scheduled_at,
       started_at: session.started_at,
       duration_minutes: session.duration_minutes,
