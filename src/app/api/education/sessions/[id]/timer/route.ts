@@ -47,14 +47,12 @@ export async function GET(
     const closing10min = remainingSeconds <= 10 * 60 && remainingSeconds > 0
     const closing1min = remainingSeconds <= 60 && remainingSeconds > 0
 
-    // Auto-cierre: si la sesión está en live y el tiempo expiró
-    if (session.status === 'live' && remainingSeconds === 0) {
-      await supabase
-        .from('education_sessions')
-        .update({ status: 'ending', ended_at: endsAt.toISOString() })
-        .eq('id', id)
-        .eq('status', 'live') // solo si sigue en live (evitar doble actualización)
-    }
+    // Report whether session time has expired
+    // Note: actual session status transitions (live → ending → completed) should
+    // be performed via POST /sessions/[id]/end or a cron job — NOT as a
+    // side-effect of a GET request, which causes race conditions when multiple
+    // clients poll simultaneously.
+    const sessionEnded = session.status === 'live' && remainingSeconds === 0
 
     return NextResponse.json({
       session_id: id,
@@ -70,7 +68,8 @@ export async function GET(
         closing_10min: closing10min,
         closing_5min: closing5min,
         closing_1min: closing1min,
-        ended: remainingSeconds === 0
+        ended: remainingSeconds === 0,
+        should_end_session: sessionEnded
       }
     })
   } catch (err) {

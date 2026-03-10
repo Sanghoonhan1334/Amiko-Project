@@ -7,82 +7,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// POST /api/education/enroll - Student enrolls in a course (after PayPal payment)
-export async function POST(request: NextRequest) {
-  try {
-    const auth = await requireEducationAuth(request)
-    if (auth.error) return auth.error
-    const student_id = auth.user.id
-
-    const { course_id, paypal_order_id, amount_paid } = await request.json()
-
-    if (!course_id || !paypal_order_id) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
-
-    // Check course exists and has capacity
-    const { data: course, error: courseError } = await supabase
-      .from('education_courses')
-      .select('id, max_students, enrolled_count, price_usd, status')
-      .eq('id', course_id)
-      .single()
-
-    if (courseError || !course) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-    }
-
-    if (course.status !== 'published' && course.status !== 'in_progress') {
-      return NextResponse.json({ error: 'Course is not available for enrollment' }, { status: 400 })
-    }
-
-    if (course.enrolled_count >= course.max_students) {
-      return NextResponse.json({ error: 'Course is full' }, { status: 400 })
-    }
-
-    // Check not already enrolled
-    const { data: existing } = await supabase
-      .from('education_enrollments')
-      .select('id')
-      .eq('course_id', course_id)
-      .eq('student_id', student_id)
-      .single()
-
-    if (existing) {
-      return NextResponse.json({ error: 'Already enrolled in this course' }, { status: 409 })
-    }
-
-    // Create enrollment
-    const { data: enrollment, error: enrollError } = await supabase
-      .from('education_enrollments')
-      .insert({
-        course_id,
-        student_id,
-        paypal_order_id,
-        amount_paid: amount_paid || course.price_usd,
-        payment_status: 'completed',
-        enrollment_status: 'active'
-      })
-      .select()
-      .single()
-
-    if (enrollError) {
-      console.error('[Education] Error creating enrollment:', enrollError)
-      return NextResponse.json({ error: enrollError.message }, { status: 500 })
-    }
-
-    // Update course status to in_progress if first enrollment and course was published
-    if (course.enrolled_count === 0 && course.status === 'published') {
-      await supabase
-        .from('education_courses')
-        .update({ status: 'in_progress' })
-        .eq('id', course_id)
-    }
-
-    return NextResponse.json({ enrollment }, { status: 201 })
-  } catch (err) {
-    console.error('[Education] enroll error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+// POST /api/education/enroll — DISABLED
+// Enrollment must go through the PayPal payment flow:
+//   1. POST /api/education/courses/[id]/payments/paypal/create-order
+//   2. POST /api/education/courses/[id]/payments/paypal/capture
+// Direct enrollment without payment verification is a security vulnerability.
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: 'Direct enrollment is disabled. Use the PayPal payment flow to enroll.',
+      flow: [
+        'POST /api/education/courses/{id}/payments/paypal/create-order',
+        'POST /api/education/courses/{id}/payments/paypal/capture'
+      ]
+    },
+    { status: 405 }
+  )
 }
 
 // GET /api/education/enroll?courseId=xxx - Get student's enrollments (auth required)

@@ -338,3 +338,52 @@ export interface SessionTimerState {
     ended: boolean;
   };
 }
+
+// ── Phase 2: STT Captions ─────────────────────────────
+
+export type SttTaskStatus = 'pending' | 'starting' | 'active' | 'stopping' | 'stopped' | 'failed'
+export type CaptionFontSize = 'small' | 'medium' | 'large'
+export type CaptionPosition = 'top' | 'bottom'
+
+export interface SttTask {
+  id: string;
+  session_id: string;
+  course_id: string;
+  task_id: string | null;
+  builder_token: string | null;
+  status: SttTaskStatus;
+  source_languages: string[];
+  agora_channel: string;
+  agora_uid: number | null;
+  started_at: string | null;
+  stopped_at: string | null;
+  error_message: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CaptionEvent {
+  id: string;
+  session_id: string;
+  course_id: string;
+  speaker_uid: number;
+  speaker_user_id: string | null;
+  source_language: string;
+  text: string;
+  is_partial: boolean;
+  sequence_number: number;
+  timestamp_ms: number;
+  created_at: string;
+}
+
+export interface UserCaptionPreferences {
+  id: string;
+  user_id: string;
+  captions_enabled: boolean;
+  font_size: CaptionFontSize;
+  position: CaptionPosition;
+  background_opacity: number;
+  created_at: string;
+  updated_at: string;
+}

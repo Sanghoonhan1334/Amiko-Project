@@ -152,6 +152,22 @@ export async function POST(
       })
       .eq('paypal_order_id', paypal_order_id)
 
+    // Incrementar enrolled_count en el curso
+    // (el trigger DB solo funciona en INSERT con payment_status='completed',
+    //  pero create-order inserta con 'pending' y aquí hacemos UPDATE)
+    const { data: currentCourse } = await supabase
+      .from('education_courses')
+      .select('enrolled_count')
+      .eq('id', id)
+      .single()
+
+    if (currentCourse) {
+      await supabase
+        .from('education_courses')
+        .update({ enrolled_count: (currentCourse.enrolled_count || 0) + 1 })
+        .eq('id', id)
+    }
+
     // Notificar al estudiante
     const courseSlug = course.slug || id
     await supabase.from('notifications').insert({

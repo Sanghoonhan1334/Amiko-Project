@@ -20,6 +20,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'session_id and message required' }, { status: 400 })
     }
 
+    // Verify the session exists and is live
+    const { data: session, error: sessionError } = await supabase
+      .from('education_sessions')
+      .select(`
+        id, status, course_id,
+        course:education_courses(
+          id, instructor_id,
+          instructor:instructor_profiles(user_id)
+        )
+      `)
+      .eq('id', session_id)
+      .single()
+
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+
+    // Only allow chat in live sessions
+    if (!['live', 'ending'].includes(session.status)) {
+      return NextResponse.json({ error: 'Chat is only available during live sessions' }, { status: 400 })
+    }
+
+    // Check if user is the instructor
+    const isInstructor = (session.course as { instructor?: { user_id?: string } } | null)
+      ?.instructor?.user_id === user_id
+
+    // If not instructor, verify enrollment with completed payment
+    if (!isInstructor) {
+      const { data: enrollment } = await supabase
+        .from('education_enrollments')
+        .select('id, payment_status')
+        .eq('course_id', session.course_id)
+        .eq('student_id', user_id)
+        .single()
+
+      if (!enrollment || enrollment.payment_status !== 'completed') {
+        return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 })
+      }
+    }
+
     // Get user profile for name/avatar
     const { data: profile } = await supabase
       .from('profiles')
@@ -68,6 +108,40 @@ export async function GET(request: NextRequest) {
 
     if (!sessionId) {
       return NextResponse.json({ error: 'sessionId required' }, { status: 400 })
+    }
+
+    // Verify the session exists and user has access
+    const userId = auth.user.id
+    const { data: session } = await supabase
+      .from('education_sessions')
+      .select(`
+        id, course_id,
+        course:education_courses(
+          id, instructor_id,
+          instructor:instructor_profiles(user_id)
+        )
+      `)
+      .eq('id', sessionId)
+      .single()
+
+    if (!session) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+
+    const isInstructor = (session.course as { instructor?: { user_id?: string } } | null)
+      ?.instructor?.user_id === userId
+
+    if (!isInstructor) {
+      const { data: enrollment } = await supabase
+        .from('education_enrollments')
+        .select('id, payment_status')
+        .eq('course_id', session.course_id)
+        .eq('student_id', userId)
+        .single()
+
+      if (!enrollment || enrollment.payment_status !== 'completed') {
+        return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 })
+      }
     }
 
     let query = supabase
