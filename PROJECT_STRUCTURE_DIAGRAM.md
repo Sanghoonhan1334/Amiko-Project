@@ -3,7 +3,7 @@
 ## 📁 전체 디렉토리 구조
 
 ```
-Amiko-Project-main/
+AMIKO-Project-main/
 ├── 📄 설정 파일들
 │   ├── package.json
 │   ├── next.config.js

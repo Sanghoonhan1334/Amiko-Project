@@ -24,7 +24,7 @@ Set up branch protection rules to enforce Pull Request workflow, ensure code qua
 ### GitHub 웹사이트에서 설정하기 / Setup via GitHub Website
 
 1. **저장소로 이동**
-   - https://github.com/Sanghoonhan1334/Amiko-Project 접속
+   - https://github.com/Sanghoonhan1334/AMIKO-Project 접속
 
 2. **Settings(설정) 메뉴 클릭**
    - 저장소 상단 메뉴에서 "Settings" 클릭
@@ -147,7 +147,7 @@ git push origin feature/기능명
 ### GitHub 웹사이트에서:
 
 1. **저장소 메인 페이지 접속**
-   - https://github.com/Sanghoonhan1334/Amiko-Project
+   - https://github.com/Sanghoonhan1334/AMIKO-Project
 
 2. **"Pull requests" 탭 클릭**
 

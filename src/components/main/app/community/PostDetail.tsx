@@ -87,6 +87,7 @@ export default function PostDetail({
       "editor@amiko.com",
       "manager@amiko.com",
       "info@helloamiko.com",
+      "eugenia.arevalo@gmail.com",
     ];
 
     // 운영자 ID 목록

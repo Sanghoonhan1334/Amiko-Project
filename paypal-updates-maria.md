@@ -1,7 +1,7 @@
 # PayPal Payment System Updates - Maria
 
 ## Overview
-This document outlines the comprehensive PayPal payment system implementation for the Amiko project, including all changes, features, and database migration procedures.
+This document outlines the comprehensive PayPal payment system implementation for the AMIKO project, including all changes, features, and database migration procedures.
 
 **Current Status**: ✅ Production Ready with manual status updates (webhook integration pending PayPal dashboard configuration)
 
@@ -529,4 +529,4 @@ AND table_name IN ('purchases', 'lectures', 'lecture_enrollments', 'vip_subscrip
 **Last Updated**: December 13, 2025
 **Version**: v1.3.1
 **Status**: ✅ Production Ready (Manual Status Updates)</content>
-<parameter name="filePath">/home/andres/vsCodeProjects/Amiko/Amiko-Project/paypal-updates-maria.md
+<parameter name="filePath">/home/andres/vsCodeProjects/AMIKO/AMIKO-Project/paypal-updates-maria.md

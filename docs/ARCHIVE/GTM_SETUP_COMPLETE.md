@@ -4,7 +4,7 @@
 
 ### 1. GTM 컨테이너 생성 완료
 - **GTM ID**: `GTM-KGZHVPFT`
-- **컨테이너 이름**: Amiko Main Website
+- **컨테이너 이름**: AMIKO Main Website
 - **타겟 플랫폼**: 웹
 
 ### 2. 코드 통합 완료

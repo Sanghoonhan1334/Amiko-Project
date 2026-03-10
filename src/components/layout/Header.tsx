@@ -30,7 +30,7 @@ function HeaderContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { language, t, toggleLanguage } = useLanguage();
-  const { user, signOut } = useAuth();
+  const { user, signOut, token } = useAuth();
   const [activeMainTab, setActiveMainTab] = useState("home");
 
   // 모바일 메뉴 상태
@@ -186,9 +186,23 @@ function HeaderContent() {
       return;
     }
 
+    // Verificación rápida por email (sin necesidad de API)
+    const ADMIN_EMAILS = [
+      "admin@amiko.com",
+      "info@helloamiko.com",
+      "eugenia.arevalo@gmail.com",
+    ];
+    if (user?.email && ADMIN_EMAILS.includes(user.email)) {
+      setIsAdmin(true);
+      return;
+    }
+
+    // Verificación adicional por BD para admins no listados
+    if (!token) return;
     try {
       const response = await fetch(
-        `/api/admin/check?userId=${user.id}&email=${user.email}`,
+        `/api/admin/check?userId=${user.id}&email=${encodeURIComponent(user.email ?? '')}`,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.ok) {
@@ -211,7 +225,7 @@ function HeaderContent() {
       setIsAdmin(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // user?.email 제거 - id만 확인
+  }, [user?.id, token]); // token 추가 - 로그인 직후 토큰 변경 시 재확인
 
   // 언어 변경 시 secondaryTimezone 이름 업데이트
   useEffect(() => {
@@ -931,7 +945,7 @@ function HeaderContent() {
                 {/* 라이트 모드 */}
                 <img
                   src="/logos/amiko-logo.png"
-                  alt="Amiko"
+                  alt="AMIKO"
                   width={192}
                   height={64}
                   className="block dark:hidden h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none"
@@ -939,7 +953,7 @@ function HeaderContent() {
                 {/* 다크 모드(흰색 필터 적용) - 네비게이션 뒤로 */}
                 <img
                   src="/logos/amiko-logo-dark.png"
-                  alt="Amiko"
+                  alt="AMIKO"
                   width={192}
                   height={64}
                   className="hidden dark:block h-24 sm:h-22 md:h-28 lg:h-32 w-auto object-contain select-none pointer-events-none

@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       application_context: {
-        brand_name: "Amiko",
+        brand_name: "AMIKO",
         landing_page: "NO_PREFERENCE",
         user_action: "PAY_NOW",
         return_url: `${process.env.NEXT_PUBLIC_BASE_URL || "https://helloamiko.com"}/payments/success`,

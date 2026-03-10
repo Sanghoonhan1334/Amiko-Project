@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
     if (method === 'whatsapp') {
       const { sendTwilioWhatsApp, formatPhoneNumber } = await import('@/lib/twilioService')
       const formattedNumber = formatPhoneNumber(phoneNumber)
-      success = await sendTwilioWhatsApp(formattedNumber, `[Amiko] 인증코드: ${verificationCode}\n이 코드는 5분 후에 만료됩니다.`)
+      success = await sendTwilioWhatsApp(formattedNumber, `[AMIKO] 인증코드: ${verificationCode}\n이 코드는 5분 후에 만료됩니다.`)
     } else {
       const { sendTwilioSMS, formatPhoneNumber } = await import('@/lib/twilioService')
       const formattedNumber = formatPhoneNumber(phoneNumber)
-      success = await sendTwilioSMS(formattedNumber, `[Amiko] 인증코드: ${verificationCode}\n이 코드는 5분 후에 만료됩니다.`)
+      success = await sendTwilioSMS(formattedNumber, `[AMIKO] 인증코드: ${verificationCode}\n이 코드는 5분 후에 만료됩니다.`)
     }
 
     if (!success) {

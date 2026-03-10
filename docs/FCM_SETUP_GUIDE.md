@@ -15,7 +15,7 @@ This guide explains how to set up FCM for Android native app push notifications.
 
 1. [Firebase Console](https://console.firebase.google.com/) 접속
 2. "프로젝트 추가" 클릭
-3. 프로젝트 이름 입력 (예: "Amiko Push Notifications")
+3. 프로젝트 이름 입력 (예: "AMIKO Push Notifications")
 4. Google Analytics는 선택사항 (필요 없으면 비활성화 가능)
 5. 프로젝트 생성 완료
 

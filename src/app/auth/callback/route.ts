@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     // 성공적으로 로그인했으므로 메인 페이지로 리다이렉트
     // 네이티브 앱에서는 딥링크로 리다이렉트하도록 User-Agent 확인
     const userAgent = request.headers.get('user-agent') || ''
-    const isNativeApp = userAgent.includes('Capacitor') || userAgent.includes('Amiko')
+    const isNativeApp = userAgent.includes('Capacitor') || userAgent.includes('AMIKO')
     
     if (isNativeApp) {
       // 네이티브 앱에서는 딥링크로 리다이렉트

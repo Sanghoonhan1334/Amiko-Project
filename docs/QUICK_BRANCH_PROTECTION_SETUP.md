@@ -13,7 +13,7 @@ This guide shows how to quickly set up branch protection rules via GitHub web in
 **Open the following link in your browser:**
 
 ```
-https://github.com/Sanghoonhan1334/Amiko-Project/settings/branches
+https://github.com/Sanghoonhan1334/AMIKO-Project/settings/branches
 ```
 
 ---

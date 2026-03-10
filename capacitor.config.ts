@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.amiko.app",
-  appName: "Amiko App",
+  appName: "AMIKO App",
   webDir: "public",
   // Color de fondo del WebView nativo - evita el area gris al abrir el teclado
   backgroundColor: "#1a1a2e",

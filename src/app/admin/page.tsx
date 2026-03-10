@@ -12,6 +12,7 @@ import {
   Newspaper, ShieldAlert, Bell,
   Handshake, HelpCircle, Brain,
   Clock, Settings, UserCheck,
+  Ban, TrendingUp, Home,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -98,6 +99,7 @@ export default function AdminDashboard() {
     {
       title: { ko: '화상 채팅', es: 'Videollamadas' },
       items: [
+        { href: '/admin/amiko-meet', icon: Video, label: { ko: 'AMIKO Meet', es: 'AMIKO Meet' }, desc: { ko: '무료 화상 세션 관리', es: 'Gestionar sesiones gratuitas de videollamada' }, color: 'indigo' },
         { href: '/admin/conversation-partners', icon: Video, label: { ko: '대화 파트너', es: 'Compañeros de Conversación' }, desc: { ko: '화상 채팅 파트너 등록 및 관리', es: 'Registrar y gestionar compañeros de videollamada' }, color: 'blue' },
       ],
     },
@@ -111,6 +113,7 @@ export default function AdminDashboard() {
     {
       title: { ko: '콘텐츠', es: 'Contenido' },
       items: [
+        { href: '/admin/inicio', icon: Home, label: { ko: '홈(인트로)', es: 'Página de Inicio' }, desc: { ko: '게시글 삭제, 홈 배너 관리', es: 'Eliminar posts y gestionar banners de inicio' }, color: 'teal' },
         { href: '/admin/news', icon: Newspaper, label: { ko: '뉴스 관리', es: 'Noticias' }, desc: { ko: '뉴스 콘텐츠 관리', es: 'Gestionar noticias' }, color: 'gray' },
         { href: '/admin/events', icon: Gift, label: { ko: '이벤트 관리', es: 'Eventos' }, desc: { ko: '추천인 이벤트 및 캠페인 관리', es: 'Gestionar eventos y campañas' }, color: 'pink' },
         { href: '/admin/quiz-creator', icon: Brain, label: { ko: '퀴즈 생성', es: 'Crear Quiz' }, desc: { ko: '퀴즈 생성 및 관리', es: 'Crear y gestionar quizzes' }, color: 'violet' },
@@ -122,6 +125,8 @@ export default function AdminDashboard() {
       items: [
         { href: '/admin/reports', icon: ShieldAlert, label: { ko: '신고 관리', es: 'Reportes' }, desc: { ko: '신고 내역 관리 및 조치', es: 'Gestionar reportes y acciones' }, color: 'red' },
         { href: '/admin/points', icon: Trophy, label: { ko: '포인트 랭킹', es: 'Ranking de Puntos' }, desc: { ko: '포인트 순위 관리', es: 'Gestionar ranking de puntos' }, color: 'yellow' },
+        { href: '/admin/chat-bans', icon: Ban, label: { ko: '채팅금지 관리', es: 'Prohibiciones de Chat' }, desc: { ko: '채팅금지 및 영구 추방 관리', es: 'Gestionar prohibiciones y expulsiones permanentes' }, color: 'red' },
+        { href: '/admin/analytics', icon: TrendingUp, label: { ko: '서비스 분석', es: 'Análisis del Servicio' }, desc: { ko: '뉴스, 사용자, 트렌드 분석', es: 'Análisis de noticias, usuarios y tendencias' }, color: 'blue' },
         { href: '/admin/inquiries', icon: HelpCircle, label: { ko: '문의 관리', es: 'Consultas' }, desc: { ko: '사용자 문의 관리', es: 'Gestionar consultas de usuarios' }, color: 'cyan' },
         { href: '/admin/partnership', icon: Handshake, label: { ko: '제휴 관리', es: 'Alianzas' }, desc: { ko: '제휴 문의 관리', es: 'Gestionar alianzas' }, color: 'lime' },
       ],

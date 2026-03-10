@@ -1,4 +1,4 @@
-# 🔒 Amiko 프로젝트 보안 점검 체크리스트
+# 🔒 AMIKO 프로젝트 보안 점검 체크리스트
 
 **생성일**: 2025-01-XX  
 **검토 버전**: Next.js 15.5.7, React 18.3.1
@@ -418,7 +418,7 @@ export function middleware(request: NextRequest) {
 
 ### 1. 테스트 API 라우트 제거
 ```bash
-cd "/Users/admin/Desktop/사업 관련 파일/Amiko-Project-main"
+cd "/Users/admin/Desktop/사업 관련 파일/AMIKO-Project-main"
 
 # 모든 테스트 API 라우트 제거
 rm -f src/app/api/test-*/route.ts

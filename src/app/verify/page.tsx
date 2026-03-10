@@ -251,7 +251,7 @@ function VerifyContent() {
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
-              Amiko
+              AMIKO
             </div>
             <div className="text-xl animate-pulse">✨</div>
           </div>

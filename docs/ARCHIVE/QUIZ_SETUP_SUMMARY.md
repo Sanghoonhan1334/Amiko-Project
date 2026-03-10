@@ -241,7 +241,7 @@ const quiz: Quiz = data
 ## 📊 파일 구조 요약
 
 ```
-Amiko-Project/
+AMIKO-Project/
 ├── database/
 │   └── quiz-namespace-isolation-migration.sql  ✅ DB 마이그레이션
 ├── src/

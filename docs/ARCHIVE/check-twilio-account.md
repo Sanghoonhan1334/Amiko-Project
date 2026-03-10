@@ -11,9 +11,9 @@ curl http://localhost:3000/api/test-twilio
 
 ### 2. Twilio 콘솔에서 확인
 
-#### "Amiko-Chile-SMS" 계정 정보 확인
+#### "AMIKO-Chile-SMS" 계정 정보 확인
 1. Twilio Console 로그인: https://console.twilio.com/
-2. 계정 드롭다운에서 "Amiko-Chile-SMS" 선택
+2. 계정 드롭다운에서 "AMIKO-Chile-SMS" 선택
 3. Account Dashboard에서:
    - **Account SID** 확인 (예: `ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`)
    - **Auth Token** 확인 (View 버튼 클릭)
@@ -25,10 +25,10 @@ curl http://localhost:3000/api/test-twilio
 
 ## 환경변수 설정
 
-`.env.local` 파일에 "Amiko-Chile-SMS" 계정 정보를 설정하세요:
+`.env.local` 파일에 "AMIKO-Chile-SMS" 계정 정보를 설정하세요:
 
 ```bash
-# Amiko-Chile-SMS 계정 정보
+# AMIKO-Chile-SMS 계정 정보
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_AUTH_TOKEN=your_auth_token_here
 

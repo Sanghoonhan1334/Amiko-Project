@@ -32,7 +32,7 @@ const pretendard = {
 };
 
 export const metadata: Metadata = {
-  title: "Amiko - 한국 문화 교류 플랫폼",
+  title: "AMIKO - 한국 문화 교류 플랫폼",
   description: "한국 문화를 배우고 소통하는 플랫폼",
   icons: {
     icon: [
@@ -47,10 +47,10 @@ export const metadata: Metadata = {
     shortcut: "/favicon-128x128.png",
     apple: "/apple-touch-icon.png",
   },
-  keywords: ["한국문화", "문화교류", "언어교환", "K-Culture", "Amiko"],
-  authors: [{ name: "Amiko Team" }],
-  creator: "Amiko",
-  publisher: "Amiko",
+  keywords: ["한국문화", "문화교류", "언어교환", "K-Culture", "AMIKO"],
+  authors: [{ name: "AMIKO Team" }],
+  creator: "AMIKO",
+  publisher: "AMIKO",
   formatDetection: {
     email: false,
     address: false,
@@ -61,16 +61,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Amiko - 한국 문화 교류 플랫폼",
+    title: "AMIKO - 한국 문화 교류 플랫폼",
     description: "한국 문화를 배우고 소통하는 플랫폼",
     url: "https://www.helloamiko.com",
-    siteName: "Amiko",
+    siteName: "AMIKO",
     images: [
       {
         url: "https://www.helloamiko.com/amiko-logo.png",
         width: 1200,
         height: 630,
-        alt: "Amiko - 한국 문화 교류 플랫폼",
+        alt: "AMIKO - 한국 문화 교류 플랫폼",
       },
     ],
     locale: "ko_KR",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Amiko - 한국 문화 교류 플랫폼",
+    title: "AMIKO - 한국 문화 교류 플랫폼",
     description: "한국 문화를 배우고 소통하는 플랫폼",
     images: ["https://www.helloamiko.com/amiko-logo.png"],
   },

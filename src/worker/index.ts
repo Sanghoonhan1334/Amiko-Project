@@ -43,7 +43,7 @@ self.addEventListener('push', (event: PushEvent) => {
     },
   }
 
-  const title = notificationData.title || 'Amiko'
+  const title = notificationData.title || 'AMIKO'
 
   // Show the notification.
   event.waitUntil(

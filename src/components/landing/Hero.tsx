@@ -372,7 +372,7 @@ export default function Hero() {
             </button>
             <iframe
               src="https://www.youtube.com/embed/do4aDyGZmgM?autoplay=1"
-              title="Amiko 소개 영상"
+              title="AMIKO 소개 영상"
               className="w-full h-full rounded-lg"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

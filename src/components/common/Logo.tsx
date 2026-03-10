@@ -18,7 +18,7 @@ export function Logo({
       {/* 라이트 모드 로고 */}
       <Image
         src="/logos/amiko-logo.png"
-        alt="Amiko"
+        alt="AMIKO"
         width={width}
         height={height}
         priority={priority}
@@ -27,7 +27,7 @@ export function Logo({
       {/* 다크 모드 로고 */}
       <Image
         src="/logos/amiko-logo-dark.png"
-        alt="Amiko"
+        alt="AMIKO"
         width={width}
         height={height}
         priority={priority}

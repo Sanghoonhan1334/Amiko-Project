@@ -58,17 +58,17 @@ export const NOTIFICATION_TEMPLATES = {
 export const EMAIL_CONFIG = {
   from: process.env.EMAIL_FROM || 'noreply@amiko.com',
   subject: {
-    booking_created: '[Amiko] 새로운 상담 예약',
-    payment_confirmed: '[Amiko] 결제 완료 및 예약 확정',
-    consultation_reminder: '[Amiko] 상담 일정 안내',
-    consultation_completed: '[Amiko] 상담 완료 및 후기 작성 안내',
-    review_reminder: '[Amiko] 후기 작성 안내'
+    booking_created: '[AMIKO] 새로운 상담 예약',
+    payment_confirmed: '[AMIKO] 결제 완료 및 예약 확정',
+    consultation_reminder: '[AMIKO] 상담 일정 안내',
+    consultation_completed: '[AMIKO] 상담 완료 및 후기 작성 안내',
+    review_reminder: '[AMIKO] 후기 작성 안내'
   }
 }
 
 // 푸시 알림 설정
 export const PUSH_CONFIG = {
-  title: 'Amiko',
+  title: 'AMIKO',
   icon: '/favicon.ico',
   badge: '/favicon.ico',
       tag: 'amiko-notification'

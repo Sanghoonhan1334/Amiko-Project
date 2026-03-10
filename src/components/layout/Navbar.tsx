@@ -125,7 +125,7 @@ export default function Navbar() {
           </div>
           <div className="sidebar-item clickable" onClick={scrollToVideo}>
             <h3>소개 영상</h3>
-            <p>Amiko 소개 영상을 확인해보세요</p>
+            <p>AMIKO 소개 영상을 확인해보세요</p>
           </div>
           <div className="sidebar-item clickable" onClick={scrollToFeatures}>
             <h3>서비스 특징</h3>

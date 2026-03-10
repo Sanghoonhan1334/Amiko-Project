@@ -214,7 +214,7 @@ export default function SecurityDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">보안 대시보드</h1>
-          <p className="text-gray-600">Amiko 서비스의 보안 상태를 실시간으로 모니터링합니다.</p>
+          <p className="text-gray-600">AMIKO 서비스의 보안 상태를 실시간으로 모니터링합니다.</p>
         </div>
         <Button 
           onClick={handleRefresh}

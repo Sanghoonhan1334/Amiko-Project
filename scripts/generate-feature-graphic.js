@@ -36,8 +36,8 @@ async function generateFeatureGraphic() {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     
-    // "Amiko" 텍스트
-    ctx.fillText('Amiko', 450, 200);
+    // "AMIKO" 텍스트
+    ctx.fillText('AMIKO', 450, 200);
     
     // 부제목
     ctx.font = '32px sans-serif';

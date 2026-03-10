@@ -24,10 +24,10 @@ TXT 레코드: v=DMARC1; p=quarantine; rua=mailto:dmarc@helloamiko.com
 ### 1. **발신자 정보 개선**
 ```javascript
 // 현재
-SMTP_FROM="Amiko <info@helloamiko.com>"
+SMTP_FROM="AMIKO <info@helloamiko.com>"
 
 // 개선안
-SMTP_FROM="Amiko 인증센터 <noreply@helloamiko.com>"
+SMTP_FROM="AMIKO 인증센터 <noreply@helloamiko.com>"
 ```
 
 ### 2. **메일 내용 개선**

@@ -115,13 +115,13 @@ export function createSMSTemplate(
       if (language === "ko") {
         // 한국어: 최대한 짧게 (약 35자)
         return {
-          message: `[Amiko] 인증코드: ${data.code} (2분간 유효)`,
+          message: `[AMIKO] 인증코드: ${data.code} (2분간 유효)`,
           language: "ko",
         };
       } else {
         // 스페인어: 최대한 짧게 (약 40자)
         return {
-          message: `[Amiko] Codigo: ${data.code} (valido 2 min)`,
+          message: `[AMIKO] Codigo: ${data.code} (valido 2 min)`,
           language: "es",
         };
       }

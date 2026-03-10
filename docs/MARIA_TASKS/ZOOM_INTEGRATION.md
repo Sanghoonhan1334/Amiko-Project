@@ -169,7 +169,7 @@ ADD COLUMN IF NOT EXISTS meeting_password TEXT;
 
    - "Develop" → "Build App"
 
-   - App Name: "Amiko Lecture Platform"
+   - App Name: "AMIKO Lecture Platform"
 
 
    - Account ID

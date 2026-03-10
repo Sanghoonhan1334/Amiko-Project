@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       console.log('[WHATSAPP_OTP] contentVariables:', messageOptions.contentVariables)
     } else {
       // 템플릿이 승인되기 전 또는 템플릿 SID가 없을 때 일반 메시지 사용
-      messageOptions.body = `[Amiko] 인증코드: ${otp}\n이 코드는 10분 후에 만료됩니다.\n타인에게 공유하지 마세요.`
+      messageOptions.body = `[AMIKO] 인증코드: ${otp}\n이 코드는 10분 후에 만료됩니다.\n타인에게 공유하지 마세요.`
       console.log('[WHATSAPP_OTP] 일반 메시지 모드 사용 (템플릿 SID 없음)')
       console.warn('[WHATSAPP_OTP] 템플릿이 승인되면 TWILIO_WHATSAPP_TEMPLATE_SID를 설정하여 템플릿을 사용하세요.')
     }

@@ -118,7 +118,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           {/* 라이트 모드 로고 */}
           <Image
             src="/logos/amiko-logo.png"
-            alt="Amiko Logo"
+            alt="AMIKO Logo"
             width={500}
             height={500}
             className="block dark:hidden w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"
@@ -136,7 +136,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
           {/* 다크 모드 로고 */}
           <Image
             src="/logos/amiko-logo-dark.png"
-            alt="Amiko Logo"
+            alt="AMIKO Logo"
             width={500}
             height={500}
             className="hidden dark:block w-40 h-40 md:w-56 md:h-56 lg:w-[500px] lg:h-[500px]"

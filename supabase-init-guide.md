@@ -42,7 +42,7 @@
 ## 📁 파일 위치
 
 ```
-Amiko-Project-main/
+AMIKO-Project-main/
 ├── supabase-init.sql          # 메인 초기화 스크립트 (이 파일을 사용)
 └── supabase-init-guide.md     # 이 가이드 문서
 ```

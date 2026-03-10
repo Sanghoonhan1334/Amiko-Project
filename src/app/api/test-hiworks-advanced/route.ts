@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
           console.log('📧 [HIWORKS ADVANCED TEST] 성공한 설정으로 실제 이메일 발송 테스트...')
           
           const mailOptions = {
-            from: 'Amiko <info@helloamiko.com>',
+            from: 'AMIKO <info@helloamiko.com>',
             to: 'admin@helloamiko.com',
             subject: '[테스트] 하이웍스 SMTP 이메일 발송 테스트',
             html: `
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
               <p><strong>사용된 설정:</strong> ${testConfig.name}</p>
               <p><strong>발송 시간:</strong> ${new Date().toLocaleString('ko-KR')}</p>
               <hr>
-              <p>Amiko 이메일 서비스가 정상적으로 작동합니다! 🚀</p>
+              <p>AMIKO 이메일 서비스가 정상적으로 작동합니다! 🚀</p>
             `,
             text: `
 하이웍스 SMTP 테스트 성공!
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 사용된 설정: ${testConfig.name}
 발송 시간: ${new Date().toLocaleString('ko-KR')}
 
-Amiko 이메일 서비스가 정상적으로 작동합니다! 🚀
+AMIKO 이메일 서비스가 정상적으로 작동합니다! 🚀
             `
           }
           

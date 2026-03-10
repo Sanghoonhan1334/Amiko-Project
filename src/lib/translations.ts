@@ -161,7 +161,7 @@ export const translations = {
       navigation: {
         home: "홈",
         community: "커뮤니티",
-        videoCall: "Amiko Mentor",
+        videoCall: "AMIKO Mentor",
         chargingStation: "충전소",
         event: "이벤트",
         payments: "결제",
@@ -485,7 +485,7 @@ export const translations = {
       nationality: "국적",
       selectNationality: "국적을 선택해주세요",
       birthDate: "생년월일",
-      birthDateHelp: "만 13세 이상만 Amiko 서비스를 이용할 수 있습니다.",
+      birthDateHelp: "만 13세 이상만 AMIKO 서비스를 이용할 수 있습니다.",
       birthDateRequired: "생년월일을 입력해주세요.",
       birthDateInvalid: "유효한 생년월일을 입력해주세요.",
       ageRestriction: "만 13세 미만은 보호자 동의 없이 가입할 수 없습니다.",
@@ -758,7 +758,7 @@ export const translations = {
       },
       slide3: {
         subtitle: "지구 반대편과 소통하세요.",
-        title: "Amiko 커뮤니티 서비스",
+        title: "AMIKO 커뮤니티 서비스",
         description:
           "Amiko는 지구 반대편을 연결하는 다리입니다. 커뮤니티를 통해 서로의 문화에 더욱 가까이 다가가보세요.",
         cards: {
@@ -850,7 +850,7 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: "홈",
-      videoCall: "Amiko Mentor",
+      videoCall: "AMIKO Mentor",
       community: "커뮤니티",
       chargingStation: "충전소",
       chargingStationShort: "충전소",
@@ -1638,7 +1638,7 @@ export const translations = {
       kChat: "K-채팅존",
       chatRoomTitle: "자유 채팅방",
       chatRoomTitleMobile: "자유 채팅방",
-      chatRoomSubtitle: "Amiko Chat - 한국과 남미를 잇는 채팅방",
+      chatRoomSubtitle: "AMIKO Chat - 한국과 남미를 잇는 채팅방",
       chatRoomCreate: "채팅방 만들기",
       chatRoomCreateFirst: "첫 번째 채팅방 만들기",
       chatRoomLoginToCreate: "채팅방을 만들려면 로그인하세요",
@@ -2343,7 +2343,7 @@ export const translations = {
       faq: "자주 묻는 질문",
       contact: "문의하기",
       feedback: "피드백",
-      copyright: "© 2025 Amiko. 모든 권리 보유.",
+      copyright: "© 2025 AMIKO. 모든 권리 보유.",
       privacy: "개인정보처리방침",
       terms: "이용약관",
       cookies: "쿠키 정책",
@@ -2378,9 +2378,9 @@ export const translations = {
         overview: {
           title: "0. 개요",
           content:
-            "Amiko(이하 “회사”)는 이용자의 개인정보를 소중하게 여기며 개인정보 보호법, 정보통신망법 등 관련 법령을 준수합니다. 본 방침은 Amiko 웹사이트, 모바일 애플리케이션, 커뮤니티 및 화상 상담 서비스를 이용하는 모든 사용자에게 적용됩니다.",
+            "AMIKO(이하 “회사”)는 이용자의 개인정보를 소중하게 여기며 개인정보 보호법, 정보통신망법 등 관련 법령을 준수합니다. 본 방침은 AMIKO 웹사이트, 모바일 애플리케이션, 커뮤니티 및 화상 상담 서비스를 이용하는 모든 사용자에게 적용됩니다.",
           items: [
-            "서비스 명칭: Amiko (아미코)",
+            "서비스 명칭: AMIKO (아미코)",
             "적용 범위: 공식 웹사이트(helloamiko.com), 모바일 앱, 커뮤니티, 화상 상담 및 기타 부가 서비스",
             "정책 목적: 수집되는 개인정보의 항목, 이용 목적, 보관 기간, 제3자 제공, 이용자의 권리와 행사 방법을 명확히 안내",
           ],
@@ -2529,7 +2529,7 @@ export const translations = {
             "회사는 이용자 편의와 서비스 품질 향상을 위해 쿠키와 유사 기술을 사용합니다.",
           items: [
             "사용 목적: 로그인 유지, 언어 및 지역 설정, 트래픽 분석, 서비스 개선",
-            "관리 방법: 브라우저 설정 또는 Amiko 쿠키 설정 페이지에서 선택 가능",
+            "관리 방법: 브라우저 설정 또는 AMIKO 쿠키 설정 페이지에서 선택 가능",
             "선택 쿠키: 마케팅 및 분석 쿠키는 언제든지 거부하거나 동의를 철회할 수 있음",
             "추가 정보: 자세한 내용은 쿠키 정책에서 확인 가능",
           ],
@@ -3609,8 +3609,8 @@ export const translations = {
           description: "모든 멘토와 채팅 연장 (6시간)",
         },
         amikoMerchandise: {
-          name: "Amiko 굿즈",
-          description: "Amiko 브랜드 상품 (머그컵, 스티커 등)",
+          name: "AMIKO 굿즈",
+          description: "AMIKO 브랜드 상품 (머그컵, 스티커 등)",
         },
         kBeautyTicket: {
           name: "K-뷰티 체험권",
@@ -4076,7 +4076,7 @@ export const translations = {
       navigation: {
         home: "Inicio",
         community: "Comunidad",
-        videoCall: "Amiko Mentor",
+        videoCall: "AMIKO Mentor",
         chargingStation: "Estación de Carga",
         event: "Eventos",
         me: "Mi",
@@ -4438,9 +4438,9 @@ export const translations = {
       signUp: "Registrarse",
       signIn: "Iniciar sesión",
       signInDescription:
-        "Inicia sesión en tu cuenta para acceder a todas las funciones de Amiko",
+        "Inicia sesión en tu cuenta para acceder a todas las funciones de AMIKO",
       signUpDescription:
-        "Únete a Amiko para comenzar a aprender coreano e intercambiar culturas",
+        "Únete a AMIKO para comenzar a aprender coreano e intercambiar culturas",
       signingIn: "Iniciando sesión...",
       signingUp: "Registrándose...",
       emailOrPhone: "Correo electrónico o teléfono",
@@ -4468,7 +4468,7 @@ export const translations = {
       selectNationality: "Selecciona tu nacionalidad",
       birthDate: "Fecha de nacimiento",
       birthDateHelp:
-        "Solo las personas mayores de 13 años pueden utilizar Amiko.",
+        "Solo las personas mayores de 13 años pueden utilizar AMIKO.",
       birthDateRequired: "Por favor ingresa tu fecha de nacimiento.",
       birthDateInvalid: "Ingresa una fecha de nacimiento válida.",
       ageRestriction:
@@ -4719,11 +4719,11 @@ export const translations = {
         badge: "Comunidad Global",
         title: "Global Community",
         subtitle: "Aprende coreano y experimenta la cultura",
-        description: "Construyamos juntos con Amiko",
+        description: "Construyamos juntos con AMIKO",
         startButton: "Comenzar",
       },
       slide2: {
-        badge: "Con IA de interpretación integrada en Amiko",
+        badge: "Con IA de interpretación integrada en AMIKO",
         title: "Comunícate por videollamada",
         subtitle: "Los tutores coreanos verificados\nestán contigo",
         description:
@@ -4732,13 +4732,13 @@ export const translations = {
           "¿Has usado aplicaciones de chat de video para conocer personas con una buena imagen de los países de cada uno?",
         experience2: "¿Quizás esa experiencia te decepcionó?",
         experience3:
-          "Amiko te ofrece una buena experiencia a través de tutores coreanos verificados y un sistema de calificaciones.",
+          "AMIKO te ofrece una buena experiencia a través de tutores coreanos verificados y un sistema de calificaciones.",
       },
       slide3: {
         subtitle: "Comunícate con el otro lado del mundo.",
-        title: "Servicio de Comunidad Amiko",
+        title: "Servicio de Comunidad AMIKO",
         description:
-          "Amiko es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.",
+          "AMIKO es un puente que conecta el otro lado del mundo. Acércate más a las culturas mutuas a través de la comunidad.",
         cards: {
           topicBoard: {
             title: "Tableros de temas",
@@ -4833,7 +4833,7 @@ export const translations = {
     // 헤더 네비게이션
     headerNav: {
       home: "Inicio",
-      videoCall: "Amiko Mentor",
+      videoCall: "AMIKO Mentor",
       community: "Comunidad",
       chargingStation: "Estación de Carga",
       chargingStationShort: "Carga",
@@ -5636,7 +5636,7 @@ export const translations = {
       chatRoomTitle: "Sala de Chat Libre",
       chatRoomTitleMobile: "Salas Libres",
       chatRoomSubtitle:
-        "Amiko Chat - Sala de chat que conecta Corea y América Latina",
+        "AMIKO Chat - Sala de chat que conecta Corea y América Latina",
       chatRoomCreate: "Crear Sala de Chat",
       chatRoomCreateFirst: "Crear la primera sala",
       chatRoomLoginToCreate: "Inicia sesión para crear una sala",
@@ -6370,9 +6370,9 @@ export const translations = {
       bridgeDescription: "Puente que conecta entre AMerica y KOrea",
       closerDescription: "A mí(para mí) Korea más cerca",
       greeting: "¡Hola!",
-      thankYou: "Gracias por visitar Amiko.",
+      thankYou: "Gracias por visitar AMIKO.",
       teamIntroduction:
-        "Somos Han Sang-hoon (Samuel), CTO de Amiko, y Park Gyeom (Pablo), CMO de Amiko.",
+        "Somos Han Sang-hoon (Samuel), CTO de AMIKO, y Park Gyeom (Pablo), CMO de AMIKO.",
       latinAmericaExperience:
         "Hemos vivido en varios países de América del Sur y hemos llegado a amar sinceramente sus culturas y personas.",
       koreanInterest:
@@ -6382,10 +6382,10 @@ export const translations = {
       bridgePromise:
         "Así que nos comprometimos. Hagamos un puente que conecte Corea y América del Sur.",
       platformDescription:
-        "Amiko proporciona una plataforma confiable basada en videollamadas y servicios comunitarios, a través de membresías completamente verificadas.",
+        "AMIKO proporciona una plataforma confiable basada en videollamadas y servicios comunitarios, a través de membresías completamente verificadas.",
       communityVision:
         "Evolucionaremos hacia una comunidad donde podamos compartir no solo comunicación simple, sino también tendencias coreanas, moda, K-POP e incluso estilo de vida.",
-      finalMessage: "Acérquense unos a otros a través de Amiko.",
+      finalMessage: "Acérquense unos a otros a través de AMIKO.",
     },
 
     // 푸터
@@ -6398,7 +6398,7 @@ export const translations = {
       faq: "Preguntas Frecuentes",
       contact: "Contactar",
       feedback: "Comentarios",
-      copyright: "© 2025 Amiko. Todos los derechos reservados.",
+      copyright: "© 2025 AMIKO. Todos los derechos reservados.",
       privacy: "Política de Privacidad",
       terms: "Términos de Uso",
       cookies: "Política de Cookies",
@@ -6433,9 +6433,9 @@ export const translations = {
         overview: {
           title: "0. Información general",
           content:
-            "Amiko (“la Empresa”) protege los datos personales de sus usuarios y cumple con el GDPR, la Ley de Protección de Datos Personales de Corea y las normativas locales de América Latina. Esta política se aplica al sitio web, la aplicación móvil, la comunidad y los servicios de videollamada de Amiko.",
+            "AMIKO (“la Empresa”) protege los datos personales de sus usuarios y cumple con el GDPR, la Ley de Protección de Datos Personales de Corea y las normativas locales de América Latina. Esta política se aplica al sitio web, la aplicación móvil, la comunidad y los servicios de videollamada de AMIKO.",
           items: [
-            "Nombre del servicio: Amiko",
+            "Nombre del servicio: AMIKO",
             "Alcance: Sitio web helloamiko.com, aplicación móvil, comunidad, servicios de videollamadas y funciones complementarias",
             "Objetivo de la política: Informar de forma transparente qué datos recolectamos, con qué fines, cuánto tiempo los conservamos y qué derechos tienen los usuarios",
           ],
@@ -6527,7 +6527,7 @@ export const translations = {
         child: {
           title: "8. Privacidad de menores",
           content:
-            "Amiko adopta medidas especiales para proteger los datos de niñas, niños y adolescentes.",
+            "AMIKO adopta medidas especiales para proteger los datos de niñas, niños y adolescentes.",
           items: [
             "Verificación de edad: Requerimos fecha de nacimiento y, en caso de menores de 13 años, el consentimiento verificable de padres o tutores",
             "Limitaciones de uso: No mostramos publicidad personalizada a menores de 13 años y recopilamos únicamente la información necesaria",
@@ -6588,7 +6588,7 @@ export const translations = {
             "Utilizamos cookies para mejorar la experiencia del usuario y analizar el rendimiento del servicio.",
           items: [
             "Propósito de las cookies: Mantener sesiones activas, recordar preferencias de idioma y analizar el tráfico",
-            "Gestión: Puede cambiar la configuración en su navegador o en el gestor de cookies de Amiko",
+            "Gestión: Puede cambiar la configuración en su navegador o en el gestor de cookies de AMIKO",
             "Cookies opcionales: Puede rechazar o revocar en cualquier momento las cookies analíticas o de marketing",
             "Información adicional: Consulte la Política de Cookies para obtener más detalles",
           ],
@@ -6629,7 +6629,7 @@ export const translations = {
         introduction: {
           title: "Artículo 1 (Introducción del servicio)",
           content:
-            "Amiko es una plataforma de intercambio de idiomas e intercambio cultural que conecta Corea del Sur y América del Sur.",
+            "AMIKO es una plataforma de intercambio de idiomas e intercambio cultural que conecta Corea del Sur y América del Sur.",
           services: {
             title: "Servicios principales",
             items: [
@@ -6676,7 +6676,7 @@ export const translations = {
         },
         liability: {
           title: "Artículo 5 (Limitación de responsabilidad)",
-          content: "Amiko no será responsable de los siguientes daños:",
+          content: "AMIKO no será responsable de los siguientes daños:",
           items: [
             "Daños causados por uso indebido del servicio",
             "Daños causados por problemas de red o sistema",
@@ -6698,11 +6698,11 @@ export const translations = {
         definition: {
           title: "1. ¿Qué son las cookies?",
           content:
-            "Las cookies son pequeños archivos de texto que los sitios web almacenan en la computadora o dispositivo móvil del usuario. Amiko utiliza las siguientes cookies para proporcionar servicios:",
+            "Las cookies son pequeños archivos de texto que los sitios web almacenan en la computadora o dispositivo móvil del usuario. AMIKO utiliza las siguientes cookies para proporcionar servicios:",
           note: "Las cookies no contienen información que pueda identificar a una persona y no dañan la computadora.",
         },
         types: {
-          title: "2. Cookies utilizadas por Amiko",
+          title: "2. Cookies utilizadas por AMIKO",
           essential: {
             title: "Cookies esenciales",
             content: "Necesarias para el funcionamiento básico del servicio",
@@ -6766,7 +6766,7 @@ export const translations = {
         consent: {
           title: "4. Consentimiento para uso de cookies",
           content:
-            "Amiko solicita consentimiento para el uso de cookies de la siguiente manera:",
+            "AMIKO solicita consentimiento para el uso de cookies de la siguiente manera:",
           procedure: {
             title: "Procedimiento de consentimiento",
             items: [
@@ -6789,7 +6789,7 @@ export const translations = {
         changes: {
           title: "5. Cambios en la política de cookies",
           content:
-            "Amiko puede cambiar esta política de cookies cuando sea necesario.",
+            "AMIKO puede cambiar esta política de cookies cuando sea necesario.",
           items: [
             "Notificación: Notificación de cambios con 7 días de anticipación",
             "Consentimiento: Nuevo consentimiento para cambios significativos",
@@ -7624,7 +7624,7 @@ export const translations = {
       },
       vip: {
         title: "Suscripción VIP",
-        subtitle: "Experimenta un Amiko más especial con funciones premium",
+        subtitle: "Experimenta un AMIKO más especial con funciones premium",
         monthly: "Suscripción Mensual",
         yearly: "Suscripción Anual",
         popular: "Popular",
@@ -7678,8 +7678,8 @@ export const translations = {
           description: "Extensión de chat con todos los mentores (6 horas)",
         },
         amikoMerchandise: {
-          name: "Productos Amiko",
-          description: "Productos de marca Amiko (tazas, pegatinas, etc.)",
+          name: "Productos AMIKO",
+          description: "Productos de marca AMIKO (tazas, pegatinas, etc.)",
         },
         kBeautyTicket: {
           name: "Boleto de experiencia K-Beauty",
@@ -8051,7 +8051,7 @@ export const translations = {
         step3:
           "¡Cada domingo a medianoche, subimos todos los videos que subiste a YouTube! (solo para quienes dieron su consentimiento)",
         footer:
-          "Disfruta del Random Play Dance con fans globales de KPOP en Amiko y revisa tu video en YouTube :)",
+          "Disfruta del Random Play Dance con fans globales de KPOP en AMIKO y revisa tu video en YouTube :)",
       },
       upload: {
         button: "Subir",

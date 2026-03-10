@@ -40,7 +40,7 @@ export default function LoungePage() {
           <div className="relative z-10 py-16 px-8">
             <div className="text-6xl mb-4">🎈</div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
-              Amiko 라운지
+              AMIKO 라운지
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               메타버스를 통한 자유로운 소통 공간<br />
@@ -74,7 +74,7 @@ export default function LoungePage() {
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🚧</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Amiko 라운지가 곧 오픈됩니다!
+                AMIKO 라운지가 곧 오픈됩니다!
               </h3>
               <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
                 함께 모임을 가지게 될 시점에 사용하기 위해 라운지도 만들어갈 예정입니다.
@@ -90,7 +90,7 @@ export default function LoungePage() {
               곧 만나요!
             </h3>
             <p className="text-lg mb-6 opacity-90">
-              Amiko 라운지 오픈 소식을 가장 먼저 받아보세요
+              AMIKO 라운지 오픈 소식을 가장 먼저 받아보세요
             </p>
             <div className="text-white/80 text-sm">
               준비가 완료되면 알려드리겠습니다

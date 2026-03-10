@@ -894,7 +894,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: 'Amiko - Nuevo post', // 범용 제목 사용
+          title: 'AMIKO - Nuevo post', // 범용 제목 사용
           body: 'Nuevo post publicado en tablón',
           data: {
             type: 'new_post',

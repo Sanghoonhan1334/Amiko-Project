@@ -20,12 +20,12 @@ export default function CustomBanner() {
     <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
-          {/* 왼쪽: Amiko 로고와 텍스트 */}
+          {/* 왼쪽: AMIKO 로고와 텍스트 */}
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
               <Image
                 src="/logos/amiko-logo.png"
-                alt="Amiko"
+                alt="AMIKO"
                 width={24}
                 height={24}
                 className="rounded-full bg-white p-1"
@@ -33,7 +33,7 @@ export default function CustomBanner() {
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">
-                Amiko - 한국 문화 교류 플랫폼
+                AMIKO - 한국 문화 교류 플랫폼
               </span>
               <ExternalLink className="w-3 h-3 opacity-75" />
             </div>

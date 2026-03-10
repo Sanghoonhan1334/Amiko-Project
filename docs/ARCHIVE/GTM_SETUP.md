@@ -4,7 +4,7 @@
 
 ### 1. 컨테이너 이름 입력
 ```
-Amiko Main Website
+AMIKO Main Website
 ```
 
 ### 2. 타겟 플랫폼 선택

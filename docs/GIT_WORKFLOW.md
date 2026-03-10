@@ -2,9 +2,9 @@
 
 ## 📋 Overview / Resumen
 
-This document describes the Git branching strategy for Amiko Project collaboration.
+This document describes the Git branching strategy for AMIKO Project collaboration.
 
-Este documento describe la estrategia de ramificación de Git para la colaboración en el proyecto Amiko.
+Este documento describe la estrategia de ramificación de Git para la colaboración en el proyecto AMIKO.
 
 ---
 

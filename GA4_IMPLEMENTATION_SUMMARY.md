@@ -1,7 +1,7 @@
 # GA4 Event Tracking Implementation Summary
 
 ## Overview
-This document summarizes the GA4 event tracking implementation that standardizes all analytics events across the Amiko platform.
+This document summarizes the GA4 event tracking implementation that standardizes all analytics events across the AMIKO platform.
 
 ## Files Modified
 

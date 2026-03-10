@@ -266,7 +266,7 @@ export default function ThirdPartyServiceManager() {
       {/* 헤더 */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">제3자 서비스 관리</h1>
-        <p className="text-gray-600">Amiko 서비스에 연동된 제3자 서비스의 상태를 모니터링하고 관리합니다.</p>
+        <p className="text-gray-600">AMIKO 서비스에 연동된 제3자 서비스의 상태를 모니터링하고 관리합니다.</p>
       </div>
 
       {/* 중요 안내 */}

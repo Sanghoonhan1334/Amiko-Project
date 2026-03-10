@@ -18,14 +18,14 @@ export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'pa
     case 'passwordResetVerification':
       if (language === 'es') {
         return {
-          subject: `[Amiko] Código de verificación para restablecer contraseña`,
+          subject: `[AMIKO] Código de verificación para restablecer contraseña`,
           html: `
             <!DOCTYPE html>
             <html lang="es">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Restablecer Contraseña - Amiko</title>
+              <title>Restablecer Contraseña - AMIKO</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -45,7 +45,7 @@ export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'pa
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>El comienzo del intercambio cultural entre Corea y Centroamérica</p>
                 </div>
                 
@@ -54,7 +54,7 @@ export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'pa
                   
                   <p>Hola,</p>
                   
-                  <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>Amiko</strong>.</p>
+                  <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>AMIKO</strong>.</p>
                   
                   <p>Para restablecer tu contraseña, por favor ingresa el código de verificación a continuación:</p>
                   
@@ -75,13 +75,13 @@ export function createEmailTemplate(type: 'verification' | 'passwordReset' | 'pa
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Equipo Amiko</strong></p>
+                  <p><strong>Equipo AMIKO</strong></p>
                   <p>Plataforma de intercambio cultural que conecta Corea y Centroamérica</p>
                   <p>Email: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>Sitio web: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
                   <p>Este email fue enviado automáticamente para restablecer tu contraseña.</p>
                   <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
-                  <p>© 2025 Amiko. Todos los derechos reservados.</p>
+                  <p>© 2025 AMIKO. Todos los derechos reservados.</p>
                 </div>
               </div>
             </body>
@@ -92,7 +92,7 @@ Restablecer Contraseña
 
 Hola,
 
-Recibimos una solicitud para restablecer la contraseña de tu cuenta de Amiko.
+Recibimos una solicitud para restablecer la contraseña de tu cuenta de AMIKO.
 
 Para restablecer tu contraseña, por favor ingresa el código de verificación a continuación:
 
@@ -109,7 +109,7 @@ Información de Seguridad:
 
 Si no solicitaste restablecer tu contraseña, puedes ignorar este email de forma segura.
 
-Equipo Amiko
+Equipo AMIKO
 Plataforma de intercambio cultural que conecta Corea y Centroamérica
 Email: info@helloamiko.com
 Sitio web: https://helloamiko.com
@@ -117,19 +117,19 @@ Sitio web: https://helloamiko.com
 Este email fue enviado automáticamente para restablecer tu contraseña.
 Si tienes alguna pregunta, no dudes en contactarnos.
 
-© 2025 Amiko. Todos los derechos reservados.
+© 2025 AMIKO. Todos los derechos reservados.
           `
         }
       } else {
         return {
-          subject: `[Amiko] 비밀번호 재설정을 위한 인증코드`,
+          subject: `[AMIKO] 비밀번호 재설정을 위한 인증코드`,
           html: `
             <!DOCTYPE html>
             <html lang="ko">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>비밀번호 재설정 - Amiko</title>
+              <title>비밀번호 재설정 - AMIKO</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -149,7 +149,7 @@ Si tienes alguna pregunta, no dudes en contactarnos.
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>한국과 중남미간의 문화교류의 시작</p>
                 </div>
                 
@@ -158,7 +158,7 @@ Si tienes alguna pregunta, no dudes en contactarnos.
                   
                   <p>안녕하세요,</p>
                   
-                  <p><strong>Amiko</strong> 계정의 비밀번호 재설정을 요청하셨습니다.</p>
+                  <p><strong>AMIKO</strong> 계정의 비밀번호 재설정을 요청하셨습니다.</p>
                   
                   <p>비밀번호를 재설정하려면 아래 인증코드를 입력해 주세요:</p>
                   
@@ -179,13 +179,13 @@ Si tienes alguna pregunta, no dudes en contactarnos.
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Amiko 팀</strong></p>
+                  <p><strong>AMIKO 팀</strong></p>
                   <p>한국과 중남미를 연결하는 문화교류 플랫폼</p>
                   <p>이메일: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>웹사이트: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
                   <p>이 이메일은 비밀번호 재설정을 위해 자동으로 발송되었습니다.</p>
                   <p>문의사항이 있으시면 언제든지 연락해 주세요.</p>
-                  <p>© 2025 Amiko. All rights reserved.</p>
+                  <p>© 2025 AMIKO. All rights reserved.</p>
                 </div>
               </div>
             </body>
@@ -196,7 +196,7 @@ Si tienes alguna pregunta, no dudes en contactarnos.
 
 안녕하세요,
 
-Amiko 계정의 비밀번호 재설정을 요청하셨습니다.
+AMIKO 계정의 비밀번호 재설정을 요청하셨습니다.
 
 비밀번호를 재설정하려면 아래 인증코드를 입력해 주세요:
 
@@ -213,7 +213,7 @@ Amiko 계정의 비밀번호 재설정을 요청하셨습니다.
 
 비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 안전하게 무시하셔도 됩니다.
 
-Amiko 팀
+AMIKO 팀
 한국과 중남미를 연결하는 문화교류 플랫폼
 이메일: info@helloamiko.com
 웹사이트: https://helloamiko.com
@@ -221,21 +221,21 @@ Amiko 팀
 이 이메일은 비밀번호 재설정을 위해 자동으로 발송되었습니다.
 문의사항이 있으시면 언제든지 연락해 주세요.
 
-© 2025 Amiko. All rights reserved.
+© 2025 AMIKO. All rights reserved.
           `
         }
       }
     case 'verification':
       if (language === 'es') {
         return {
-          subject: `[Amiko] Guía de verificación para completar el registro`,
+          subject: `[AMIKO] Guía de verificación para completar el registro`,
           html: `
             <!DOCTYPE html>
             <html lang="es">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Verificación de Email Amiko</title>
+              <title>Verificación de Email AMIKO</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -256,16 +256,16 @@ Amiko 팀
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>El comienzo del intercambio cultural entre Corea y Centroamérica</p>
                 </div>
                 
                 <div class="content">
-                  <h2>¡Hola! Somos el equipo de Amiko</h2>
+                  <h2>¡Hola! Somos el equipo de AMIKO</h2>
                   
-                  <p>Gracias por unirte a <strong>Amiko</strong>, la plataforma de intercambio cultural que conecta Corea y Centroamérica.</p>
+                  <p>Gracias por unirte a <strong>AMIKO</strong>, la plataforma de intercambio cultural que conecta Corea y Centroamérica.</p>
                   
-                  <p>Amiko es una plataforma innovadora que conecta Corea y Centroamérica a través del intercambio cultural. A través de nuestro servicio, esperamos que aprendan las culturas mutuas y formen nuevas amistades.</p>
+                  <p>AMIKO es una plataforma innovadora que conecta Corea y Centroamérica a través del intercambio cultural. A través de nuestro servicio, esperamos que aprendan las culturas mutuas y formen nuevas amistades.</p>
                   
                   <p>Para completar tu registro, por favor ingresa el código de verificación a continuación:</p>
                   
@@ -281,7 +281,7 @@ Amiko 팀
                     <p>• Si hay actividad sospechosa, contacta inmediatamente al soporte</p>
                   </div>
                   
-                  <p>Una vez completada la verificación, podrás usar las diversas funciones de Amiko:</p>
+                  <p>Una vez completada la verificación, podrás usar las diversas funciones de AMIKO:</p>
                   <ul>
                     <li>🎥 Aprendizaje de español en tiempo real con chat de video AI</li>
                     <li>💬 Intercambio cultural coreano en la comunidad global</li>
@@ -296,24 +296,24 @@ Amiko 팀
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Equipo Amiko</strong></p>
+                  <p><strong>Equipo AMIKO</strong></p>
                   <p>Plataforma de intercambio cultural que conecta Corea y Centroamérica</p>
                   <p>Email: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>Sitio web: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
-                  <p>Este email fue enviado automáticamente durante el proceso de registro de Amiko.</p>
+                  <p>Este email fue enviado automáticamente durante el proceso de registro de AMIKO.</p>
                   <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
-                  <p>© 2025 Amiko. Todos los derechos reservados.</p>
+                  <p>© 2025 AMIKO. Todos los derechos reservados.</p>
                 </div>
               </div>
             </body>
             </html>
           `,
           text: `
-¡Hola! Somos el equipo de Amiko
+¡Hola! Somos el equipo de AMIKO
 
-Gracias por unirte a Amiko, la plataforma de intercambio cultural que conecta Corea y Centroamérica.
+Gracias por unirte a AMIKO, la plataforma de intercambio cultural que conecta Corea y Centroamérica.
 
-Amiko es una plataforma innovadora que conecta Corea y Centroamérica a través del intercambio cultural. A través de nuestro servicio, esperamos que aprendan las culturas mutuas y formen nuevas amistades.
+AMIKO es una plataforma innovadora que conecta Corea y Centroamérica a través del intercambio cultural. A través de nuestro servicio, esperamos que aprendan las culturas mutuas y formen nuevas amistades.
 
 Para completar tu registro, por favor ingresa el código de verificación a continuación:
 
@@ -327,7 +327,7 @@ Información de Seguridad:
 - No lo compartas con otros
 - Si hay actividad sospechosa, contacta inmediatamente al soporte
 
-Una vez completada la verificación, podrás usar las diversas funciones de Amiko:
+Una vez completada la verificación, podrás usar las diversas funciones de AMIKO:
 - Aprendizaje de español en tiempo real con chat de video AI
 - Intercambio cultural coreano en la comunidad global
 - Participación en diversos beneficios y eventos con el sistema de puntos
@@ -335,27 +335,27 @@ Una vez completada la verificación, podrás usar las diversas funciones de Amik
 
 Verificar directamente en la web: https://helloamiko.com/verification?code=${data.code}
 
-Equipo Amiko
+Equipo AMIKO
 Plataforma de intercambio cultural que conecta Corea y Centroamérica
 Email: info@helloamiko.com
 Sitio web: https://helloamiko.com
 
-Este email fue enviado automáticamente durante el proceso de registro de Amiko.
+Este email fue enviado automáticamente durante el proceso de registro de AMIKO.
 Si tienes alguna pregunta, no dudes en contactarnos.
 
-© 2025 Amiko. Todos los derechos reservados.
+© 2025 AMIKO. Todos los derechos reservados.
           `
         }
       } else {
         return {
-          subject: `[Amiko] 가입 완료를 위한 인증 안내`,
+          subject: `[AMIKO] 가입 완료를 위한 인증 안내`,
           html: `
             <!DOCTYPE html>
             <html lang="ko">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Amiko 이메일 인증</title>
+              <title>AMIKO 이메일 인증</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -376,14 +376,14 @@ Si tienes alguna pregunta, no dudes en contactarnos.
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>한국과 중남미간의 문화교류의 시작</p>
                 </div>
                 
                 <div class="content">
-                  <h2>안녕하세요! Amiko 팀입니다</h2>
+                  <h2>안녕하세요! AMIKO 팀입니다</h2>
                   
-                  <p>한국과 중남미를 연결하는 문화교류 플랫폼 <strong>Amiko</strong>에 가입해 주셔서 진심으로 감사합니다.</p>
+                  <p>한국과 중남미를 연결하는 문화교류 플랫폼 <strong>AMIKO</strong>에 가입해 주셔서 진심으로 감사합니다.</p>
                   
                   <p>Amiko는 문화교류를 통해 한국과 중남미를 연결하는 혁신적인 플랫폼입니다. 저희 서비스를 통해 서로 간의 문화를 배우고, 새로운 인연을 만들어가시길 바랍니다.</p>
                   
@@ -416,20 +416,20 @@ Si tienes alguna pregunta, no dudes en contactarnos.
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Amiko 팀</strong></p>
+                  <p><strong>AMIKO 팀</strong></p>
                   <p>한국과 중남미를 연결하는 문화교류 플랫폼</p>
                   <p>이메일: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>웹사이트: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
-                  <p>이 이메일은 Amiko 회원가입 과정에서 자동으로 발송되었습니다.</p>
+                  <p>이 이메일은 AMIKO 회원가입 과정에서 자동으로 발송되었습니다.</p>
                   <p>문의사항이 있으시면 언제든지 연락해 주세요.</p>
-                  <p>© 2025 Amiko. All rights reserved.</p>
+                  <p>© 2025 AMIKO. All rights reserved.</p>
                 </div>
               </div>
             </body>
             </html>
           `,
           text: `
-안녕하세요! Amiko 팀입니다
+안녕하세요! AMIKO 팀입니다
 
 한국과 중남미를 연결하는 문화교류 플랫폼 Amiko에 가입해 주셔서 진심으로 감사합니다.
 
@@ -455,29 +455,29 @@ Amiko는 문화교류를 통해 한국과 중남미를 연결하는 혁신적인
 
 웹에서 직접 인증하기: https://helloamiko.com/verification?code=${data.code}
 
-Amiko 팀
+AMIKO 팀
 한국과 중남미를 연결하는 문화교류 플랫폼
 이메일: info@helloamiko.com
 웹사이트: https://helloamiko.com
 
-이 이메일은 Amiko 회원가입 과정에서 자동으로 발송되었습니다.
+이 이메일은 AMIKO 회원가입 과정에서 자동으로 발송되었습니다.
 문의사항이 있으시면 언제든지 연락해 주세요.
 
-© 2025 Amiko. All rights reserved.
+© 2025 AMIKO. All rights reserved.
           `
         }
       }
     case 'passwordReset':
       if (language === 'es') {
         return {
-          subject: `[Amiko] Restablecer contraseña`,
+          subject: `[AMIKO] Restablecer contraseña`,
           html: `
             <!DOCTYPE html>
             <html lang="es">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Restablecer Contraseña Amiko</title>
+              <title>Restablecer Contraseña AMIKO</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -496,7 +496,7 @@ Amiko 팀
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>El comienzo del intercambio cultural entre Corea y Centroamérica</p>
                 </div>
                 
@@ -505,7 +505,7 @@ Amiko 팀
                   
                   <p>Hola,</p>
                   
-                  <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>Amiko</strong>.</p>
+                  <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>AMIKO</strong>.</p>
                   
                   <p>Si solicitaste este cambio, haz clic en el botón de abajo para restablecer tu contraseña:</p>
                   
@@ -525,15 +525,15 @@ Amiko 팀
                   
                   <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
                   
-                  <p>Saludos,<br>Equipo Amiko</p>
+                  <p>Saludos,<br>Equipo AMIKO</p>
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Equipo Amiko</strong></p>
+                  <p><strong>Equipo AMIKO</strong></p>
                   <p>Plataforma de intercambio cultural que conecta Corea y Centroamérica</p>
                   <p>Email: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>Sitio web: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
-                  <p>© 2025 Amiko. Todos los derechos reservados.</p>
+                  <p>© 2025 AMIKO. Todos los derechos reservados.</p>
                 </div>
               </div>
             </body>
@@ -544,7 +544,7 @@ Restablecer Contraseña
 
 Hola,
 
-Recibimos una solicitud para restablecer la contraseña de tu cuenta de Amiko.
+Recibimos una solicitud para restablecer la contraseña de tu cuenta de AMIKO.
 
 Si solicitaste este cambio, haz clic en el enlace de abajo para restablecer tu contraseña:
 
@@ -558,25 +558,25 @@ Información de Seguridad:
 Si tienes alguna pregunta, no dudes en contactarnos.
 
 Saludos,
-Equipo Amiko
+Equipo AMIKO
 
 Plataforma de intercambio cultural que conecta Corea y Centroamérica
 Email: info@helloamiko.com
 Sitio web: https://helloamiko.com
 
-© 2025 Amiko. Todos los derechos reservados.
+© 2025 AMIKO. Todos los derechos reservados.
           `
         }
       } else {
         return {
-          subject: `[Amiko] 비밀번호 재설정`,
+          subject: `[AMIKO] 비밀번호 재설정`,
           html: `
             <!DOCTYPE html>
             <html lang="ko">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>비밀번호 재설정 Amiko</title>
+              <title>비밀번호 재설정 AMIKO</title>
               <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
                 .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -595,7 +595,7 @@ Sitio web: https://helloamiko.com
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🇰🇷🇲🇽 Amiko</h1>
+                  <h1>🇰🇷🇲🇽 AMIKO</h1>
                   <p>한국과 중남미간의 문화교류의 시작</p>
                 </div>
                 
@@ -604,7 +604,7 @@ Sitio web: https://helloamiko.com
                   
                   <p>안녕하세요,</p>
                   
-                  <p><strong>Amiko</strong> 계정의 비밀번호 재설정 요청을 받았습니다.</p>
+                  <p><strong>AMIKO</strong> 계정의 비밀번호 재설정 요청을 받았습니다.</p>
                   
                   <p>이 요청을 하신 것이 맞다면, 아래 버튼을 클릭하여 비밀번호를 재설정하세요:</p>
                   
@@ -624,15 +624,15 @@ Sitio web: https://helloamiko.com
                   
                   <p>문의사항이 있으시면 언제든지 연락해 주세요.</p>
                   
-                  <p>감사합니다,<br>Amiko 팀</p>
+                  <p>감사합니다,<br>AMIKO 팀</p>
                 </div>
                 
                 <div class="footer">
-                  <p><strong>Amiko 팀</strong></p>
+                  <p><strong>AMIKO 팀</strong></p>
                   <p>한국과 중남미를 연결하는 문화교류 플랫폼</p>
                   <p>이메일: <a href="mailto:info@helloamiko.com">info@helloamiko.com</a></p>
                   <p>웹사이트: <a href="https://helloamiko.com">https://helloamiko.com</a></p>
-                  <p>© 2025 Amiko. All rights reserved.</p>
+                  <p>© 2025 AMIKO. All rights reserved.</p>
                 </div>
               </div>
             </body>
@@ -643,7 +643,7 @@ Sitio web: https://helloamiko.com
 
 안녕하세요,
 
-Amiko 계정의 비밀번호 재설정 요청을 받았습니다.
+AMIKO 계정의 비밀번호 재설정 요청을 받았습니다.
 
 이 요청을 하신 것이 맞다면, 아래 링크를 클릭하여 비밀번호를 재설정하세요:
 
@@ -657,19 +657,19 @@ ${data.resetLink}
 문의사항이 있으시면 언제든지 연락해 주세요.
 
 감사합니다,
-Amiko 팀
+AMIKO 팀
 
 한국과 중남미를 연결하는 문화교류 플랫폼
 이메일: info@helloamiko.com
 웹사이트: https://helloamiko.com
 
-© 2025 Amiko. All rights reserved.
+© 2025 AMIKO. All rights reserved.
           `
         }
       }
     case 'new_inquiry':
       return {
-        subject: `[Amiko] 새로운 문의가 접수되었습니다 - ${data.subject}`,
+        subject: `[AMIKO] 새로운 문의가 접수되었습니다 - ${data.subject}`,
         html: `
           <!DOCTYPE html>
           <html lang="ko">
@@ -708,7 +708,7 @@ Amiko 팀
                 <p>관리자 대시보드에서 확인하세요: <a href="https://www.helloamiko.com/admin/inquiries">https://www.helloamiko.com/admin/inquiries</a></p>
               </div>
               <div class="footer">
-                <p>Amiko - 한국 문화 교류 플랫폼</p>
+                <p>AMIKO - 한국 문화 교류 플랫폼</p>
               </div>
             </div>
           </body>
@@ -718,7 +718,7 @@ Amiko 팀
       }
     case 'new_partnership_inquiry':
       return {
-        subject: `[Amiko] 새로운 제휴 문의가 접수되었습니다 - ${data.companyName}`,
+        subject: `[AMIKO] 새로운 제휴 문의가 접수되었습니다 - ${data.companyName}`,
         html: `
           <!DOCTYPE html>
           <html lang="ko">
@@ -759,7 +759,7 @@ Amiko 팀
                 <p>관리자 대시보드에서 확인하세요: <a href="https://www.helloamiko.com/admin/inquiries">https://www.helloamiko.com/admin/inquiries</a></p>
               </div>
               <div class="footer">
-                <p>Amiko - 한국 문화 교류 플랫폼</p>
+                <p>AMIKO - 한국 문화 교류 플랫폼</p>
               </div>
             </div>
           </body>
@@ -882,7 +882,7 @@ async function sendRealEmail(to: string, subject: string, html: string): Promise
     
     // 이메일 발송 (하이웍스 계정과 동일한 발송자 주소 사용)
     const info = await transporter.sendMail({
-      from: 'Amiko <info@helloamiko.com>',
+      from: 'AMIKO <info@helloamiko.com>',
       to: to,
       subject: subject,
       html: html,

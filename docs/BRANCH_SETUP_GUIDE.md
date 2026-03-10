@@ -1,6 +1,6 @@
 # Branch Setup Guide / Guía de Configuración de Ramas
 
-This guide helps set up the initial branches for Amiko Project collaboration. / Esta guía ayuda a configurar las ramas iniciales para la colaboración en el proyecto Amiko.
+This guide helps set up the initial branches for AMIKO Project collaboration. / Esta guía ayuda a configurar las ramas iniciales para la colaboración en el proyecto AMIKO.
 
 ---
 

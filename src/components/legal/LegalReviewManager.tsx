@@ -297,7 +297,7 @@ export default function LegalReviewManager() {
       {/* 헤더 */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">법무 검토 및 정책 승인</h1>
-        <p className="text-gray-600">Amiko 서비스의 모든 정책에 대한 법무 검토 및 승인을 관리합니다.</p>
+        <p className="text-gray-600">AMIKO 서비스의 모든 정책에 대한 법무 검토 및 승인을 관리합니다.</p>
       </div>
 
       {/* 중요 안내 */}

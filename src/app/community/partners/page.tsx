@@ -82,8 +82,8 @@ export default function PartnersPage() {
       flag: '',
       logo: '/logos/socios-placeholder.jpg',
       description: language === 'es' 
-        ? 'Descubre nuevas oportunidades junto a Amiko.'
-        : 'Descubre nuevas oportunidades junto a Amiko.',
+        ? 'Descubre nuevas oportunidades junto a AMIKO.'
+        : 'Descubre nuevas oportunidades junto a AMIKO.',
       links: []
     },
     {
@@ -92,8 +92,8 @@ export default function PartnersPage() {
       flag: '',
       logo: '/logos/socios-placeholder.jpg',
       description: language === 'es' 
-        ? 'Descubre nuevas oportunidades junto a Amiko.'
-        : 'Descubre nuevas oportunidades junto a Amiko.',
+        ? 'Descubre nuevas oportunidades junto a AMIKO.'
+        : 'Descubre nuevas oportunidades junto a AMIKO.',
       links: []
     },
     {
@@ -102,8 +102,8 @@ export default function PartnersPage() {
       flag: '',
       logo: '/logos/socios-placeholder.jpg',
       description: language === 'es' 
-        ? 'Descubre nuevas oportunidades junto a Amiko.'
-        : 'Descubre nuevas oportunidades junto a Amiko.',
+        ? 'Descubre nuevas oportunidades junto a AMIKO.'
+        : 'Descubre nuevas oportunidades junto a AMIKO.',
       links: []
     },
     {
@@ -112,8 +112,8 @@ export default function PartnersPage() {
       flag: '',
       logo: '/logos/socios-placeholder.jpg',
       description: language === 'es' 
-        ? 'Descubre nuevas oportunidades junto a Amiko.'
-        : 'Descubre nuevas oportunidades junto a Amiko.',
+        ? 'Descubre nuevas oportunidades junto a AMIKO.'
+        : 'Descubre nuevas oportunidades junto a AMIKO.',
       links: []
     }
   ]

@@ -125,7 +125,7 @@ export default function FreeBoard() {
   const [uploadingAnnouncementImages, setUploadingAnnouncementImages] = useState(false)
 
   // 운영자 권한 체크 (특정 운영자 아이디만 허용)
-  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com'
+  const isAdmin = user?.email === 'admin@amiko.com' || user?.email === 'info@helloamiko.com' || user?.email === 'eugenia.arevalo@gmail.com'
 
   // 디버깅용 로그
   console.log('현재 사용자 정보:', {

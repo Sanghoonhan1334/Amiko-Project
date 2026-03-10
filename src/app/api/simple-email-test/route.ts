@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
           </div>
           
           <p>안녕하세요!</p>
-          <p>이 이메일은 Amiko 서비스의 이메일 발송 기능을 테스트하기 위해 발송되었습니다.</p>
+          <p>이 이메일은 AMIKO 서비스의 이메일 발송 기능을 테스트하기 위해 발송되었습니다.</p>
           
           <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p style="margin: 0;"><strong>발송 시간:</strong> ${new Date().toLocaleString('ko-KR')}</p>
             <p style="margin: 5px 0 0 0;"><strong>발송 서비스:</strong> 하이웍스 SMTP</p>
           </div>
           
-          <p>이 이메일이 정상적으로 도착했다면 Amiko 이메일 서비스가 올바르게 작동하고 있습니다.</p>
+          <p>이 이메일이 정상적으로 도착했다면 AMIKO 이메일 서비스가 올바르게 작동하고 있습니다.</p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
           
@@ -64,19 +64,19 @@ export async function POST(request: NextRequest) {
 
 안녕하세요!
 
-이 이메일은 Amiko 서비스의 이메일 발송 기능을 테스트하기 위해 발송되었습니다.
+이 이메일은 AMIKO 서비스의 이메일 발송 기능을 테스트하기 위해 발송되었습니다.
 
 발송 시간: ${new Date().toLocaleString('ko-KR')}
 발송 서비스: 하이웍스 SMTP
 
-이 이메일이 정상적으로 도착했다면 Amiko 이메일 서비스가 올바르게 작동하고 있습니다.
+이 이메일이 정상적으로 도착했다면 AMIKO 이메일 서비스가 올바르게 작동하고 있습니다.
 
 ---
 
 이 이메일은 테스트 목적으로 발송되었습니다.
 문의사항이 있으시면 고객센터로 연락해주세요.
 
-Amiko 서비스팀
+AMIKO 서비스팀
       `
     }
     

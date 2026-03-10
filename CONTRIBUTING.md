@@ -1,6 +1,6 @@
 # Contributing Guide / Guía de Contribución
 
-Thank you for contributing to the Amiko project! / ¡Gracias por contribuir al proyecto Amiko!
+Thank you for contributing to the AMIKO project! / ¡Gracias por contribuir al proyecto AMIKO!
 
 This document provides guidelines for contributing to the project. / Este documento proporciona pautas para contribuir al proyecto.
 
@@ -275,7 +275,7 @@ Closes #123
 1. Clone repository / Clonar repositorio:
    ```bash
    git clone <repository-url>
-   cd Amiko-Project-main
+   cd AMIKO-Project-main
    ```
 
 2. Install dependencies / Instalar dependencias:

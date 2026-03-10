@@ -214,7 +214,7 @@ export default function GlobalChatButton() {
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2 sm:p-4 flex items-center justify-between rounded-t-xl sm:rounded-tl-2xl">
               <div>
                 <h2 className="font-semibold text-sm sm:text-lg">{language === 'ko' ? '전체 채팅' : 'Chat Global'}</h2>
-                <p className="text-xs sm:text-sm opacity-90">Amiko Chat</p>
+                <p className="text-xs sm:text-sm opacity-90">AMIKO Chat</p>
               </div>
               <button
                 onClick={handleClose}

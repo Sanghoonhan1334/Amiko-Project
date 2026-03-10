@@ -114,6 +114,16 @@ export default function MyTab() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  // Emails con acceso de administrador (verificación rápida local)
+  const ADMIN_EMAILS = [
+    "admin@amiko.com",
+    "info@helloamiko.com",
+    "eugenia.arevalo@gmail.com",
+  ];
+  // Verificación DB async (para admins no listados arriba)
+  const [isAdminVerified, setIsAdminVerified] = useState(false);
+  // isAdmin es true si el email está en la lista O si la BD lo confirmó
+  const isAdmin = (!!user?.email && ADMIN_EMAILS.includes(user.email)) || isAdminVerified;
 
   // 🚀 최적화: React Query로 포인트 및 랭킹 데이터 관리
   const {
@@ -174,6 +184,26 @@ export default function MyTab() {
     // hashchange 이벤트는 헤더에서 직접 마이페이지 클릭 시 발생하지 않으므로 제거
     checkHashAndScroll();
   }, []);
+
+  // 관리자 여부 API로 확인 (DB에 있지만 로컬 목록에 없는 경우 보완)
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user?.email || !token) return;
+      try {
+        const res = await fetch(
+          `/api/admin/check?email=${encodeURIComponent(user.email)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setIsAdminVerified(!!data.isAdmin);
+        }
+      } catch {
+        // 오류 시 로컬 이메일 목록 결과로 충분
+      }
+    };
+    checkAdminStatus();
+  }, [user?.email, token]);
 
   // 추천인 코드 조회 비활성화
 
@@ -1397,11 +1427,7 @@ export default function MyTab() {
     setIsDragging(false);
   };
 
-  // 관리자 여부 확인 (더 포괄적인 체크)
-  const isAdmin =
-    user?.email === "admin@amiko.com" ||
-    user?.email === "info@helloamiko.com" ||
-    user?.user_metadata?.role === "admin";
+  // 관리자 여부 확인: ADMIN_EMAILS 체크(즉시) + API 검증(비동기) — 상단 참고
 
   if (loading) {
     return <ProfileSkeleton />;
@@ -1464,257 +1490,7 @@ export default function MyTab() {
     );
   }
 
-  // 운영자는 대시보드만 표시 (일반 프로필 렌더링 전에 체크)
-  if (isAdmin) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="w-full p-4 space-y-6">
-          {/* 운영자 대시보드 헤더 */}
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
-            <h1 className="text-2xl font-bold mb-2">운영진 대시보드</h1>
-            <p className="text-blue-100">
-              서비스 현황과 사용자 활동을 한눈에 확인하세요
-            </p>
-          </div>
-
-          {/* 아코디언 형식의 관리 섹션 */}
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            {/* 포인트 랭킹 */}
-            <AccordionItem
-              value="points"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      포인트 랭킹
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      누적 점수와 월별 점수 랭킹
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <PointsRanking />
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 이벤트 관리 */}
-            <AccordionItem
-              value="events"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      이벤트 관리
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      추천인 & 월별 포인트 이벤트
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <EventManagement />
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 사용자 관리 */}
-            <AccordionItem
-              value="users"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      사용자 관리
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      전체 사용자 및 권한 관리
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="text-center py-8 text-gray-500">
-                  사용자 관리 기능은 별도 페이지로 이동합니다.
-                  <br />
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => (window.location.href = "/admin/users")}
-                  >
-                    사용자 관리 페이지로 이동
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 뉴스 관리 */}
-            <AccordionItem
-              value="news"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                    <Newspaper className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      뉴스 관리
-                    </h3>
-                    <p className="text-sm text-gray-600">뉴스 작성 및 수정</p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="text-center py-8 text-gray-500">
-                  뉴스 관리 기능은 별도 페이지로 이동합니다.
-                  <br />
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => (window.location.href = "/admin/news")}
-                  >
-                    뉴스 관리 페이지로 이동
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 예약 관리 */}
-            <AccordionItem
-              value="bookings"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      예약 관리
-                    </h3>
-                    <p className="text-sm text-gray-600">예약 현황 및 관리</p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="text-center py-8 text-gray-500">
-                  예약 관리 기능은 별도 페이지로 이동합니다.
-                  <br />
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => (window.location.href = "/admin/bookings")}
-                  >
-                    예약 관리 페이지로 이동
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 결제 관리 */}
-            <AccordionItem
-              value="payments"
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      {t("headerNav.payments") || "결제 관리"}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {language === "ko"
-                        ? "VIP 구독 및 결제 내역"
-                        : "Suscripción VIP e historial de pagos"}
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <PaymentsTab />
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 분석 대시보드 */}
-            <AccordionItem
-              value="analytics"
-              className="border-2 border-blue-200 rounded-xl overflow-hidden bg-blue-50"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      서비스 분석
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      뉴스, 사용자, 트렌드 분석
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <AnalyticsDashboard />
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 채팅금지 관리 */}
-            <AccordionItem
-              value="chat-bans"
-              className="border-2 border-red-200 rounded-xl overflow-hidden bg-red-50"
-            >
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
-                    <Ban className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-lg text-gray-900">
-                      {language === "ko"
-                        ? "채팅금지 관리"
-                        : "Gestión de prohibiciones de chat"}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {language === "ko"
-                        ? "채팅금지 및 영구 추방 사용자 관리"
-                        : "Gestionar usuarios con prohibición de chat y expulsión permanente"}
-                    </p>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <ChatBanManagement />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </div>
-    );
-  }
+  // 운영자도 일반 사용자처럼 프로필 표시 (관리 기능은 👑 Admin 메뉴에서)
 
   // 틴더 스타일 메인 레이아웃
   return (

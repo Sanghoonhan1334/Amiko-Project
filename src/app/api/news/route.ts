@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 출처가 비어있으면 기본값으로 설정
-    const finalSource = source && source.trim() ? source.trim() : 'Amiko 뉴스팀'
+    const finalSource = source && source.trim() ? source.trim() : 'AMIKO 뉴스팀'
 
     const { data, error } = await supabaseServer
       .from('korean_news')
@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: 'Amiko - Nueva noticia', // 범용 제목 사용
+          title: 'AMIKO - Nueva noticia', // 범용 제목 사용
           body: `"${newsTitle.substring(0, 50)}${newsTitle.length > 50 ? '...' : ''}"`,
           data: {
             type: 'new_news',
@@ -334,7 +334,7 @@ export async function DELETE(request: NextRequest) {
         content_type: 'news',
         content_id: newsId,
         content_title: newsBefore.title_es || newsBefore.title || 'Sin título',
-        content_author: newsBefore.author || 'Amiko',
+        content_author: newsBefore.author || 'AMIKO',
         deleted_by_user_id: auth.user.id,
         deleted_by_email: auth.user.email,
         original_data: newsBefore,
@@ -429,7 +429,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 출처가 비어있으면 기본값으로 설정
-    const finalSource = source && source.trim() ? source.trim() : 'Amiko 뉴스팀'
+    const finalSource = source && source.trim() ? source.trim() : 'AMIKO 뉴스팀'
 
     const updateData: any = {
       title,

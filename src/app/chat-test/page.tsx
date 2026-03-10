@@ -99,7 +99,7 @@ export default function ChatTestPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">채팅 테스트</h1>
-          <p className="text-gray-600">Amiko 채팅 규칙 모달과 채팅방을 테스트해보세요.</p>
+          <p className="text-gray-600">AMIKO 채팅 규칙 모달과 채팅방을 테스트해보세요.</p>
         </div>
 
         {!showChatRoom ? (
@@ -169,7 +169,7 @@ export default function ChatTestPage() {
                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <h4 className="font-semibold text-blue-800 mb-1">📌 채팅 규칙 모달</h4>
                     <p className="text-sm text-blue-700">
-                      채팅 시작 시 Amiko 채팅 규칙 안내 모달이 표시됩니다. 동의 체크박스를 체크해야 채팅방에 입장할 수 있습니다.
+                      채팅 시작 시 AMIKO 채팅 규칙 안내 모달이 표시됩니다. 동의 체크박스를 체크해야 채팅방에 입장할 수 있습니다.
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg border border-green-200">

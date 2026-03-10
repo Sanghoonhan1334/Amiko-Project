@@ -183,7 +183,7 @@ ADD COLUMN IF NOT EXISTS meeting_password TEXT;
    - 이유: 서버 간 통신이므로 가장 안전하고 편리함
 
 3. **앱 정보 입력**
-   - App Name: "Amiko Lecture Platform"
+   - App Name: "AMIKO Lecture Platform"
    - Company Name: 회사명
    - Developer Contact: 개발자 이메일
 

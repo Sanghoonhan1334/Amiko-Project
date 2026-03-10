@@ -19,7 +19,7 @@ import {
 import { supabaseServer } from '@/lib/supabaseServer'
 
 // RP (Relying Party) 설정
-const rpName = 'Amiko'
+const rpName = 'AMIKO'
 const rpID = process.env.NODE_ENV === 'production' ? 'amiko.com' : 'localhost'
 const origin = process.env.NODE_ENV === 'production' ? 'https://amiko.com' : 'http://localhost:3000'
 

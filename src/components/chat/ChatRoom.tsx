@@ -82,8 +82,8 @@ export default function ChatRoom({ mentorId, onClose }: ChatRoomProps) {
     // 채팅방 입장 알림 메시지 추가
     const welcomeMessage: Message = {
       id: 'welcome',
-      content: 'Amiko 채팅방에 오신 것을 환영합니다! 안전하고 즐거운 대화를 나누세요.',
-      sender: 'Amiko',
+      content: 'AMIKO 채팅방에 오신 것을 환영합니다! 안전하고 즐거운 대화를 나누세요.',
+      sender: 'AMIKO',
       timestamp: new Date(),
       isFromMentor: false
     }
@@ -188,7 +188,7 @@ export default function ChatRoom({ mentorId, onClose }: ChatRoomProps) {
       <div className="bg-red-50 border-b border-red-200 p-3">
         <div className="flex items-center gap-2 text-red-700 text-sm">
           <AlertCircle className="w-4 h-4" />
-          <span className="font-medium">번호 교환은 불가합니다 🙏 Amiko 안에서만 대화하세요.</span>
+          <span className="font-medium">번호 교환은 불가합니다 🙏 AMIKO 안에서만 대화하세요.</span>
         </div>
       </div>
 

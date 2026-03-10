@@ -172,7 +172,7 @@ export async function shareCommunityPost(
   const deepLink = `amiko://community/post/${postId}`
   
   await shareContent({
-    title: `${title} - Amiko`,
+    title: `${title} - AMIKO`,
     text: text || title,
     url: webUrl,
     deepLink,
@@ -226,7 +226,7 @@ export async function shareStory(
   const deepLink = `amiko://community/stories/${storyId}`
   
   await shareContent({
-    title: `${title} - Amiko Stories`,
+    title: `${title} - AMIKO Stories`,
     text: title,
     url: webUrl,
     deepLink,

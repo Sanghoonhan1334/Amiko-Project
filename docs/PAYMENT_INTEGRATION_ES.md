@@ -2,7 +2,7 @@
 
 ## Resumen Ejecutivo
 
-Este documento describe los tipos de productos que deben integrarse con el sistema de pagos de Amiko. El sistema debe soportar tres tipos principales de transacciones.
+Este documento describe los tipos de productos que deben integrarse con el sistema de pagos de AMIKO. El sistema debe soportar tres tipos principales de transacciones.
 
 ---
 
@@ -289,4 +289,4 @@ Nota: El curso inicial tiene precio fijo de ₩80,000 KRW (≈ $55 USD)
 
 **Documento creado**: 2025-12-12
 **Versión**: 1.0
-**Autor**: Sistema de Documentación Amiko
+**Autor**: Sistema de Documentación AMIKO

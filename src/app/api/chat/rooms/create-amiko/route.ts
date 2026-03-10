@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             success: true,
             room: updatedRoom,
-            message: 'Amiko chat room reactivated'
+            message: 'AMIKO chat room reactivated'
           })
         }
       }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         room: existingRoom,
-        message: 'Amiko chat room already exists'
+        message: 'AMIKO chat room already exists'
       })
     }
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         name: '아미코 채팅방',
         type: 'country',
         country: 'Korea',
-        description: 'Amiko Chat - 한국과 남미를 잇는 채팅방',
+        description: 'AMIKO Chat - 한국과 남미를 잇는 채팅방',
         is_active: true,
         max_participants: 1000,
         created_by: adminUser?.id || null // 관리자 ID 또는 null
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (createError) {
-      console.error('Error creating Amiko chat room:', createError)
+      console.error('Error creating AMIKO chat room:', createError)
       return NextResponse.json(
         { success: false, error: createError.message },
         { status: 500 }
@@ -96,12 +96,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       room: newRoom,
-      message: 'Amiko chat room created successfully'
+      message: 'AMIKO chat room created successfully'
     })
   } catch (error) {
     console.error('Error in POST /api/chat/rooms/create-amiko:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to create Amiko chat room' },
+      { success: false, error: 'Failed to create AMIKO chat room' },
       { status: 500 }
     )
   }

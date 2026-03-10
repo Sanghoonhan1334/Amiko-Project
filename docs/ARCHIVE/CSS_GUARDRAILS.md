@@ -40,7 +40,7 @@ img { filter: invert(1); }
 ### 4. Logo 컴포넌트 강제 사용
 ```tsx
 /* ❌ 금지 - 직접 img 사용 */
-<img src="/amiko-logo.png" alt="Amiko" />
+<img src="/amiko-logo.png" alt="AMIKO" />
 
 /* ✅ 권장 */
 <Logo className="h-12" />

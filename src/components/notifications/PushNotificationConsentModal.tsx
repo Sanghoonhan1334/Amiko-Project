@@ -361,7 +361,7 @@ export default function PushNotificationConsentModal() {
                 <>
                   Reuniones con los{" "}
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
-                    operadores de Amiko
+                    operadores de AMIKO
                   </span>
                   ,
                   <span className="font-semibold text-pink-600 dark:text-pink-400">
@@ -374,7 +374,7 @@ export default function PushNotificationConsentModal() {
                 </>
               ) : (
                 <>
-                  Amiko 운영자들과의{" "}
+                  AMIKO 운영자들과의{" "}
                   <span className="font-semibold text-purple-600 dark:text-purple-400">
                     모임
                   </span>

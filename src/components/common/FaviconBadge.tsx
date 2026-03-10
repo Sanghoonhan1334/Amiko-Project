@@ -73,9 +73,9 @@ export default function FaviconBadge() {
     if (typeof window === 'undefined' || !document) return
     try {
       if (count > 0) {
-        document.title = `(${count > 99 ? '99+' : count}) Amiko - 한국 문화 교류 플랫폼`
+        document.title = `(${count > 99 ? '99+' : count}) AMIKO - 한국 문화 교류 플랫폼`
       } else {
-        document.title = 'Amiko - 한국 문화 교류 플랫폼'
+        document.title = 'AMIKO - 한국 문화 교류 플랫폼'
       }
     } catch (error) {
       console.warn('[FaviconBadge] 타이틀 업데이트 실패:', error)

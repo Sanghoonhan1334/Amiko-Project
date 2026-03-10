@@ -2994,10 +2994,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Amiko">Amiko</SelectItem>
-                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
-                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                    <SelectItem value="AMIKO">AMIKO</SelectItem>
+                    <SelectItem value="AMIKO 편집팀">AMIKO 편집팀</SelectItem>
+                    <SelectItem value="AMIKO 뉴스팀">AMIKO 뉴스팀</SelectItem>
+                    <SelectItem value="AMIKO 관리자">AMIKO 관리자</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -3149,10 +3149,10 @@ Esta expansión global de la cultura coreana va más allá de una simple tendenc
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Amiko">Amiko</SelectItem>
-                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko 뉴스팀">Amiko 뉴스팀</SelectItem>
-                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                    <SelectItem value="AMIKO">AMIKO</SelectItem>
+                    <SelectItem value="AMIKO 편집팀">AMIKO 편집팀</SelectItem>
+                    <SelectItem value="AMIKO 뉴스팀">AMIKO 뉴스팀</SelectItem>
+                    <SelectItem value="AMIKO 관리자">AMIKO 관리자</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

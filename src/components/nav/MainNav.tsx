@@ -44,13 +44,13 @@ export default function MainNav() {
           {/* 라이트 모드 로고 */}
           <img 
             src="/logos/amiko-logo.png" 
-            alt="Amiko" 
+            alt="AMIKO" 
             className="h-8 w-auto object-contain dark:hidden"
           />
           {/* 다크 모드 로고 */}
           <img 
             src="/logos/amiko-logo-dark.png" 
-            alt="Amiko" 
+            alt="AMIKO" 
             className="h-8 w-auto object-contain hidden dark:block"
           />
         </button>

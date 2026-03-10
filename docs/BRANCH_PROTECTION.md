@@ -1,6 +1,6 @@
 # Branch Protection Rules / Reglas de Protección de Ramas
 
-This document describes the branch protection rules for Amiko Project. / Este documento describe las reglas de protección de ramas para el proyecto Amiko.
+This document describes the branch protection rules for AMIKO Project. / Este documento describe las reglas de protección de ramas para el proyecto AMIKO.
 
 ---
 

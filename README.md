@@ -1,12 +1,12 @@
-# Amiko - Plataforma de Intercambio Cultural/Educativo Corea-Latinoamérica
+# AMIKO - Plataforma de Intercambio Cultural/Educativo Corea-Latinoamérica
 
-**Amiko** es una plataforma diseñada para facilitar el intercambio cultural y educativo entre Corea y Latinoamérica. Construida con Next.js (App Router), Supabase y Tailwind CSS, actualmente cuenta con un sistema de pagos centrado en Toss Payments.
+**AMIKO** es una plataforma diseñada para facilitar el intercambio cultural y educativo entre Corea y Latinoamérica. Construida con Next.js (App Router), Supabase y Tailwind CSS, actualmente cuenta con un sistema de pagos centrado en Toss Payments.
 
 ---
 
-# Amiko - 한국-라틴아메리카 문화/교육 교류 플랫폼
+# AMIKO - 한국-라틴아메리카 문화/교육 교류 플랫폼
 
-**Amiko**는 한국과 라틴아메리카 간의 문화 및 교육 교류를 위한 플랫폼입니다. Next.js(App Router), Supabase, Tailwind CSS를 기반으로 구축되었으며, 현재는 Toss Payments를 중심으로 한 결제 시스템이 구현되어 있습니다.
+**AMIKO**는 한국과 라틴아메리카 간의 문화 및 교육 교류를 위한 플랫폼입니다. Next.js(App Router), Supabase, Tailwind CSS를 기반으로 구축되었으며, 현재는 Toss Payments를 중심으로 한 결제 시스템이 구현되어 있습니다.
 
 ---
 

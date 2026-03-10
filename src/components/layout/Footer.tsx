@@ -71,7 +71,7 @@ export default function Footer() {
           {/* 모바일: 저작권 및 정책 */}
           <div className="md:order-1 space-y-2 text-center md:text-left">
             <div className="text-foreground/90 text-xs md:text-sm font-['Inter'] font-medium">
-              © 2025 Amiko. All rights reserved.
+              © 2025 AMIKO. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-muted-foreground font-['Inter'] font-medium">
               <Link href="/privacy" className="hover:text-primary hover:underline transition-all duration-300">

@@ -1,6 +1,6 @@
 # Informe Completo de Mejoras de Rendimiento (ES)
 
-**Proyecto:** Amiko  
+**Proyecto:** AMIKO  
 **Fecha:** 2026-02-17  
 **Objetivo:** Reducir latencia percibida, eliminar polling excesivo, priorizar Realtime y optimizar carga de imágenes/datos.
 

@@ -73,7 +73,7 @@ const tempNewsData = [
     title: '"한국 문화가 세계를 휩쓸고 있다!" 글로벌 K-콘텐츠 열풍',
     title_es: '"¡La cultura coreana está arrasando el mundo!" Torbellino global de contenido K',
     source: 'NewsWA',
-    author: 'Amiko 뉴스팀',
+    author: 'AMIKO 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=face',
     content: `한국의 전통문화와 현대문화가 조화롭게 발전하고 있습니다. K-팝, K-드라마, K-푸드 등 한국 문화 콘텐츠가 전 세계적으로 큰 인기를 얻고 있으며, 이를 통해 한국의 문화적 가치가 더욱 널리 알려지고 있습니다.
@@ -87,7 +87,7 @@ const tempNewsData = [
     title: '"한국어 배우기 열풍" 전 세계 한국어 학습자 급증',
     title_es: '"Torbellino de aprendizaje del coreano" Aumento drástico de estudiantes de coreano en todo el mundo',
     source: 'NewsWA',
-    author: 'Amiko 뉴스팀',
+    author: 'AMIKO 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
     content: `한류 콘텐츠의 인기로 인해 전 세계적으로 한국어 학습 열풍이 불고 있습니다. K-팝 가사와 드라마 대사를 이해하고 싶어하는 팬들이 한국어를 배우기 시작하고 있으며, 이는 한국 문화에 대한 깊은 관심으로 이어지고 있습니다.
@@ -100,7 +100,7 @@ const tempNewsData = [
     id: 3,
     title: '"한국이 다시 핫하다!" 외국인 관광객 몰려드는 충격 현황',
     source: 'NewsWA',
-    author: 'Amiko 뉴스팀',
+    author: 'AMIKO 뉴스팀',
     date: '2025.09.18',
     thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
     content: `한국 관광산업이 코로나19 이후 빠르게 회복되고 있습니다. 서울, 부산, 제주도 등 주요 관광지에 외국인 관광객들이 다시 찾아오고 있으며, 한국의 아름다운 자연과 문화를 경험하고자 하는 관심이 높아지고 있습니다.
@@ -140,7 +140,7 @@ function NewsPageContent() {
     content: '',
     content_es: '',
     source: '',
-    author: 'Amiko 편집팀',
+    author: 'AMIKO 편집팀',
     date: new Date().toISOString().split('T')[0],
     category: 'entertainment'
   })
@@ -173,7 +173,7 @@ function NewsPageContent() {
       content: '',
       content_es: '',
       source: '',
-      author: 'Amiko 편집팀',
+      author: 'AMIKO 편집팀',
       date: new Date().toISOString().split('T')[0],
       category: 'entertainment'
     })
@@ -1592,12 +1592,12 @@ function NewsPageContent() {
                                   {item.source && item.source.trim() ? (
                                     <>
                                       <span>{item.source}</span>
-                                      <span>{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</span>
+                                      <span>{item.author === 'AMIKO 뉴스팀' ? `AMIKO ${t('community.newsTeam')}` : item.author}</span>
                                       <span>{item.date}</span>
                                     </>
                                   ) : (
                                     <>
-                                      <span>{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</span>
+                                      <span>{item.author === 'AMIKO 뉴스팀' ? `AMIKO ${t('community.newsTeam')}` : item.author}</span>
                                       <span>{item.date}</span>
                                     </>
                                   )}
@@ -1809,7 +1809,7 @@ function NewsPageContent() {
                           </div>
                           
                           <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
-                            <div className="block">{item.author === 'Amiko 뉴스팀' ? `Amiko ${t('community.newsTeam')}` : item.author}</div>
+                            <div className="block">{item.author === 'AMIKO 뉴스팀' ? `AMIKO ${t('community.newsTeam')}` : item.author}</div>
                             <div className="block">{item.date}</div>
                           </div>
                           
@@ -1929,10 +1929,10 @@ function NewsPageContent() {
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Amiko">Amiko</SelectItem>
-                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko {t('community.newsTeam')}">Amiko {t('community.newsTeam')}</SelectItem>
-                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                    <SelectItem value="AMIKO">AMIKO</SelectItem>
+                    <SelectItem value="AMIKO 편집팀">AMIKO 편집팀</SelectItem>
+                    <SelectItem value="AMIKO {t('community.newsTeam')}">AMIKO {t('community.newsTeam')}</SelectItem>
+                    <SelectItem value="AMIKO 관리자">AMIKO 관리자</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2086,10 +2086,10 @@ function NewsPageContent() {
                     <SelectValue placeholder="작성자를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Amiko">Amiko</SelectItem>
-                    <SelectItem value="Amiko 편집팀">Amiko 편집팀</SelectItem>
-                    <SelectItem value="Amiko {t('community.newsTeam')}">Amiko {t('community.newsTeam')}</SelectItem>
-                    <SelectItem value="Amiko 관리자">Amiko 관리자</SelectItem>
+                    <SelectItem value="AMIKO">AMIKO</SelectItem>
+                    <SelectItem value="AMIKO 편집팀">AMIKO 편집팀</SelectItem>
+                    <SelectItem value="AMIKO {t('community.newsTeam')}">AMIKO {t('community.newsTeam')}</SelectItem>
+                    <SelectItem value="AMIKO 관리자">AMIKO 관리자</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

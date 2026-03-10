@@ -245,7 +245,7 @@ function CheckoutContent() {
               <PayPalPaymentButton
                 amount={booking.price * 100} // USD 센트 단위로 변환
                 orderId={booking.order_id}
-                orderName={`Amiko - ${booking.topic}`}
+                orderName={`AMIKO - ${booking.topic}`}
                 customerName={user?.email?.split('@')[0] || '고객'}
                 customerEmail={user?.email || ''}
                 bookingId={booking.id}

@@ -42,7 +42,7 @@ El script `supabase-init-es.sql` creará las siguientes tablas:
 ## 📁 Ubicación de Archivos
 
 ```
-Amiko-Project-main/
+AMIKO-Project-main/
 ├── supabase-init-es.sql          # Script de inicialización principal (usa este archivo)
 └── supabase-init-guide-es.md     # Este documento guía
 ```

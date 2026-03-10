@@ -1,5 +1,5 @@
-# Amiko 서비스 법률 검토 문서
-# Documento de Revisión Legal del Servicio Amiko
+# AMIKO 서비스 법률 검토 문서
+# Documento de Revisión Legal del Servicio AMIKO
 
 ---
 
@@ -22,7 +22,7 @@
 
 ### 한국어
 
-**Amiko**는 한국과 멕시코(및 라틴아메리카) 사용자 간의 문화 교류를 위한 플랫폼입니다. 주요 목적은 다음과 같습니다:
+**AMIKO**는 한국과 멕시코(및 라틴아메리카) 사용자 간의 문화 교류를 위한 플랫폼입니다. 주요 목적은 다음과 같습니다:
 
 - **언어 교환**: 한국어와 스페인어 사용자 간의 언어 학습 및 교환
 - **문화 교류**: 한국 문화(K-Pop, K-Drama, K-Beauty 등)에 대한 관심을 가진 사용자들의 커뮤니티 형성
@@ -31,7 +31,7 @@
 
 ### Español
 
-**Amiko** es una plataforma para el intercambio cultural entre usuarios de Corea y México (y América Latina). Los objetivos principales son:
+**AMIKO** es una plataforma para el intercambio cultural entre usuarios de Corea y México (y América Latina). Los objetivos principales son:
 
 - **Intercambio de idiomas**: Aprendizaje e intercambio de idiomas entre usuarios de coreano y español
 - **Intercambio cultural**: Formación de comunidades de usuarios interesados en la cultura coreana (K-Pop, K-Drama, K-Beauty, etc.)
@@ -806,7 +806,7 @@
 
 ### 한국어
 
-본 문서는 Amiko 서비스의 주요 기능, 정책, 법적 리스크를 종합적으로 정리한 것입니다. 법률전문가께서는 다음 사항들을 중점적으로 검토해 주시기 바랍니다:
+본 문서는 AMIKO 서비스의 주요 기능, 정책, 법적 리스크를 종합적으로 정리한 것입니다. 법률전문가께서는 다음 사항들을 중점적으로 검토해 주시기 바랍니다:
 
 1. **연령 제한 정책**: 만 13세 미만 사용자 보호 조치가 충분한지
 2. **개인정보 보호**: GDPR, COPPA 등 국제법 준수 여부
@@ -818,7 +818,7 @@
 
 ### Español
 
-Este documento es una recopilación integral de las principales funcionalidades, políticas y riesgos legales del servicio Amiko. Se solicita a los expertos legales que revisen especialmente los siguientes aspectos:
+Este documento es una recopilación integral de las principales funcionalidades, políticas y riesgos legales del servicio AMIKO. Se solicita a los expertos legales que revisen especialmente los siguientes aspectos:
 
 1. **Política de Restricción de Edad**: Si las medidas de protección para usuarios menores de 13 años son suficientes
 2. **Protección de Información Personal**: Cumplimiento de leyes internacionales como GDPR, COPPA
@@ -832,6 +832,6 @@ Si se encuentra alguna parte que pueda ser problemática legalmente, por favor i
 
 **문서 작성일 / Fecha de Elaboración**: 2025-01-17  
 **다음 검토일 / Próxima Revisión**: 2025-04-17  
-**작성자 / Autor**: Amiko 개발팀 / Equipo de Desarrollo de Amiko
+**작성자 / Autor**: AMIKO 개발팀 / Equipo de Desarrollo de AMIKO
 
 

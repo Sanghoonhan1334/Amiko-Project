@@ -1,7 +1,7 @@
 # GitHub 저장소 연결 가이드
 
 ## 🔗 저장소 정보
-- **GitHub URL**: `https://github.com/Sanghoonhan1334/Amiko-Project.git`
+- **GitHub URL**: `https://github.com/Sanghoonhan1334/AMIKO-Project.git`
 
 ## 📋 단계별 연결 방법
 
@@ -37,7 +37,7 @@ git config --global user.email "your-email@example.com"
 ### 3단계: 프로젝트 폴더로 이동
 
 ```bash
-cd C:\Projects\Amiko-Project
+cd C:\Projects\AMIKO-Project
 ```
 
 ---
@@ -53,12 +53,12 @@ git init
 ### 5단계: 원격 저장소 연결
 
 ```bash
-git remote add origin https://github.com/Sanghoonhan1334/Amiko-Project.git
+git remote add origin https://github.com/Sanghoonhan1334/AMIKO-Project.git
 ```
 
 **이미 원격 저장소가 연결되어 있다면:**
 ```bash
-git remote set-url origin https://github.com/Sanghoonhan1334/Amiko-Project.git
+git remote set-url origin https://github.com/Sanghoonhan1334/AMIKO-Project.git
 ```
 
 **원격 저장소 확인:**
@@ -149,7 +149,7 @@ git remote -v
 
 다음과 같이 나와야 합니다:
 ```
-origin  https://github.com/Sanghoonhan1334/Amiko-Project.git (fetch)
-origin  https://github.com/Sanghoonhan1334/Amiko-Project.git (push)
+origin  https://github.com/Sanghoonhan1334/AMIKO-Project.git (fetch)
+origin  https://github.com/Sanghoonhan1334/AMIKO-Project.git (push)
 ```
 

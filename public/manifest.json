@@ -1,6 +1,6 @@
 {
-  "name": "Amiko App",
-  "short_name": "Amiko",
+  "name": "AMIKO App",
+  "short_name": "AMIKO",
   "description": "Connect with Korean culture through AI video chat, psychological tests, and community features",
   "start_url": "/",
   "display": "standalone",

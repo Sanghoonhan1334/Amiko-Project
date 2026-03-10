@@ -30,6 +30,8 @@ import {
   Home,
   BookOpen,
   Flag,
+  Ban,
+  TrendingUp,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -207,6 +209,18 @@ const navSections: NavSection[] = [
         label: { ko: '포인트 랭킹', es: 'Ranking de Puntos' },
         icon: Trophy,
         description: { ko: '포인트 순위 관리', es: 'Gestionar ranking de puntos' },
+      },
+      {
+        href: '/admin/chat-bans',
+        label: { ko: '채팅금지 관리', es: 'Prohibiciones de Chat' },
+        icon: Ban,
+        description: { ko: '채팅금지 및 영구 추방 관리', es: 'Gestionar prohibiciones y expulsiones' },
+      },
+      {
+        href: '/admin/analytics',
+        label: { ko: '서비스 분석', es: 'Análisis del Servicio' },
+        icon: TrendingUp,
+        description: { ko: '뉴스, 사용자, 트렌드 분석', es: 'Análisis de noticias, usuarios y tendencias' },
       },
     ],
   },

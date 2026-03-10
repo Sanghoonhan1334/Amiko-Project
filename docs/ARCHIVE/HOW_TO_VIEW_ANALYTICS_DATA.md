@@ -40,7 +40,7 @@
    - https://vercel.com/dashboard
 
 2. **프로젝트 선택**
-   - Amiko 프로젝트 클릭
+   - AMIKO 프로젝트 클릭
 
 3. **환경 변수 추가**
    - **Settings** → **Environment Variables**

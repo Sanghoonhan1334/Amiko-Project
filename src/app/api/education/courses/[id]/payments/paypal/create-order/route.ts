@@ -119,7 +119,7 @@ export async function POST(
         }
       ],
       application_context: {
-        brand_name: 'Amiko',
+        brand_name: 'AMIKO',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
         return_url: `${appBase}/education/checkout/${id}?status=success&enrollment=${enrollmentId}`,

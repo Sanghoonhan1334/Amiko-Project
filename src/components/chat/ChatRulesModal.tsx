@@ -33,7 +33,7 @@ export default function ChatRulesModal({ isOpen, onClose, onAgree }: ChatRulesMo
         <DialogHeader className="pb-4 border-b border-gray-200">
           <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-blue-500" />
-            📌 Amiko 채팅 규칙 안내
+            📌 AMIKO 채팅 규칙 안내
           </DialogTitle>
         </DialogHeader>
         
@@ -44,7 +44,7 @@ export default function ChatRulesModal({ isOpen, onClose, onAgree }: ChatRulesMo
               <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-gray-700">
                 <p className="font-semibold text-blue-800 mb-1">멘토 운영 규칙</p>
-                <p>멘토들은 Amiko 플랫폼 내에서만 활동하며, 스펙과 리워드를 받습니다.</p>
+                <p>멘토들은 AMIKO 플랫폼 내에서만 활동하며, 스펙과 리워드를 받습니다.</p>
               </div>
             </div>
             
@@ -60,7 +60,7 @@ export default function ChatRulesModal({ isOpen, onClose, onAgree }: ChatRulesMo
               <Users className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-gray-700">
                 <p className="font-semibold text-green-800 mb-1">Amiko의 서비스</p>
-                <p>Amiko는 번역, 포인트, 안전한 환경을 제공합니다. 모든 대화는 Amiko 내에서만 이루어져야 합니다.</p>
+                <p>Amiko는 번역, 포인트, 안전한 환경을 제공합니다. 모든 대화는 AMIKO 내에서만 이루어져야 합니다.</p>
               </div>
             </div>
           </div>

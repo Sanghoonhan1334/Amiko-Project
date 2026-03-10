@@ -467,10 +467,10 @@ export default function AdminNewsPage() {
                       <SelectValue placeholder={t('작성자를 선택하세요', 'Seleccione el autor')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Amiko">Amiko</SelectItem>
-                      <SelectItem value="Amiko 편집팀">{t('Amiko 편집팀', 'Amiko Equipo Editorial')}</SelectItem>
-                      <SelectItem value="Amiko 뉴스팀">{t('Amiko 뉴스팀', 'Amiko Equipo de Noticias')}</SelectItem>
-                      <SelectItem value="Amiko 관리자">{t('Amiko 관리자', 'Amiko Administrador')}</SelectItem>
+                      <SelectItem value="AMIKO">AMIKO</SelectItem>
+                      <SelectItem value="AMIKO 편집팀">{t('AMIKO 편집팀', 'AMIKO Equipo Editorial')}</SelectItem>
+                      <SelectItem value="AMIKO 뉴스팀">{t('AMIKO 뉴스팀', 'AMIKO Equipo de Noticias')}</SelectItem>
+                      <SelectItem value="AMIKO 관리자">{t('AMIKO 관리자', 'AMIKO Administrador')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -647,10 +647,10 @@ export default function AdminNewsPage() {
                       <SelectValue placeholder={t('작성자를 선택하세요', 'Seleccione el autor')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Amiko">Amiko</SelectItem>
-                      <SelectItem value="Amiko 편집팀">{t('Amiko 편집팀', 'Amiko Equipo Editorial')}</SelectItem>
-                      <SelectItem value="Amiko 뉴스팀">{t('Amiko 뉴스팀', 'Amiko Equipo de Noticias')}</SelectItem>
-                      <SelectItem value="Amiko 관리자">{t('Amiko 관리자', 'Amiko Administrador')}</SelectItem>
+                      <SelectItem value="AMIKO">AMIKO</SelectItem>
+                      <SelectItem value="AMIKO 편집팀">{t('AMIKO 편집팀', 'AMIKO Equipo Editorial')}</SelectItem>
+                      <SelectItem value="AMIKO 뉴스팀">{t('AMIKO 뉴스팀', 'AMIKO Equipo de Noticias')}</SelectItem>
+                      <SelectItem value="AMIKO 관리자">{t('AMIKO 관리자', 'AMIKO Administrador')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

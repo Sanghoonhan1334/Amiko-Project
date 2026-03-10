@@ -92,7 +92,7 @@ git push origin main
 ### 방법 1 실행 (main에 커밋)
 
 ```bash
-cd "/Users/admin/Desktop/사업 관련 파일/Amiko-Project-main"
+cd "/Users/admin/Desktop/사업 관련 파일/AMIKO-Project-main"
 
 # 파일 추가
 git add database/paypal-payment-schema.sql \
@@ -115,7 +115,7 @@ git push origin main
 ### 방법 2 실행 (마리아 브랜치에 커밋)
 
 ```bash
-cd "/Users/admin/Desktop/사업 관련 파일/Amiko-Project-main"
+cd "/Users/admin/Desktop/사업 관련 파일/AMIKO-Project-main"
 
 # 마리아 브랜치로 전환
 git checkout feature/payments-paypal-maria

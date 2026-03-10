@@ -10,12 +10,12 @@
 - 첫 방문이면 "측정 시작" 버튼 클릭
 
 ### 1-3. 계정 만들기
-- **계정 이름**: `Amiko` (원하는 이름)
+- **계정 이름**: `AMIKO` (원하는 이름)
 - **계정 데이터 공유 설정**: 모두 체크
 - **다음** 클릭
 
 ### 1-4. 속성 만들기 (가장 중요!)
-- **속성 이름**: `Amiko Website`
+- **속성 이름**: `AMIKO Website`
 - **보고 시간대**: `대한민국 시간대 (GMT+09:00)`
 - **화폐**: `KRW (원)`
 - **다음** 클릭
@@ -39,7 +39,7 @@
 
 1. **웹** 클릭
 2. **웹사이트 URL**: `https://www.helloamiko.com`
-3. **스트림 이름**: `Amiko Main Website`
+3. **스트림 이름**: `AMIKO Main Website`
 4. **스트림 만들기** 클릭
 
 ### 2-2. Measurement ID 복사
@@ -99,7 +99,7 @@ npm run dev
 👉 https://vercel.com/dashboard
 
 ### 5-2. 프로젝트 선택
-Amiko 프로젝트 클릭
+AMIKO 프로젝트 클릭
 
 ### 5-3. Settings → Environment Variables
 좌측 메뉴에서:

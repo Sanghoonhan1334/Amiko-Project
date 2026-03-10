@@ -2,7 +2,7 @@
 
 ## 📋 개요
 
-Amiko 플랫폼에 Google Analytics 4를 설정하는 방법입니다.
+AMIKO 플랫폼에 Google Analytics 4를 설정하는 방법입니다.
 
 ## 🔧 설정 방법
 
@@ -15,14 +15,14 @@ Amiko 플랫폼에 Google Analytics 4를 설정하는 방법입니다.
 2. **속성(Property) 생성**
    - 좌측 하단 "관리" 클릭
    - "속성 만들기" 클릭
-   - 속성 이름 입력 (예: "Amiko Web")
+   - 속성 이름 입력 (예: "AMIKO Web")
    - 보고 시간대 선택 (KST - 한국 시간대)
    - 화폐 선택 (KRW)
 
 3. **데이터 스트림 설정**
    - "웹" 선택
    - 웹사이트 URL 입력: `https://www.helloamiko.com`
-   - 스트림 이름 입력: "Amiko Main Website"
+   - 스트림 이름 입력: "AMIKO Main Website"
 
 4. **Measurement ID 확인**
    - 생성된 데이터 스트림에서 "측정 ID" 복사
@@ -47,7 +47,7 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
    - https://vercel.com/dashboard 접속
 
 2. **프로젝트 선택**
-   - Amiko 프로젝트 선택
+   - AMIKO 프로젝트 선택
 
 3. **환경 변수 추가**
    - "Settings" → "Environment Variables" 클릭
@@ -193,5 +193,5 @@ src/
 ---
 
 **작성일**: 2025-01-27  
-**작성자**: Amiko Development Team
+**작성자**: AMIKO Development Team
 
