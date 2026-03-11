@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
 
-// Server-side client with service role key to bypass RLS
-const supabaseAdmin = createClient(
-  supabaseUrl,
-  supabaseServiceKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
-
-// 일반 클라이언트 (인증 확인용)
-const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
 
 export async function DELETE(
   request: NextRequest,
@@ -39,6 +36,9 @@ export async function DELETE(
 
     const token = authHeader.replace('Bearer ', '')
     
+    const supabase = getSupabase()
+    const supabaseAdmin = getSupabaseAdmin()
+
     // 토큰으로 사용자 정보 가져오기
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     

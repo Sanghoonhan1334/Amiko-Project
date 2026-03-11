@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth, isAdminUser } from '@/lib/education-auth'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 // POST /api/admin/education/courses/[id]/review-decision
 // El administrador toma una decisión sobre un curso enviado a revisión
@@ -13,8 +15,10 @@ const supabase = createClient(
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
+
 ) {
   try {
+    const supabase = getSupabaseAdmin()
     const { id } = await params
     const auth = await requireEducationAuth(request)
     if (auth.error) return auth.error
