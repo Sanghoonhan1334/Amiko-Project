@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth } from '@/lib/education-auth'
 import { getPayPalOrder, capturePayPalOrder } from '@/lib/paypal-server'
+import { checkRateLimit, getRateLimitIdentity } from '@/lib/education-rate-limiter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +21,12 @@ export async function POST(
     const auth = await requireEducationAuth(request)
     if (auth.error) return auth.error
     const user_id = auth.user.id
+
+    // Rate limit: max 3 capture attempts per user per minute
+    if (!checkRateLimit('edu-capture', getRateLimitIdentity(request, user_id), 3)) {
+      return NextResponse.json({ error: 'Too many requests. Please wait before trying again.' }, { status: 429 })
+    }
+
     const { paypal_order_id } = await request.json()
 
     if (!paypal_order_id) {
@@ -152,21 +159,8 @@ export async function POST(
       })
       .eq('paypal_order_id', paypal_order_id)
 
-    // Incrementar enrolled_count en el curso
-    // (el trigger DB solo funciona en INSERT con payment_status='completed',
-    //  pero create-order inserta con 'pending' y aquí hacemos UPDATE)
-    const { data: currentCourse } = await supabase
-      .from('education_courses')
-      .select('enrolled_count')
-      .eq('id', id)
-      .single()
-
-    if (currentCourse) {
-      await supabase
-        .from('education_courses')
-        .update({ enrolled_count: (currentCourse.enrolled_count || 0) + 1 })
-        .eq('id', id)
-    }
+    // Incrementar enrolled_count — operación atómica para evitar race conditions
+    await supabase.rpc('increment_course_enrolled_count', { p_course_id: id })
 
     // Notificar al estudiante
     const courseSlug = course.slug || id

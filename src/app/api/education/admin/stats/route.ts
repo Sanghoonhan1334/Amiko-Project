@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const totalRevenue = revenueData?.reduce((sum, e) => sum + (parseFloat(String(e.amount_paid)) || 0), 0) || 0
 
-    // Pending courses for review
+    // Pending courses for review (submitted_for_review / pending_review)
     const { data: pendingCourses } = await supabase
       .from('education_courses')
       .select(`
@@ -50,6 +50,16 @@ export async function GET(request: NextRequest) {
         instructor:instructor_profiles(display_name, photo_url)
       `)
       .in('status', ['pending_review', 'submitted_for_review'])
+      .order('created_at', { ascending: false })
+
+    // Approved courses waiting for instructor to publish
+    const { data: approvedCourses } = await supabase
+      .from('education_courses')
+      .select(`
+        *,
+        instructor:instructor_profiles(display_name, photo_url)
+      `)
+      .eq('status', 'approved')
       .order('created_at', { ascending: false })
 
     return NextResponse.json({
@@ -61,7 +71,8 @@ export async function GET(request: NextRequest) {
         totalRevenue,
         pendingApprovals: pendingApprovals || 0
       },
-      pendingCourses: pendingCourses || []
+      pendingCourses: pendingCourses || [],
+      approvedCourses: approvedCourses || []
     })
   } catch (err) {
     console.error('[Education] admin stats error:', err)

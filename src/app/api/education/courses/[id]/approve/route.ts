@@ -24,7 +24,7 @@ export async function POST(
 
     const { data, error } = await supabase
       .from('education_courses')
-      .update({ status: 'published' })
+      .update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user.id })
       .eq('id', id)
       .in('status', ['pending_review', 'submitted_for_review'])
       .select(`
@@ -37,27 +37,30 @@ export async function POST(
       return NextResponse.json({ error: 'Course not found or not pending review' }, { status: 404 })
     }
 
-    // Notify the instructor their course was approved
+    // Notify the instructor their course was approved and ready to publish
     const instructorUserId = data.instructor?.user_id
     if (instructorUserId) {
       await supabase.from('notifications').insert({
         user_id: instructorUserId,
         type: 'education_course_approved',
         title: '✅ ¡Curso aprobado!',
-        message: `Tu curso "${data.title}" ha sido aprobado y publicado en el marketplace.`,
-        link: `/education/course/${data.slug || data.id}`,
+        message: `Tu curso "${data.title}" ha sido aprobado. Ahora puedes publicarlo en el marketplace desde tu panel de instructor.`,
+        link: `/education?tab=instructor`,
         is_read: false
       })
     }
 
     // Record in status history for audit trail
-    await supabase.from('course_status_history').insert({
+    const { error: historyError } = await supabase.from('course_status_history').insert({
       course_id: id,
       previous_status: 'submitted_for_review',
-      new_status: 'published',
+      new_status: 'approved',
       changed_by: auth.user.id,
-      notes: 'Course approved by admin'
-    }) // silently ignore if table not yet created
+      notes: 'Course approved by admin — pending instructor publish'
+    })
+    if (historyError) {
+      console.error('[Education] Failed to record status history for approve:', historyError)
+    }
 
     return NextResponse.json({ course: data })
   } catch (err) {

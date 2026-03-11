@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth } from '@/lib/education-auth'
 import { RtcTokenBuilder, RtcRole } from 'agora-token'
+import { checkRateLimit, getRateLimitIdentity } from '@/lib/education-rate-limiter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +23,11 @@ export async function POST(
     const auth = await requireEducationAuth(request)
     if (auth.error) return auth.error
     const user_id = auth.user.id
+
+    // Rate limit: max 10 token requests per user per minute
+    if (!checkRateLimit('edu-access-token', getRateLimitIdentity(request, user_id), 10)) {
+      return NextResponse.json({ error: 'Too many token requests. Please wait before trying again.' }, { status: 429 })
+    }
 
     // Obtener sesión
     const { data: session, error } = await supabase
@@ -137,7 +143,7 @@ export async function POST(
       appCertificate,
       channelName,
       uid,
-      RtcRole.PUBLISHER,
+      isInstructor ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER,
       tokenExpireSeconds,
       tokenExpireSeconds
     )
@@ -147,7 +153,7 @@ export async function POST(
       channel: channelName,
       uid,
       token,
-      role: 'publisher',
+      role: isInstructor ? 'publisher' : 'subscriber',
       is_instructor: isInstructor,
       allow_recording: (session.course as { allow_recording?: boolean } | null)?.allow_recording || false,
       expires_at: expiresAt.toISOString(),

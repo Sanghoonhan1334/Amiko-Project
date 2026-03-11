@@ -5,6 +5,7 @@ import {
   translateEducationCaption,
   type EducationCaptionForTranslation,
 } from '@/lib/education-translation'
+import { checkRateLimit, getRateLimitIdentity } from '@/lib/education-rate-limiter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,6 +40,11 @@ export async function POST(
     const auth = await requireEducationAuth(request)
     if (auth.error) return auth.error
     const userId = auth.user.id
+
+    // Rate limit: max 30 caption submits per user per minute
+    if (!checkRateLimit('edu-captions-events', getRateLimitIdentity(request, userId), 30)) {
+      return NextResponse.json({ error: 'Too many caption events. Please slow down.' }, { status: 429 })
+    }
 
     // Verify session exists and is live
     const { data: session, error: sessionError } = await supabase

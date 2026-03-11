@@ -56,13 +56,16 @@ export async function POST(
     }
 
     // Record in status history for audit trail
-    await supabase.from('course_status_history').insert({
+    const { error: historyError } = await supabase.from('course_status_history').insert({
       course_id: id,
       previous_status: 'submitted_for_review',
       new_status: 'rejected',
       changed_by: auth.user.id,
       notes: `Rejected: ${reason}`
-    }) // silently ignore if table not yet created
+    })
+    if (historyError) {
+      console.error('[Education] Failed to record status history for reject:', historyError)
+    }
 
     return NextResponse.json({ course: data })
   } catch (err) {

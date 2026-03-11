@@ -67,8 +67,8 @@ and any term wrapped in __GLOSSARY_n__ placeholders — restore those exactly.
 Text:`
 }
 
-// ── DeepSeek direct call (bypasses TranslationService for prompt control) ─────
-async function callDeepSeek(
+// ── DeepSeek direct call with timeout + 1 retry ──────────────────────────────
+async function callDeepSeekOnce(
   text: string,
   sourceLang: string,
   targetLang: string
@@ -76,23 +76,35 @@ async function callDeepSeek(
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) throw new Error('DEEPSEEK_API_KEY not configured')
 
-  const response = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system', content: buildSystemPrompt(sourceLang, targetLang) },
-        { role: 'user', content: text },
-      ],
-      max_tokens: 512,
-      temperature: 0.1,    // low temperature = deterministic, best for translation
-      stream: false,
-    }),
-  })
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 8_000)
+
+  let response: Response
+  try {
+    response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: buildSystemPrompt(sourceLang, targetLang) },
+          { role: 'user', content: text },
+        ],
+        max_tokens: 512,
+        temperature: 0.1,    // low temperature = deterministic, best for translation
+        stream: false,
+      }),
+    })
+  } catch (err: unknown) {
+    const isAbort = err instanceof Error && err.name === 'AbortError'
+    throw new Error(isAbort ? 'DeepSeek request timed out (8 s)' : String(err))
+  } finally {
+    clearTimeout(timeoutId)
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => '')
@@ -103,6 +115,26 @@ async function callDeepSeek(
   const content: string = data.choices?.[0]?.message?.content?.trim() ?? ''
   if (!content) throw new Error('Empty response from DeepSeek')
   return content
+}
+
+/**
+ * Calls DeepSeek with 1 automatic retry on failure.
+ * Waits 500 ms before the retry to allow transient issues to clear.
+ */
+async function callDeepSeek(
+  text: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<string> {
+  try {
+    return await callDeepSeekOnce(text, sourceLang, targetLang)
+  } catch (firstErr: unknown) {
+    const msg = firstErr instanceof Error ? firstErr.message : String(firstErr)
+    console.warn('[EducationTranslation] DeepSeek first attempt failed, retrying in 500ms:', msg)
+    await new Promise(resolve => setTimeout(resolve, 500))
+    // Let the second failure propagate naturally — caller handles fallback
+    return await callDeepSeekOnce(text, sourceLang, targetLang)
+  }
 }
 
 // ── Fallback: mock translation for development ────────────────────────────────

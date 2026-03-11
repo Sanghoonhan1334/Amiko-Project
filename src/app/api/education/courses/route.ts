@@ -148,6 +148,71 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: courseError.message }, { status: 500 })
     }
 
+    // Validate sessions: no future-date requirement, no self-overlap, no instructor conflict
+    if (sessions && sessions.length > 0) {
+      const durationMs = (class_duration_minutes || 60) * 60 * 1000
+
+      // 1. Validate all session dates are in the future
+      const invalidDates = sessions
+        .map((s: { scheduled_at: string }, i: number) => ({ idx: i + 1, date: new Date(s.scheduled_at) }))
+        .filter(({ date }: { idx: number; date: Date }) => isNaN(date.getTime()) || date <= new Date())
+      if (invalidDates.length > 0) {
+        // Roll back course creation
+        await supabase.from('education_courses').delete().eq('id', course.id)
+        return NextResponse.json({
+          error: 'All sessions must have a valid future date.',
+          invalid_sessions: invalidDates.map((d: { idx: number; date: Date }) => d.idx)
+        }, { status: 422 })
+      }
+
+      // 2. Detect self-overlap within the submitted sessions
+      const sorted = [...sessions].sort(
+        (a: { scheduled_at: string }, b: { scheduled_at: string }) =>
+          new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+      )
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const endOfCurrent = new Date(sorted[i].scheduled_at).getTime() + durationMs
+        const startOfNext = new Date(sorted[i + 1].scheduled_at).getTime()
+        if (startOfNext < endOfCurrent) {
+          await supabase.from('education_courses').delete().eq('id', course.id)
+          return NextResponse.json({
+            error: `Sessions ${sorted[i].session_number || i + 1} and ${sorted[i + 1].session_number || i + 2} overlap. Adjust their scheduled times.`
+          }, { status: 422 })
+        }
+      }
+
+      // 3. Check for conflicts with the instructor's existing sessions
+      const allDates = sessions.map((s: { scheduled_at: string }) => new Date(s.scheduled_at))
+      const earliestStart = new Date(Math.min(...allDates.map((d: Date) => d.getTime())))
+      const latestEnd = new Date(Math.max(...allDates.map((d: Date) => d.getTime())) + durationMs)
+
+      const { data: conflictingSessions } = await supabase
+        .from('education_sessions')
+        .select('id, scheduled_at, session_number')
+        .in('status', ['scheduled', 'ready', 'live'])
+        .gte('scheduled_at', earliestStart.toISOString())
+        .lte('scheduled_at', latestEnd.toISOString())
+        .in('course_id',
+          (await supabase
+            .from('education_courses')
+            .select('id')
+            .eq('instructor_id', instructor_id)
+            .neq('id', course.id)
+          ).data?.map((c: { id: string }) => c.id) || []
+        )
+
+      if (conflictingSessions && conflictingSessions.length > 0) {
+        await supabase.from('education_courses').delete().eq('id', course.id)
+        return NextResponse.json({
+          error: 'One or more sessions conflict with the instructor\'s existing schedule.',
+          conflicting: conflictingSessions.map((s: { scheduled_at: string; session_number: number }) => ({
+            scheduled_at: s.scheduled_at,
+            session_number: s.session_number
+          }))
+        }, { status: 422 })
+      }
+    }
+
     // Create sessions if provided
     if (sessions && sessions.length > 0) {
       const sessionRecords = sessions.map((s: { session_number: number; title: string; description: string; scheduled_at: string }, idx: number) => ({

@@ -225,6 +225,17 @@ export async function POST(request: NextRequest) {
         .from('education_courses')
         .update({ status: 'completed' })
         .eq('id', session.course_id)
+
+      const { error: historyError } = await supabase
+        .from('course_status_history')
+        .insert({
+          course_id: session.course_id,
+          previous_status: 'in_progress',
+          new_status: 'completed',
+          changed_by: user_id,
+          notes: 'All sessions completed — course auto-closed',
+        })
+      if (historyError) console.error('[Education] Failed to record course completion history:', historyError)
     }
 
     // Get attendance summary

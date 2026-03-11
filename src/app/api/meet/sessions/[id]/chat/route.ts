@@ -30,13 +30,7 @@ export async function GET(
 
     let query = supabaseServer
       .from('amiko_meet_chat_messages')
-      .select(`
-        *,
-        user:user_id (
-          id,
-          raw_user_meta_data
-        )
-      `)
+      .select('id, content, message_type, created_at, user_id')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true })
       .limit(limit)
@@ -51,17 +45,31 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const messages = (data || []).map((m: any) => ({
-      id: m.id,
-      content: m.content,
-      message_type: m.message_type,
-      created_at: m.created_at,
-      user_id: m.user_id,
-      user_name: m.user?.raw_user_meta_data?.full_name
-        || m.user?.raw_user_meta_data?.nickname
-        || 'Anónimo',
-      user_avatar: m.user?.raw_user_meta_data?.avatar_url || null,
-    }))
+    // Fetch user info for message senders
+    const userIds = [...new Set((data || []).map((m: any) => m.user_id).filter(Boolean))]
+    let userMap: Record<string, { full_name?: string; nickname?: string; profile_image?: string }> = {}
+    if (userIds.length > 0) {
+      const { data: usersData } = await (supabaseServer as any)
+        .from('users')
+        .select('id, full_name, nickname, profile_image')
+        .in('id', userIds)
+      for (const u of (usersData || [])) {
+        userMap[u.id] = u
+      }
+    }
+
+    const messages = (data || []).map((m: any) => {
+      const u = userMap[m.user_id]
+      return {
+        id: m.id,
+        content: m.content,
+        message_type: m.message_type,
+        created_at: m.created_at,
+        user_id: m.user_id,
+        user_name: u?.full_name || u?.nickname || 'Anónimo',
+        user_avatar: u?.profile_image || null,
+      }
+    })
 
     return NextResponse.json({ messages })
   } catch (err) {
@@ -101,25 +109,25 @@ export async function POST(
     }
 
     // Verify user is a participant
-    const { data: participant } = await supabaseServer
+    const { data: participant } = await (supabaseServer as any)
       .from('amiko_meet_participants')
       .select('id, status')
       .eq('session_id', sessionId)
       .eq('user_id', user.id)
       .single()
 
-    if (!participant || !['enrolled', 'joined'].includes(participant.status)) {
+    if (!participant || !['enrolled', 'joined'].includes((participant as any).status)) {
       return NextResponse.json({ error: 'Not authorized to chat' }, { status: 403 })
     }
 
     // Verify session is active
-    const { data: session } = await supabaseServer
+    const { data: sessionCheck } = await (supabaseServer as any)
       .from('amiko_meet_sessions')
       .select('status')
       .eq('id', sessionId)
       .single()
 
-    if (!session || !['scheduled', 'live'].includes(session.status)) {
+    if (!sessionCheck || !['scheduled', 'live'].includes((sessionCheck as any).status)) {
       return NextResponse.json({ error: 'Session is not active' }, { status: 400 })
     }
 

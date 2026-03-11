@@ -13,47 +13,54 @@ export async function GET(
 
     const { id } = await context.params
 
-    const { data: session, error } = await supabaseServer
+    const { data: sessionRaw, error } = await supabaseServer
       .from('amiko_meet_sessions')
-      .select(`
-        *,
-        host:host_id (
-          id,
-          raw_user_meta_data
-        ),
-        participants:amiko_meet_participants (
-          id,
-          user_id,
-          role,
-          status,
-          enrolled_at,
-          user:user_id (
-            id,
-            raw_user_meta_data
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single()
 
-    if (error || !session) {
+    if (error || !sessionRaw) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    // Parse host info
+    const session = sessionRaw as any
+
+    // Fetch participants
+    const { data: participantsData } = await supabaseServer
+      .from('amiko_meet_participants')
+      .select('id, user_id, role, status, enrolled_at')
+      .eq('session_id', id)
+
+    // Fetch user info for host + participants from public.users
+    const userIds = [...new Set([
+      (session as any).host_id,
+      ...((participantsData || []).map((p: any) => p.user_id)),
+    ].filter(Boolean))]
+
+    let userMap: Record<string, { full_name?: string; nickname?: string; profile_image?: string }> = {}
+    if (userIds.length > 0) {
+      const { data: usersData } = await supabaseServer
+        .from('users')
+        .select('id, full_name, nickname, profile_image')
+        .in('id', userIds)
+      for (const u of (usersData || [])) {
+        userMap[(u as any).id] = u as any
+      }
+    }
+
+    const hostUser = userMap[(session as any).host_id]
     const result = {
       ...session,
-      host_name: (session as any).host?.raw_user_meta_data?.full_name
-        || (session as any).host?.raw_user_meta_data?.nickname
-        || 'Anónimo',
-      host_avatar: (session as any).host?.raw_user_meta_data?.avatar_url || null,
-      participants: ((session as any).participants || []).map((p: any) => ({
-        ...p,
-        user_name: p.user?.raw_user_meta_data?.full_name
-          || p.user?.raw_user_meta_data?.nickname
-          || 'Anónimo',
-        user_avatar: p.user?.raw_user_meta_data?.avatar_url || null,
-      })),
+      host_name: hostUser?.full_name || hostUser?.nickname || 'Anónimo',
+      host_avatar: hostUser?.profile_image || null,
+      participants: (participantsData || []).map((p: any) => {
+        const pu = userMap[p.user_id]
+        return {
+          ...p,
+          display_name: pu?.full_name || pu?.nickname || 'Anónimo',
+          avatar_url: pu?.profile_image || null,
+        }
+      }),
     }
 
     return NextResponse.json({ session: result })
@@ -87,15 +94,17 @@ export async function PATCH(
     const body = await request.json()
 
     // Verify ownership or admin
-    const { data: session } = await supabaseServer
+    const { data: sessionCheck } = await supabaseServer
       .from('amiko_meet_sessions')
       .select('host_id, status')
       .eq('id', id)
       .single()
 
-    if (!session) {
+    if (!sessionCheck) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
+
+    const session = sessionCheck as any
 
     // Check admin
     const { data: adminUser } = await supabaseServer
@@ -142,9 +151,9 @@ export async function PATCH(
     if (body.status === 'live') allowedUpdates.started_at = new Date().toISOString()
     if (body.status === 'completed') allowedUpdates.ended_at = new Date().toISOString()
 
-    const { data, error } = await supabaseServer
+    const { data, error } = await (supabaseServer as any)
       .from('amiko_meet_sessions')
-      .update(allowedUpdates as any)
+      .update(allowedUpdates)
       .eq('id', id)
       .select()
       .single()

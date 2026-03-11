@@ -70,7 +70,7 @@ export async function POST(
     }
 
     // 3. Only instructor or admin
-    const course = session.course as {
+    const course = session.course as unknown as {
       id: string
       teaching_language: string
       instructor?: { user_id?: string }
@@ -184,7 +184,10 @@ export async function POST(
           config: {
             features: ['RECOGNIZE'],
             recognizeConfig: {
-              language: sourceLanguages[0] === 'ko' ? 'ko-KR' : sourceLanguages[0] === 'es' ? 'es-ES' : 'en-US',
+              language: mapToLocale(sourceLanguages[0]),
+              ...(sourceLanguages.length > 1 && {
+                alternativeLanguageCodes: sourceLanguages.slice(1).map(mapToLocale),
+              }),
               profanityFilter: false,
               output: {
                 destinations: ['AgoraRTCDataStream'],
@@ -241,6 +244,19 @@ export async function POST(
 }
 
 // ── Helpers ──────────────────────────────────────────
+
+/** Maps short language codes to BCP-47 locales required by Agora STT. */
+function mapToLocale(lang: string): string {
+  const localeMap: Record<string, string> = {
+    ko: 'ko-KR', korean: 'ko-KR',
+    es: 'es-ES', spanish: 'es-ES',
+    en: 'en-US', english: 'en-US',
+    ja: 'ja-JP', japanese: 'ja-JP',
+    zh: 'zh-CN', chinese: 'zh-CN',
+    pt: 'pt-BR', portuguese: 'pt-BR',
+  }
+  return localeMap[lang] ?? 'en-US'
+}
 
 function mapTeachingLanguage(lang: string): string {
   const map: Record<string, string> = { ko: 'ko', korean: 'ko', es: 'es', spanish: 'es', en: 'en', bilingual: 'ko' }

@@ -35,7 +35,7 @@ export async function POST(
         rejection_reason: reason
       })
       .eq('id', id)
-      .in('status', ['submitted_for_review'])
+      .in('status', ['pending_review', 'submitted_for_review'])
       .select(`
         id, title, slug,
         instructor:instructor_profiles(user_id)
@@ -60,15 +60,16 @@ export async function POST(
     }
 
     // Record in status history
-    try {
-      await supabase.from('course_status_history').insert({
-        course_id: id,
-        previous_status: 'submitted_for_review',
-        new_status: 'changes_requested',
-        changed_by: auth.user.id,
-        notes: `Changes requested: ${reason}`
-      })
-    } catch { /* table may not exist yet */ }
+    const { error: historyError } = await supabase.from('course_status_history').insert({
+      course_id: id,
+      previous_status: 'submitted_for_review',
+      new_status: 'changes_requested',
+      changed_by: auth.user.id,
+      notes: `Changes requested: ${reason}`
+    })
+    if (historyError) {
+      console.error('[Education] Failed to record status history for request-changes:', historyError)
+    }
 
     return NextResponse.json({ course: data })
   } catch (err) {

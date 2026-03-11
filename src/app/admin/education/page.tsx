@@ -17,7 +17,7 @@ import {
 import {
   GraduationCap, BookOpen, Users, DollarSign, Clock,
   CheckCircle, XCircle, Eye, AlertTriangle, BarChart3,
-  MessageSquare, Calendar, Globe, Star
+  MessageSquare, Calendar, Globe, Star, Send
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { EducationCourse, EducationAdminStats } from '@/types/education'
@@ -30,6 +30,7 @@ export default function AdminEducationPage() {
   const { token } = useAuth()
   const [stats, setStats] = useState<EducationAdminStats | null>(null)
   const [pendingCourses, setPendingCourses] = useState<EducationCourse[]>([])
+  const [approvedCourses, setApprovedCourses] = useState<EducationCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<EducationCourse | null>(null)
   const [previewCourse, setPreviewCourse] = useState<EducationCourse | null>(null)
@@ -38,15 +39,23 @@ export default function AdminEducationPage() {
   const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
+    if (!token) return
     fetchData()
-  }, [])
+  }, [token])
 
   const fetchData = async () => {
+    if (!token) return
     try {
-      const res = await fetch('/api/education/admin/stats')
+      const res = await fetch('/api/education/admin/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) {
+        throw new Error(`Failed to fetch admin stats (${res.status})`)
+      }
       const data = await res.json()
       setStats(data.stats)
       setPendingCourses(data.pendingCourses || [])
+      setApprovedCourses(data.approvedCourses || [])
     } catch (err) {
       console.error('Error:', err)
     } finally {
@@ -55,11 +64,15 @@ export default function AdminEducationPage() {
   }
 
   const handleApprove = async (courseId: string) => {
+    if (!token) return
     setActionLoading(true)
     try {
       const res = await fetch(`/api/education/courses/${courseId}/approve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       })
       if (res.ok) {
         setPendingCourses(prev => prev.filter(c => c.id !== courseId))
@@ -74,12 +87,15 @@ export default function AdminEducationPage() {
   }
 
   const handleReject = async () => {
-    if (!selectedCourse || !reasonText) return
+    if (!selectedCourse || !reasonText || !token) return
     setActionLoading(true)
     try {
       const res = await fetch(`/api/education/courses/${selectedCourse.id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ reason: reasonText })
       })
       if (res.ok) {
@@ -95,12 +111,15 @@ export default function AdminEducationPage() {
   }
 
   const handleRequestChanges = async () => {
-    if (!selectedCourse || !reasonText) return
+    if (!selectedCourse || !reasonText || !token) return
     setActionLoading(true)
     try {
       const res = await fetch(`/api/education/courses/${selectedCourse.id}/request-changes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ reason: reasonText })
       })
       if (res.ok) {
@@ -121,7 +140,29 @@ export default function AdminEducationPage() {
     setSelectedCourse(null)
   }
 
-  if (loading) {
+  const handlePublish = async (courseId: string) => {
+    if (!token) return
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/education/courses/${courseId}/publish`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (res.ok) {
+        setApprovedCourses(prev => prev.filter(c => c.id !== courseId))
+        fetchData()
+      }
+    } catch (err) {
+      console.error('Error:', err)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  if (!token || loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -305,6 +346,91 @@ export default function AdminEducationPage() {
           </div>
         )}
       </div>
+
+      {/* Approved — Waiting for Instructor to Publish */}
+      {approvedCourses.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Send className="w-5 h-5 text-green-500" />
+            Aprobados — en espera de publicación
+            <Badge className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              {approvedCourses.length}
+            </Badge>
+          </h2>
+          <div className="space-y-3">
+            {approvedCourses.map(course => {
+              const instructor = (course as EducationCourse & { instructor?: { display_name: string; photo_url?: string } }).instructor
+              return (
+                <Card key={course.id} className="border-border/50 border-l-4 border-l-green-500">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <div className="w-full sm:w-24 h-20 sm:h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/5 overflow-hidden">
+                        {course.thumbnail_url ? (
+                          <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <BookOpen className="w-8 h-8 text-green-500/30" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{course.title}</h3>
+                          <Badge className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 flex-shrink-0">
+                            Aprobado
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{course.description}</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1">
+                            <GraduationCap className="w-3 h-3" />
+                            {instructor?.display_name || '—'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="w-3 h-3" />
+                            ${course.price_usd}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            {course.total_classes} sesiones
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3" />
+                            {course.teaching_language}
+                          </span>
+                        </div>
+                        <p className="text-xs text-green-600 dark:text-green-400 mb-2">
+                          ✅ Aprobado por el equipo AMIKO. Esperando que el instructor publique el curso.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() => setPreviewCourse(course)}
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            Vista previa
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
+                            onClick={() => handlePublish(course.id)}
+                            disabled={actionLoading}
+                          >
+                            <Send className="w-3.5 h-3.5 mr-1" />
+                            Forzar publicación
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Course Preview Dialog */}
       <Dialog open={!!previewCourse} onOpenChange={() => setPreviewCourse(null)}>

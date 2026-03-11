@@ -114,19 +114,8 @@ async function handleCaptureCompleted(resource: Record<string, unknown>) {
     })
     .eq('id', enrollment.id)
 
-  // Increment enrolled_count on the course
-  const { data: currentCourse } = await supabase
-    .from('education_courses')
-    .select('enrolled_count')
-    .eq('id', enrollment.course_id)
-    .single()
-
-  if (currentCourse) {
-    await supabase
-      .from('education_courses')
-      .update({ enrolled_count: (currentCourse.enrolled_count || 0) + 1 })
-      .eq('id', enrollment.course_id)
-  }
+  // Increment enrolled_count — operación atómica para evitar race conditions
+  await supabase.rpc('increment_course_enrolled_count', { p_course_id: enrollment.course_id })
 
   // Update course_payments record
   await supabase
@@ -206,19 +195,8 @@ async function handleCaptureRefunded(resource: Record<string, unknown>) {
     })
     .eq('id', enrollment.id)
 
-  // Decrement enrolled_count on refund
-  const { data: currentCourse } = await supabase
-    .from('education_courses')
-    .select('enrolled_count')
-    .eq('id', enrollment.course_id)
-    .single()
-
-  if (currentCourse && (currentCourse.enrolled_count || 0) > 0) {
-    await supabase
-      .from('education_courses')
-      .update({ enrolled_count: currentCourse.enrolled_count - 1 })
-      .eq('id', enrollment.course_id)
-  }
+  // Decrement enrolled_count — operación atómica (nunca baja de 0)
+  await supabase.rpc('decrement_course_enrolled_count', { p_course_id: enrollment.course_id })
 
   // Notify student
   await supabase.from('notifications').insert({

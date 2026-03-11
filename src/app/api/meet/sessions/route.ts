@@ -15,13 +15,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseServer
       .from('amiko_meet_sessions')
-      .select(`
-        *,
-        host:host_id (
-          id,
-          raw_user_meta_data
-        )
-      `)
+      .select('*')
       .order('scheduled_at', { ascending: true })
       .limit(limit)
 
@@ -45,15 +39,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Parse host info from raw_user_meta_data
-    const sessions = (data || []).map((s: any) => ({
-      ...s,
-      host_name: s.host?.raw_user_meta_data?.full_name
-        || s.host?.raw_user_meta_data?.nickname
-        || s.host?.raw_user_meta_data?.korean_name
-        || 'Anónimo',
-      host_avatar: s.host?.raw_user_meta_data?.avatar_url || null,
-    }))
+    // Fetch host info from public.users for all unique host_ids
+    const hostIds = [...new Set((data || []).map((s: any) => s.host_id).filter(Boolean))]
+    let hostMap: Record<string, { full_name?: string; nickname?: string; profile_image?: string }> = {}
+    if (hostIds.length > 0) {
+      const { data: usersData } = await supabaseServer
+        .from('users')
+        .select('id, full_name, nickname, profile_image')
+        .in('id', hostIds)
+      for (const u of (usersData || [])) {
+        hostMap[(u as any).id] = u as any
+      }
+    }
+
+    const sessions = (data || []).map((s: any) => {
+      const host = hostMap[s.host_id]
+      return {
+        ...s,
+        host_name: host?.full_name || host?.nickname || 'Anónimo',
+        host_avatar: host?.profile_image || null,
+      }
+    })
 
     return NextResponse.json({ sessions })
   } catch (err) {
@@ -239,7 +245,7 @@ export async function POST(request: NextRequest) {
     await supabaseServer
       .from('amiko_meet_participants')
       .insert({
-        session_id: session!.id,
+        session_id: (session as any).id,
         user_id: user.id,
         role: 'host',
         status: 'enrolled',
@@ -249,7 +255,7 @@ export async function POST(request: NextRequest) {
     await supabaseServer
       .from('amiko_meet_access_logs')
       .insert({
-        session_id: session!.id,
+        session_id: (session as any).id,
         user_id: user.id,
         action: 'session_created',
         metadata: { event: 'session_created' },

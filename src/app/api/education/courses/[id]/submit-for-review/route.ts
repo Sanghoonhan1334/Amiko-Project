@@ -83,6 +83,18 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
+    // Registrar historial de estado
+    const { error: historyError } = await supabase
+      .from('course_status_history')
+      .insert({
+        course_id: id,
+        previous_status: course.status,
+        new_status: 'submitted_for_review',
+        changed_by: user_id,
+        notes: 'Submitted for review by instructor',
+      })
+    if (historyError) console.error('[Education] Failed to record status history:', historyError)
+
     // Notificar a los administradores (buscar usuarios con rol admin)
     const { data: admins } = await supabase
       .from('profiles')

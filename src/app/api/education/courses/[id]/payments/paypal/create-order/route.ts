@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireEducationAuth } from '@/lib/education-auth'
 import { getPayPalToken, getPayPalBase } from '@/lib/paypal-server'
+import { checkRateLimit, getRateLimitIdentity } from '@/lib/education-rate-limiter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,12 @@ export async function POST(
     const auth = await requireEducationAuth(request)
     if (auth.error) return auth.error
     const user_id = auth.user.id
+
+    // Rate limit: max 5 order creations per user per minute
+    if (!checkRateLimit('edu-create-order', getRateLimitIdentity(request, user_id), 5)) {
+      return NextResponse.json({ error: 'Too many requests. Please wait before trying again.' }, { status: 429 })
+    }
+
     const { customer_name, customer_email } = await request.json()
 
     // Obtener curso
