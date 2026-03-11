@@ -1,28 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServer } from '@/lib/supabaseServer'
+import { createSupabaseClient } from '@/lib/supabase'
 
 // GET  /api/users/me/caption-preferences — Read preferences
 // PATCH /api/users/me/caption-preferences — Update preferences
+// Supports both amiko_meet and vc (marketplace) caption preferences via ?module= query param
 export async function GET(request: NextRequest) {
   try {
-    if (!supabaseServer) {
-      return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
-    }
+    const supabase = await createSupabaseClient()
 
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    let user = (await supabase.auth.getUser()).data.user
+    if (!user) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const { data } = await supabase.auth.getUser(authHeader.slice(7))
+        user = data.user
+      }
+    }
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const url = new URL(request.url)
+    const module = url.searchParams.get('module') || 'vc'
+    const table = module === 'meet' ? 'amiko_meet_caption_preferences' : 'vc_caption_preferences'
 
-    const { data: prefs } = await (supabaseServer as any)
-      .from('amiko_meet_caption_preferences')
+    const { data: prefs } = await supabase
+      .from(table)
       .select('*')
       .eq('user_id', user.id)
       .single()
@@ -44,23 +47,24 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    if (!supabaseServer) {
-      return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
-    }
+    const supabase = await createSupabaseClient()
 
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let user = (await supabase.auth.getUser()).data.user
+    if (!user) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const { data } = await supabase.auth.getUser(authHeader.slice(7))
+        user = data.user
+      }
     }
-
-    const { data: { user }, error: authError } = await supabaseServer.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-    if (authError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
+    const module = body.module || 'vc'
+    const table = module === 'meet' ? 'amiko_meet_caption_preferences' : 'vc_caption_preferences'
+
     const updates: Record<string, any> = {}
 
     // Validate and pick allowed fields
@@ -73,7 +77,7 @@ export async function PATCH(request: NextRequest) {
     if (body.position && ['top', 'bottom'].includes(body.position)) {
       updates.position = body.position
     }
-    if (body.speaking_language && ['ko', 'es'].includes(body.speaking_language)) {
+    if (body.speaking_language && ['ko', 'es', 'en'].includes(body.speaking_language)) {
       updates.speaking_language = body.speaking_language
     }
 
@@ -82,8 +86,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Atomic upsert — avoids TOCTOU race condition
-    const { data: prefs, error: upsertErr } = await (supabaseServer as any)
-      .from('amiko_meet_caption_preferences')
+    const { data: prefs, error: upsertErr } = await supabase
+      .from(table)
       .upsert(
         { user_id: user.id, ...updates },
         { onConflict: 'user_id' }

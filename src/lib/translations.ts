@@ -1312,6 +1312,15 @@ export const translations = {
         chat: "채팅",
         typeMessage: "메시지를 입력하세요...",
       },
+      captions: {
+        settings: "자막 설정",
+        showSubtitles: "자막 표시",
+        yourLanguage: "사용 언어",
+        fontSize: "글자 크기",
+        position: "위치",
+        top: "상단",
+        bottom: "하단",
+      },
       // Report form
       reportForm: {
         subtitle: "부적절한 행동을 신고해주세요",
@@ -5303,6 +5312,15 @@ export const translations = {
         you: "Tú",
         chat: "Chat",
         typeMessage: "Escribe un mensaje...",
+      },
+      captions: {
+        settings: "Configuración de subtítulos",
+        showSubtitles: "Mostrar subtítulos",
+        yourLanguage: "Tu idioma",
+        fontSize: "Tamaño de fuente",
+        position: "Posición",
+        top: "Arriba",
+        bottom: "Abajo",
       },
       // Report form
       reportForm: {

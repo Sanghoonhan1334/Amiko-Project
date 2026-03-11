@@ -31,10 +31,16 @@ import {
   Maximize2,
   Minimize2,
   AlertTriangle,
+  Subtitles,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import CaptionOverlay from "@/components/videocall/CaptionOverlay";
+import CaptionSettings from "@/components/videocall/CaptionSettings";
+import { useBrowserSTT } from "@/hooks/useBrowserSTT";
+import { useCaptionStream } from "@/hooks/useCaptionStream";
 
 interface VideoRoomProps {
   channel: string;
@@ -74,6 +80,7 @@ export default function VideoRoom({
   sessionId,
   title,
   durationMinutes = 30,
+  isHost = false,
   onLeave,
 }: VideoRoomProps) {
   const { t } = useLanguage();
@@ -108,12 +115,123 @@ export default function VideoRoom({
   const [participantCount, setParticipantCount] = useState(1);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // ── Caption state ──
+  const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const [showCaptionSettings, setShowCaptionSettings] = useState(false);
+  const [captionPrefs, setCaptionPrefs] = useState<{
+    captions_enabled: boolean;
+    font_size: "small" | "medium" | "large";
+    position: "top" | "bottom";
+    speaking_language: "ko" | "es" | "en";
+  }>({
+    captions_enabled: true,
+    font_size: "medium",
+    position: "bottom",
+    speaking_language: "es",
+  });
+  const [localCaptions, setLocalCaptions] = useState<
+    { id?: string; speaker_uid?: number; speaker_name?: string; content: string; language: string; is_final: boolean; timestamp_ms: number }[]
+  >([]);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(true);
   const tracksRef = useRef<{
     audio: IMicrophoneAudioTrack | null;
     video: ICameraVideoTrack | null;
   }>({ audio: null, video: null });
+
+  // ── Caption hooks ──
+  const { captions: streamCaptions } = useCaptionStream({
+    sessionId,
+    enabled: captionsEnabled && captionPrefs.captions_enabled,
+  });
+
+  const handleLocalCaption = useCallback(
+    (evt: { speaker_uid?: number; speaker_name?: string; content: string; language: string; is_final: boolean; timestamp_ms: number }) => {
+      setLocalCaptions((prev) => {
+        // Replace last partial from same speaker, or append
+        if (!evt.is_final) {
+          const lastIdx = prev.findLastIndex(
+            (c) => c.speaker_uid === evt.speaker_uid && !c.is_final
+          );
+          if (lastIdx >= 0) {
+            const updated = [...prev];
+            updated[lastIdx] = evt;
+            return updated.slice(-50);
+          }
+        }
+        return [...prev, evt].slice(-50);
+      });
+    },
+    []
+  );
+
+  const { isListening: sttListening, isSupported: sttSupported } = useBrowserSTT({
+    sessionId,
+    uid,
+    enabled: captionsEnabled && captionPrefs.captions_enabled,
+    speakingLanguage: captionPrefs.speaking_language,
+    onCaption: handleLocalCaption,
+  });
+
+  // Merge local (immediate) and stream (from other participants) captions
+  const allCaptions = [...streamCaptions, ...localCaptions]
+    .sort((a, b) => a.timestamp_ms - b.timestamp_ms)
+    .slice(-50);
+
+  // ── Load caption preferences on mount ──
+  useEffect(() => {
+    const loadPrefs = async () => {
+      try {
+        const res = await fetch("/api/users/me/caption-preferences?module=vc");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.preferences) {
+            setCaptionPrefs(data.preferences);
+          }
+        }
+      } catch {
+        // Use defaults
+      }
+    };
+    loadPrefs();
+  }, []);
+
+  // ── Save caption preferences when they change ──
+  const updateCaptionPrefs = useCallback(
+    async (updates: Partial<typeof captionPrefs>) => {
+      const newPrefs = { ...captionPrefs, ...updates };
+      setCaptionPrefs(newPrefs);
+      try {
+        await fetch("/api/users/me/caption-preferences", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...updates, module: "vc" }),
+        });
+      } catch {
+        // Non-critical
+      }
+    },
+    [captionPrefs]
+  );
+
+  // ── Start/stop caption task when host toggles ──
+  const handleToggleCaptions = useCallback(async () => {
+    const newState = !captionsEnabled;
+    setCaptionsEnabled(newState);
+
+    // If host, also start/stop the STT task on backend
+    if (isHost) {
+      try {
+        const endpoint = newState ? "start" : "stop";
+        await fetch(`/api/video/sessions/${sessionId}/captions/${endpoint}`, {
+          method: "POST",
+        });
+      } catch {
+        // Non-critical — local captions still work
+      }
+    }
+  }, [captionsEnabled, isHost, sessionId]);
 
   // --- Supabase Realtime Chat Channel ---
   useEffect(() => {
@@ -668,6 +786,23 @@ export default function VideoRoom({
         </div>
       </div>
 
+      {/* Caption overlay */}
+      <CaptionOverlay
+        captions={allCaptions}
+        position={captionPrefs.position}
+        fontSize={captionPrefs.font_size}
+        visible={captionsEnabled && captionPrefs.captions_enabled}
+        currentUid={uid}
+      />
+
+      {/* Caption settings panel */}
+      <CaptionSettings
+        visible={showCaptionSettings}
+        onClose={() => setShowCaptionSettings(false)}
+        preferences={captionPrefs}
+        onUpdate={updateCaptionPrefs}
+      />
+
       {/* Floating reactions */}
       {floatingReactions.map((r) => (
         <div
@@ -854,6 +989,36 @@ export default function VideoRoom({
             </span>
           )}
         </button>
+
+        {/* Captions toggle */}
+        <button
+          onClick={handleToggleCaptions}
+          title={sttSupported ? undefined : "Speech recognition not supported in this browser"}
+          className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+            captionsEnabled
+              ? "bg-blue-500 hover:bg-blue-600 text-white"
+              : "bg-gray-600 hover:bg-gray-500 text-white"
+          }`}
+        >
+          <Subtitles className="w-5 h-5" />
+          {captionsEnabled && sttListening && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+          )}
+        </button>
+
+        {/* Caption settings */}
+        {captionsEnabled && (
+          <button
+            onClick={() => setShowCaptionSettings(!showCaptionSettings)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              showCaptionSettings
+                ? "bg-blue-500 hover:bg-blue-600 text-white"
+                : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        )}
 
         <button
           onClick={handleLeave}
