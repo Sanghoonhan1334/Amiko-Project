@@ -1109,7 +1109,7 @@ function HeaderContent() {
               {isMainPage && !user && (
                 <button
                   onClick={() => router.push("/sign-in")}
-                  className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
+                  className="hidden md:block font-semibold transition-all duration-300 px-4 py-2 rounded-lg bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white shadow-md hover:shadow-lg whitespace-nowrap mt-5"
                 >
                   {t("buttons.login")}
                 </button>

@@ -35,7 +35,7 @@ export default function MainNav() {
   return (
     <>
       {/* Navigation Bar */}
-      <nav className="flex justify-between items-center py-4 px-8 shadow-sm bg-white fixed top-0 left-0 right-0 z-50">
+      <nav className="flex justify-between items-center py-4 px-4 sm:px-8 shadow-sm bg-white dark:bg-gray-900 fixed top-0 left-0 right-0 z-50">
         {/* Logo */}
         <button
           onClick={() => router.push('/')}
@@ -59,21 +59,21 @@ export default function MainNav() {
         <div className="hidden md:flex items-center space-x-6">
           <Button
             variant="ghost"
-            className="hover:text-indigo-600 transition-colors"
+            className="hover:text-[#7BC4C4] transition-colors"
             onClick={() => handleNavigation('/main')}
           >
             {t('mainNav.serviceFeatures')}
           </Button>
           <Button
             variant="ghost"
-            className="hover:text-indigo-600 transition-colors"
+            className="hover:text-[#7BC4C4] transition-colors"
             onClick={() => handleNavigation('/booking/create')}
           >
             {t('mainNav.bookConsultation')}
           </Button>
           <Button
             variant="ghost"
-            className="hover:text-indigo-600 transition-colors"
+            className="hover:text-[#7BC4C4] transition-colors"
             onClick={() => handleNavigation('#video')}
           >
             {t('mainNav.introVideo')}

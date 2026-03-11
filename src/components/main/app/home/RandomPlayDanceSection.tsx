@@ -1938,7 +1938,7 @@ export default function RandomPlayDanceSection({
 
                         {/* 가이드 영상 라벨 (오른쪽 위) */}
                         {isGuide && (
-                          <div className="absolute top-1 right-1 z-10 bg-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                          <div className="absolute top-1 right-1 z-10 bg-amber-600 text-white text-xs font-bold px-2 py-0.5 rounded">
                             Video guía
                           </div>
                         )}

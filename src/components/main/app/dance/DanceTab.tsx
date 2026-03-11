@@ -273,7 +273,7 @@ export default function DanceTab() {
 
                 {/* 가이드 영상 라벨 (오른쪽 위) */}
                 {isGuide && (
-                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-yellow-500 text-white text-[9px] sm:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 rounded">
+                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 bg-amber-600 text-white text-[9px] sm:text-xs font-bold px-1 py-0.5 sm:px-2 sm:py-0.5 rounded">
                     Video guía
                   </div>
                 )}

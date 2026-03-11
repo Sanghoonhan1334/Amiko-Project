@@ -533,10 +533,10 @@ export default function PostCreate({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-          <div className="px-8 py-6 space-y-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="px-4 sm:px-8 py-6 space-y-6 sm:space-y-8">
             {/* 헤더 */}
             <div className="flex items-center space-x-4 pb-6 border-b border-gray-100">
               <div
@@ -690,7 +690,7 @@ export default function PostCreate({
                 <Button
                   onClick={handleCancel}
                   variant="outline"
-                  className="px-8 py-3 border-2 border-gray-300 rounded-xl hover:border-gray-400 transition-all duration-200 font-medium"
+                  className="px-4 sm:px-8 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:border-gray-400 transition-all duration-200 font-medium"
                 >
                   취소
                 </Button>
@@ -702,7 +702,7 @@ export default function PostCreate({
                     !content.trim() ||
                     imageUploads.some((u) => u.uploading)
                   }
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 sm:px-8 py-3 bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? "작성 중..." : "글 작성"}
                 </Button>

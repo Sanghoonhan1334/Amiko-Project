@@ -333,7 +333,7 @@ export default function PhoneVerification({
                     )}
                     {/* WhatsApp 점검중 배지 */}
                     {isMaintenance && (
-                      <div className="absolute -top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
+                      <div className="absolute -top-2 right-2 bg-amber-600 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">
                         ⚠️ {language === 'ko' ? '점검중' : 'Mantenimiento'}
                       </div>
                     )}
@@ -510,7 +510,7 @@ export default function PhoneVerification({
                 // 2단계: 코드 입력 대기 (회색 비활성화)
                 <Button 
                   disabled={true}
-                  className="w-full bg-gray-400 text-white font-semibold py-2.5 text-base overflow-hidden"
+                  className="w-full bg-gray-300 text-gray-600 font-semibold py-2.5 text-base overflow-hidden"
                 >
                   <div className="flex items-center justify-center gap-2 truncate">
                     <Clock className="w-4 h-4 flex-shrink-0" />
@@ -524,8 +524,8 @@ export default function PhoneVerification({
                   disabled={verificationCode.length !== 6 || isLoading || isVerifying || timeLeft === 0}
                   className={`w-full font-semibold py-2.5 text-base shadow-lg transition-all duration-200 overflow-hidden ${
                     timeLeft === 0 || isVerifying
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl transform hover:scale-105'
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : 'bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white hover:shadow-xl transform hover:scale-105'
                   } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                 >
                   {(isLoading || isVerifying) ? (

@@ -547,7 +547,7 @@ export default function TestComments({ testId }: TestCommentsProps) {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || isSubmitting}
-                  className="px-2 py-1 md:px-3 md:py-2 bg-purple-500 text-white text-xs md:text-sm rounded-md hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                  className="px-2 py-1 md:px-3 md:py-2 bg-[#7BC4C4] text-white text-xs md:text-sm rounded-md hover:bg-[#5BA8A8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
                   {isSubmitting ? (
                     <div className="animate-spin rounded-full h-2.5 w-2.5 md:h-3 md:w-3 border-b-2 border-white"></div>
@@ -670,12 +670,12 @@ export default function TestComments({ testId }: TestCommentsProps) {
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder={t('testComments.replyPlaceholder')}
-                            className="flex-1 p-1.5 text-base md:text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="flex-1 p-1.5 text-base md:text-xs border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7BC4C4] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           />
                           <button
                             onClick={() => handleSubmitReply(comment.id)}
                             disabled={!replyText.trim()}
-                            className="px-1.5 py-1 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 disabled:opacity-50"
+                            className="px-1.5 py-1 bg-[#7BC4C4] text-white text-xs rounded-md hover:bg-[#5BA8A8] disabled:opacity-50"
                           >
                             {t('testComments.send')}
                           </button>

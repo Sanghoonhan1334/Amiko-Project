@@ -767,7 +767,7 @@ export default function ZepEventCard({ user }: ZepEventCardProps) {
           <>
             <Button
               disabled
-              className="w-full bg-gray-400 text-white cursor-not-allowed"
+              className="w-full bg-gray-300 text-gray-600 cursor-not-allowed"
             >
               <ExternalLink className="w-4 h-4 mr-2 opacity-50" />
               Todavía no está abierto

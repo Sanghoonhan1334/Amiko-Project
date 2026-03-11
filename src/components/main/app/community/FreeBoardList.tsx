@@ -1890,7 +1890,7 @@ const FreeBoardList: React.FC<FreeBoardListProps> = ({ showHeader = true, onPost
                 disabled={isSubmittingPost}
                 className={`px-6 py-2 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
                   isSubmittingPost
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'text-white'
                 }`}
                 style={!isSubmittingPost ? {

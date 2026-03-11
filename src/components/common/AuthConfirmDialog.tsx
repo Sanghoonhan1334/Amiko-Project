@@ -38,7 +38,7 @@ export default function AuthConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm bg-white border-2 border-gray-200 shadow-xl">
+      <DialogContent className="max-w-sm bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
         <DialogHeader className="text-center pb-1">
           <div className="flex justify-center mb-1">
             <AlertTriangle className="w-6 h-6 text-orange-500" />
@@ -51,7 +51,7 @@ export default function AuthConfirmDialog({
         <div className="space-y-1">
           <Button 
             onClick={handleConfirm}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-2 text-base rounded-lg shadow-md hover:shadow-lg transform hover:scale-102 transition-all duration-200"
+            className="w-full bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white py-2 text-base rounded-lg shadow-md hover:shadow-lg transform hover:scale-102 transition-all duration-200"
           >
             <div className="flex items-center justify-center gap-2">
               <Shield className="w-4 h-4" />

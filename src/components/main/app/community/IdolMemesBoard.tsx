@@ -182,7 +182,7 @@ export default function IdolMemesBoard() {
       {user && (
         <Button
           size="lg"
-          className="fixed bottom-64 right-2 z-50 md:hidden w-11 h-11 sm:h-14 sm:w-14 rounded-full shadow-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white transition-all duration-200 hover:scale-105 active:scale-95 sm:bottom-52 sm:right-8"
+          className="fixed bottom-64 right-2 z-50 md:hidden w-11 h-11 sm:h-14 sm:w-14 rounded-full shadow-2xl bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white transition-all duration-200 hover:scale-105 active:scale-95 sm:bottom-52 sm:right-8"
           onClick={() => setShowUploadModal(true)}
         >
           <Plus className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm stroke-[3]" />

@@ -266,7 +266,7 @@ export default function OnboardingTutorial({
 
       {/* 모바일 안내 메시지 */}
       {isMobile && (
-        <div className="fixed bottom-20 left-4 right-4 bg-yellow-500 dark:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs text-center" style={{ zIndex: 9999998, fontSize: '10px' }}>
+        <div className="fixed bottom-20 left-4 right-4 bg-amber-700 dark:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs text-center" style={{ zIndex: 9999998, fontSize: '10px' }}>
           {t('tutorial.mobileScrollHint')}
         </div>
       )}
@@ -322,7 +322,7 @@ export default function OnboardingTutorial({
                 {/* 진행 표시 */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-[#7BC4C4] rounded-full"></div>
                     <span className="text-xs text-white dark:text-gray-200 text-opacity-80 dark:text-opacity-90">
                       {currentStep + 1} / {steps.length}
                     </span>
@@ -358,7 +358,7 @@ export default function OnboardingTutorial({
                   
                   <Button
                     onClick={nextStep}
-                    className="text-xs px-3 py-1 h-6 bg-purple-500 hover:bg-purple-600 text-white pointer-events-auto"
+                    className="text-xs px-3 py-1 h-6 bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white pointer-events-auto"
                   >
                     {currentStep === steps.length - 1 ? t('buttons.complete') : t('buttons.next')}
                     {currentStep < steps.length - 1 && <ChevronRight className="w-3 h-3 ml-1" />}
@@ -408,14 +408,14 @@ export default function OnboardingTutorial({
                 transform: 'translate(-50%, -50%)'
               }}
             >
-              <div className="bg-black dark:bg-gray-900 bg-opacity-40 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-4 w-[500px] mx-4 border border-white dark:border-gray-700 border-opacity-20 dark:border-opacity-30 pointer-events-auto relative">
+              <div className="bg-black dark:bg-gray-900 bg-opacity-85 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-2xl p-4 w-full max-w-[500px] mx-4 border border-white dark:border-gray-700 border-opacity-20 dark:border-opacity-30 pointer-events-auto relative">
                 {/* 강조 테두리 */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg opacity-15 -z-10"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#7BC4C4] to-[#5BA8A8] rounded-lg opacity-15 -z-10"></div>
                 
                 {/* 진행 표시 */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-[#7BC4C4] rounded-full"></div>
                     <span className="text-sm text-white dark:text-gray-200 text-opacity-80 dark:text-opacity-90">
                       {currentStep + 1} / {steps.length}
                     </span>
@@ -451,7 +451,7 @@ export default function OnboardingTutorial({
                   
                   <Button
                     onClick={nextStep}
-                    className="bg-purple-500 hover:bg-purple-600 text-white pointer-events-auto"
+                    className="bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white pointer-events-auto"
                   >
                     {currentStep === steps.length - 1 ? t('buttons.complete') : t('buttons.next')}
                     {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}

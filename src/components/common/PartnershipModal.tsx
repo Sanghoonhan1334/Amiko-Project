@@ -274,7 +274,7 @@ export default function PartnershipModal({ isOpen, onClose }: PartnershipModalPr
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-3 text-[10px] whitespace-normal text-white"
+              className="bg-[#7BC4C4] hover:bg-[#5BA8A8] px-3 text-[10px] whitespace-normal text-white"
             >
               {isSubmitting ? (
                 <>

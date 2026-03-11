@@ -177,7 +177,7 @@ export default function EmailVerification({ email, onVerify, onResend, isLoading
             // 2단계: 코드 입력 대기 (회색 비활성화)
             <Button 
               disabled={true}
-              className="w-full bg-gray-400 text-white font-semibold py-3 text-lg"
+              className="w-full bg-gray-300 text-gray-600 font-semibold py-3 text-lg"
               size="lg"
             >
               <div className="flex items-center gap-2">

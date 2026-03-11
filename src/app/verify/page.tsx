@@ -246,8 +246,8 @@ function VerifyContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-2 border-brand-200/50 shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-mint-50 to-yellow-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white/80 dark:bg-gray-900/90 backdrop-blur-sm border-2 border-brand-200/50 dark:border-gray-700 shadow-xl">
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <div className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-mint-500 bg-clip-text text-transparent">
@@ -255,10 +255,10 @@ function VerifyContent() {
             </div>
             <div className="text-xl animate-pulse">✨</div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-800">
+          <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100">
             계정 인증
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             {isKorean 
               ? '한국인 사용자님, 안전한 인증을 진행해주세요!'
               : '계정 보안을 위해 인증을 진행해주세요!'
@@ -334,8 +334,8 @@ function VerifyContent() {
                               {channel.name}
                             </span>
                             {isMaintenance && (
-                              <Badge className="bg-yellow-500 text-white border-0 text-xs px-3 py-1 rounded-full shadow-md">
-                                ⚠️ 점검중
+                              <Badge className="bg-amber-600 text-black border-0 text-xs px-3 py-1 rounded-full shadow-md">
+                                ⚠️ {language === 'ko' ? '점검중' : 'Mantenimiento'}
                               </Badge>
                             )}
                             {!isMaintenance && channel.priority === 'primary' && (
@@ -381,7 +381,7 @@ function VerifyContent() {
                 </p>
                 <Button
                   onClick={handleKakaoAuth}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold"
                 >
                   카카오로 본인 확인
                 </Button>

@@ -353,7 +353,7 @@ export default function FanartBoard() {
       {user && (
         <Button
           size="lg"
-          className="fixed bottom-8 right-8 rounded-full shadow-2xl h-16 w-16 p-0 bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white z-50 transition-all duration-300 hover:scale-110"
+          className="fixed bottom-20 md:bottom-8 right-4 md:right-8 rounded-full shadow-2xl h-14 w-14 md:h-16 md:w-16 p-0 bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white z-50 transition-all duration-300 hover:scale-110"
           onClick={() => setShowUploadModal(true)}
         >
           <Plus className="w-10 h-10 drop-shadow-lg stroke-[3]" />

@@ -182,7 +182,7 @@ export default function GlobalChatButton() {
       {/* 플로팅 버튼 */}
       <button
         onClick={handleToggle}
-        className="fixed bottom-20 sm:bottom-8 md:bottom-20 right-2 sm:right-8 md:right-16 z-50 w-11 h-11 sm:w-14 sm:h-14 md:w-14 md:h-14 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-110"
+        className="fixed bottom-20 sm:bottom-8 md:bottom-20 right-2 sm:right-8 md:right-16 z-50 w-11 h-11 sm:w-14 sm:h-14 md:w-14 md:h-14 bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-110"
         aria-label={language === 'ko' ? '전체 채팅 열기' : 'Abrir chat global'}
       >
         {isOpen ? (
