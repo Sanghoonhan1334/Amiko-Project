@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // POST /api/video/sessions/[sessionId]/enroll — Register for a session (creates pending_payment booking)
 export async function POST(
@@ -10,9 +11,14 @@ export async function POST(
     const { sessionId } = await params;
     const supabase = await createSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    let user = (await supabase.auth.getUser()).data.user;
+    if (!user) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const { data } = await supabase.auth.getUser(authHeader.slice(7));
+        user = data.user;
+      }
+    }
     if (!user) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -91,12 +97,8 @@ export async function POST(
         session_id: sessionId,
         user_id: user.id,
         amount_paid: isFree ? 0 : session.price_usd,
-        host_share: isFree
-          ? 0
-          : parseFloat((session.price_usd * 0.7).toFixed(2)),
-        platform_share: isFree
-          ? 0
-          : parseFloat((session.price_usd * 0.3).toFixed(2)),
+        host_share: 0,
+        platform_share: isFree ? 0 : session.price_usd,
         payment_status: isFree ? "paid" : "pending",
         status: isFree ? "confirmed" : "reserved",
       })
@@ -106,6 +108,32 @@ export async function POST(
     if (insertError) {
       console.error("[ENROLL] Insert error:", insertError);
       return NextResponse.json({ error: "Failed to enroll" }, { status: 500 });
+    }
+
+    // Create notification for the user who enrolled
+    if (isFree && booking) {
+      try {
+        const adminClient = createAdminClient();
+        await adminClient.from("vc_notifications").insert({
+          user_id: user.id,
+          session_id: sessionId,
+          type: "session_booked",
+          title: "Session Booked",
+          message: `You have been enrolled in "${session.title}".`,
+        });
+        // Notify the host about a new participant
+        if (hostUserId) {
+          await adminClient.from("vc_notifications").insert({
+            user_id: hostUserId,
+            session_id: sessionId,
+            type: "session_booked",
+            title: "New Participant",
+            message: `A new participant has enrolled in your session "${session.title}".`,
+          });
+        }
+      } catch (notifErr) {
+        console.error("[ENROLL] Notification error:", notifErr);
+      }
     }
 
     return NextResponse.json(

@@ -86,7 +86,15 @@ function timeAgo(dateStr: string) {
 
 export default function VCNotificationsPanel() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, session: authSession } = useAuth();
+  const accessToken = authSession?.access_token;
+  const getAuthHeaders = useCallback(
+    (): Record<string, string> => ({
+      "Content-Type": "application/json",
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    }),
+    [accessToken],
+  );
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<VCNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -97,7 +105,9 @@ export default function VCNotificationsPanel() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/videocall/notifications?limit=20");
+      const res = await fetch("/api/videocall/notifications?limit=20", {
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       if (res.ok) {
         setNotifications(data.notifications || []);
@@ -105,7 +115,7 @@ export default function VCNotificationsPanel() {
       }
     } catch {}
     setLoading(false);
-  }, [user?.id]);
+  }, [user?.id, getAuthHeaders]);
 
   useEffect(() => {
     fetchNotifications();
@@ -129,7 +139,7 @@ export default function VCNotificationsPanel() {
     try {
       const res = await fetch("/api/videocall/notifications", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ mark_all: true }),
       });
       if (res.ok) {
@@ -143,7 +153,7 @@ export default function VCNotificationsPanel() {
     try {
       await fetch("/api/videocall/notifications", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ notification_ids: [id] }),
       });
       setNotifications((prev) =>
