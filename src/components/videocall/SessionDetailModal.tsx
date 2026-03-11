@@ -78,7 +78,11 @@ export default function SessionDetailModal({
   onBookingComplete,
 }: SessionDetailModalProps) {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, session: authSession } = useAuth();
+  const authHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(authSession?.access_token && { Authorization: `Bearer ${authSession.access_token}` }),
+  };
   const [sessionDetail, setSessionDetail] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
@@ -135,7 +139,7 @@ export default function SessionDetailModal({
       // Use Phase 1 enrollment endpoint
       const res = await fetch(`/api/video/sessions/${s.id}/enroll`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -165,7 +169,7 @@ export default function SessionDetailModal({
       // Use Phase 1 access-token endpoint (validates payment + access)
       const res = await fetch(`/api/video/sessions/${s.id}/access-token`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -199,7 +203,7 @@ export default function SessionDetailModal({
       // Host starts session via access-token (will set session to live)
       const res = await fetch(`/api/video/sessions/${s.id}/access-token`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -442,34 +446,28 @@ export default function SessionDetailModal({
                         height: 40,
                       }}
                       createOrder={async () => {
-                        const res = await fetch("/api/videocall/pay", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ session_id: s.id }),
-                        });
+                        const res = await fetch(
+                          `/api/video/sessions/${s.id}/payments/paypal/create-order`,
+                          {
+                            method: "POST",
+                            headers: authHeaders,
+                          },
+                        );
                         const data = await res.json();
                         if (!res.ok)
                           throw new Error(data.error || "Payment failed");
-                        if (data.type === "free") {
-                          setMyBooking(data.booking);
-                          setSuccess(t("vcMarketplace.bookingSuccess"));
-                          setShowPaypal(false);
-                          setTimeout(() => onBookingComplete(), 1500);
-                          throw new Error("FREE_BOOKING_COMPLETED");
-                        }
-                        setVcBookingId(data.bookingId);
-                        return data.paypalOrderId;
+                        setVcBookingId(data.booking_id);
+                        return data.paypal_order_id;
                       }}
                       onApprove={async (data) => {
                         try {
                           const res = await fetch(
-                            "/api/videocall/pay/capture",
+                            `/api/video/sessions/${s.id}/payments/paypal/capture`,
                             {
                               method: "POST",
-                              headers: { "Content-Type": "application/json" },
+                              headers: authHeaders,
                               body: JSON.stringify({
                                 paypal_order_id: data.orderID,
-                                booking_id: vcBookingId,
                               }),
                             },
                           );
@@ -481,7 +479,7 @@ export default function SessionDetailModal({
                             return;
                           }
                           setMyBooking({
-                            id: vcBookingId,
+                            id: result.booking_id || vcBookingId,
                             status: "confirmed",
                           });
                           setSuccess(t("vcMarketplace.bookingSuccess"));
@@ -491,9 +489,7 @@ export default function SessionDetailModal({
                           setError(t("vcMarketplace.payment.failed"));
                         }
                       }}
-                      onError={(err) => {
-                        if (String(err).includes("FREE_BOOKING_COMPLETED"))
-                          return;
+                      onError={() => {
                         setError(t("vcMarketplace.payment.failed"));
                       }}
                       onCancel={() => {
@@ -630,11 +626,42 @@ export default function SessionDetailModal({
                 s.price_usd > 0 ? (
                   <Button
                     size="sm"
-                    onClick={() => setShowPaypal(true)}
-                    disabled={showPaypal}
+                    onClick={async () => {
+                      try {
+                        setBooking(true);
+                        setError("");
+                        // Enroll first to create a pending booking
+                        const res = await fetch(`/api/video/sessions/${s.id}/enroll`, {
+                          method: "POST",
+                          headers: authHeaders,
+                        });
+                        const data = await res.json();
+                        if (!res.ok) {
+                          // If already enrolled, still show PayPal
+                          if (data.booking) {
+                            setVcBookingId(data.booking.id);
+                          } else {
+                            setError(data.error || t("vcMarketplace.bookingError"));
+                            return;
+                          }
+                        } else {
+                          setVcBookingId(data.booking?.id);
+                        }
+                        setShowPaypal(true);
+                      } catch {
+                        setError(t("vcMarketplace.bookingError"));
+                      } finally {
+                        setBooking(false);
+                      }
+                    }}
+                    disabled={showPaypal || booking}
                     className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-xs"
                   >
-                    <DollarSign className="w-3.5 h-3.5 mr-1" />
+                    {booking ? (
+                      <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                    ) : (
+                      <DollarSign className="w-3.5 h-3.5 mr-1" />
+                    )}
                     {t("vcMarketplace.bookNow")} - ${s.price_usd.toFixed(2)}
                   </Button>
                 ) : (

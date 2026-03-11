@@ -43,9 +43,14 @@ export async function POST(
     const { sessionId } = await params;
     const supabase = await createSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    let user = (await supabase.auth.getUser()).data.user;
+    if (!user) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const { data } = await supabase.auth.getUser(authHeader.slice(7));
+        user = data.user;
+      }
+    }
     if (!user) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -149,8 +154,8 @@ export async function POST(
           status: "confirmed",
           paypal_order_id: paypal_order_id,
           amount_paid: orderRecord.amount_usd,
-          host_share: parseFloat((orderRecord.amount_usd * 0.7).toFixed(2)),
-          platform_share: parseFloat((orderRecord.amount_usd * 0.3).toFixed(2)),
+          host_share: 0,
+          platform_share: orderRecord.amount_usd,
         })
         .eq("id", orderRecord.booking_id);
     }
@@ -162,6 +167,45 @@ export async function POST(
       action: "token_issued",
       reason: "payment_captured",
     });
+
+    // Create notifications after successful payment
+    try {
+      // Get session title for notification message
+      const { data: sessionData } = await supabase
+        .from("vc_sessions")
+        .select(
+          "title, host:vc_host_profiles!vc_sessions_host_id_fkey(user_id)",
+        )
+        .eq("id", sessionId)
+        .single();
+
+      const sessionTitle = sessionData?.title || "Video Session";
+
+      await adminClient.from("vc_notifications").insert({
+        user_id: user.id,
+        session_id: sessionId,
+        type: "payment_confirmed",
+        title: "Payment Confirmed",
+        message: `Your payment of $${orderRecord.amount_usd} for "${sessionTitle}" has been confirmed.`,
+      });
+
+      // Notify host about new paid participant
+      const hostData = sessionData?.host as any;
+      const hostUserId = Array.isArray(hostData)
+        ? hostData[0]?.user_id
+        : hostData?.user_id;
+      if (hostUserId) {
+        await adminClient.from("vc_notifications").insert({
+          user_id: hostUserId,
+          session_id: sessionId,
+          type: "session_booked",
+          title: "New Participant",
+          message: `A new participant has enrolled in your session "${sessionTitle}".`,
+        });
+      }
+    } catch (notifErr) {
+      console.error("[VC_PAYPAL_CAPTURE] Notification error:", notifErr);
+    }
 
     return NextResponse.json({
       success: true,

@@ -42,9 +42,14 @@ export async function POST(
     const { sessionId } = await params;
     const supabase = await createSupabaseClient();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    let user = (await supabase.auth.getUser()).data.user;
+    if (!user) {
+      const authHeader = request.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const { data } = await supabase.auth.getUser(authHeader.slice(7));
+        user = data.user;
+      }
+    }
     if (!user) {
       return NextResponse.json(
         { error: "Authentication required" },
