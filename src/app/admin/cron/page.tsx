@@ -9,6 +9,8 @@ import { useAuth } from '@/context/AuthContext';
 export default function CronTestPage() {
   const { language } = useLanguage();
   const { token } = useAuth();
+  // token is used by testReminder (dev-only)
+  void token;
   const t = (ko: string, es: string) => language === 'ko' ? ko : es;
 
   const [loading, setLoading] = useState(false);
@@ -55,36 +57,7 @@ export default function CronTestPage() {
     }
   };
 
-  const runActualReminder = async () => {
-    setLoading(true);
-    setError('');
-    setResult(null);
 
-    try {
-      console.log('🕒 실제 리마인더 실행 시작...');
-      
-      const response = await fetch('/api/cron/reminder', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setResult(data);
-        console.log('✅ 실제 리마인더 실행 성공:', data);
-      } else {
-        setError(data.error || t('실행 실패', 'Ejecución fallida'));
-        console.error('❌ 실제 리마인더 실행 실패:', data);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t('알 수 없는 오류', 'Error desconocido');
-      setError(errorMessage);
-      console.error('❌ 실제 리마인더 실행 중 오류:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -118,24 +91,23 @@ export default function CronTestPage() {
           </CardContent>
         </Card>
 
-        {/* 실제 실행 카드 */}
+        {/* Cron automático — info */}
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 dark:text-white">
-              🚀 {t('실제 실행', 'Ejecución Real')}
+              🤖 {t('자동 실행', 'Ejecución Automática')}
             </CardTitle>
             <CardDescription className="dark:text-gray-400">
-              {t('실제 리마인더를 발송합니다. (24시간 후 예약 대상)', 'Envía recordatorios reales. (Para reservas en las próximas 24 horas)')}
+              {t('이 cron은 서버에서 자동으로 실행됩니다.', 'Este cron se ejecuta automáticamente desde el servidor.')}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={runActualReminder} 
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? t('실제 실행 중...', 'Ejecutando...') : `🚀 ${t('실제 리마인더 전송', 'Enviar Recordatorios')}`}
-            </Button>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {t(
+                '/api/cron/reminder는 CRON_SECRET으로 보호되므로 브라우저에서 직접 실행할 수 없습니다. Vercel Cron 또는 외부 스케줄러에서 호출하세요.',
+                'El endpoint /api/cron/reminder está protegido por CRON_SECRET y no puede ejecutarse desde el navegador. Debe ser invocado por Vercel Cron o un scheduler externo.'
+              )}
+            </p>
           </CardContent>
         </Card>
       </div>
