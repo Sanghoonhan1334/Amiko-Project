@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // POST /api/video/sessions/[sessionId]/presence/leave
 // Records that user left the live session
@@ -34,8 +35,10 @@ export async function POST(
       user_agent: userAgent,
     });
 
-    // Update booking left_at
-    await supabase
+    // Update booking left_at — must use admin client to bypass RLS
+    // (the vc_bookings UPDATE policy only allows status = 'cancelled')
+    const adminClient = createAdminClient();
+    await adminClient
       .from("vc_bookings")
       .update({ left_at: new Date().toISOString() })
       .eq("session_id", sessionId)

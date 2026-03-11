@@ -71,5 +71,6 @@ CREATE POLICY "vc_rtc_access_logs_insert" ON public.vc_rtc_access_logs FOR INSER
 CREATE POLICY "vc_rtc_access_logs_select" ON public.vc_rtc_access_logs FOR SELECT USING (auth.uid() = user_id);
 
 -- Trigger for updated_at on paypal_orders
+DROP TRIGGER IF EXISTS vc_paypal_orders_updated ON public.vc_paypal_orders;
 CREATE TRIGGER vc_paypal_orders_updated BEFORE UPDATE ON public.vc_paypal_orders
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_timestamp();

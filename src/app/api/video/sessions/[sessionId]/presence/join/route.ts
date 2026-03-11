@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // POST /api/video/sessions/[sessionId]/presence/join
 // Records that user joined the live session
@@ -44,8 +45,10 @@ export async function POST(
       device_info: deviceInfo,
     });
 
-    // Update booking joined_at
-    await supabase
+    // Update booking joined_at — must use admin client to bypass RLS
+    // (the vc_bookings UPDATE policy only allows status = 'cancelled')
+    const adminClient = createAdminClient();
+    await adminClient
       .from("vc_bookings")
       .update({ status: "joined", joined_at: new Date().toISOString() })
       .eq("session_id", sessionId)

@@ -2,6 +2,10 @@ import { NextRequest } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+// Required for SSE on Vercel — prevents static rendering and ensures Node.js runtime
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // GET /api/video/sessions/[sessionId]/captions/stream
 // Server-Sent Events (SSE) endpoint that streams caption events in real time
 export async function GET(
