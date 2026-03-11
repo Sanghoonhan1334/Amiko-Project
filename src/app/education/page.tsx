@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GraduationCap, Store, BookOpen, Users, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation'
 
 // Lazy load tab components
 const MarketplaceTab = dynamic(() => import('@/components/education/MarketplaceTab'), {
@@ -202,8 +203,11 @@ function EducationContent() {
 
 export default function EducationPage() {
   return (
-    <Suspense fallback={<TabSkeleton />}>
-      <EducationContent />
-    </Suspense>
+    <>
+      <Suspense fallback={<TabSkeleton />}>
+        <EducationContent />
+      </Suspense>
+      <BottomTabNavigation />
+    </>
   )
 }

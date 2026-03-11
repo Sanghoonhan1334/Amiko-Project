@@ -117,7 +117,7 @@ export default function AmikoMeetTab() {
   return (
     <div className="w-full space-y-6">
       {/* ─── Header Banner ─────────────────────────── */}
-      <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-2xl md:rounded-3xl p-4 md:p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#7BC4C4] via-[#5BA8A8] to-[#4A9999] rounded-2xl md:rounded-3xl p-4 md:p-8 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 md:w-48 md:h-48 opacity-10">
           <Video className="w-full h-full" />
         </div>
@@ -132,15 +132,15 @@ export default function AmikoMeetTab() {
             )}
           </p>
           <div className="flex flex-wrap items-center gap-3 mt-4">
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
+            <div className="flex items-center gap-1.5 bg-black/15 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
               <Calendar className="w-3.5 h-3.5" />
               {t('월 2회 무료', '2 gratis/mes')}
             </div>
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
+            <div className="flex items-center gap-1.5 bg-black/15 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
               <Clock className="w-3.5 h-3.5" />
               {t('20분 세션', '20 min/sesión')}
             </div>
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
+            <div className="flex items-center gap-1.5 bg-black/15 backdrop-blur-sm rounded-full px-3 py-1 text-xs md:text-sm">
               <Globe className="w-3.5 h-3.5" />
               {t('🇰🇷 한국어 ↔ 🇪🇸 español', '🇰🇷 Coreano ↔ 🇪🇸 Español')}
             </div>
@@ -164,7 +164,7 @@ export default function AmikoMeetTab() {
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
               monthlyUsage.used >= monthlyUsage.max
                 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                : 'bg-[#7BC4C4]/15 dark:bg-[#7BC4C4]/20 text-[#4A9999] dark:text-[#7BC4C4]'
             }`}>
               <Video className="w-3.5 h-3.5" />
               {t(`이번 달: ${monthlyUsage.used}/${monthlyUsage.max}`, `Este mes: ${monthlyUsage.used}/${monthlyUsage.max}`)}
@@ -174,7 +174,7 @@ export default function AmikoMeetTab() {
             <Button
               onClick={() => setShowCreate(true)}
               disabled={monthlyUsage.used >= monthlyUsage.max}
-              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white rounded-xl text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4 mr-1" />
               {t('세션 만들기', 'Crear sesión')}
@@ -208,7 +208,7 @@ export default function AmikoMeetTab() {
       {/* ─── Upcoming sessions ─────────────────────── */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#7BC4C4] animate-spin" />
         </div>
       ) : error ? (
         <Card className="p-6 text-center dark:bg-gray-800 dark:border-gray-700">
@@ -234,7 +234,7 @@ export default function AmikoMeetTab() {
             <Button
               onClick={() => setShowCreate(true)}
               disabled={monthlyUsage.used >= monthlyUsage.max}
-              className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               {t('세션 만들기', 'Crear sesión')}
@@ -266,7 +266,7 @@ export default function AmikoMeetTab() {
           </p>
           <Button
             onClick={() => window.location.href = '/sign-in'}
-            className="bg-purple-500 hover:bg-purple-600 text-white"
+            className="bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white"
           >
             {t('로그인', 'Iniciar sesión')}
           </Button>

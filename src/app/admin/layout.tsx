@@ -3,6 +3,7 @@
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import BottomTabNavigation from '@/components/layout/BottomTabNavigation';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   LayoutDashboard,
@@ -418,6 +419,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
       </div>
+      <BottomTabNavigation />
     </div>
   );
 }

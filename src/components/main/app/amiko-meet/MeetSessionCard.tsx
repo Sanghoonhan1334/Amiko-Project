@@ -75,7 +75,7 @@ export default function MeetSessionCard({
                 className="w-8 h-8 rounded-full object-cover border-2 border-purple-200 dark:border-purple-700"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#7BC4C4] flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
             )}
@@ -102,7 +102,7 @@ export default function MeetSessionCard({
         </div>
 
         {/* ─── Title ───────────────────────────── */}
-        <h3 className="text-sm md:text-base font-bold text-gray-800 dark:text-gray-100 mb-1 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+        <h3 className="text-sm md:text-base font-bold text-gray-800 dark:text-gray-100 mb-1 line-clamp-2 group-hover:text-[#5BA8A8] dark:group-hover:text-[#7BC4C4] transition-colors">
           {session.title}
         </h3>
 
@@ -134,7 +134,7 @@ export default function MeetSessionCard({
       </div>
 
       {/* ─── Arrow indicator ───────────────────── */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 group-hover:text-purple-400 transition-colors">
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 group-hover:text-[#7BC4C4] transition-colors">
         <ChevronRight className="w-5 h-5" />
       </div>
     </Card>

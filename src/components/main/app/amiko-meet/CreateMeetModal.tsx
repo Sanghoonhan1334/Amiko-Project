@@ -210,7 +210,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
         {/* ─── Header ─────────────────────────────── */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#7BC4C4] flex items-center justify-center">
               <Video className="w-4 h-4 text-white" />
             </div>
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -237,7 +237,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
           {/* ─── Loading ─────────────────────────── */}
           {loadingSlots && (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-5 h-5 text-purple-500 animate-spin mr-2" />
+              <Loader2 className="w-5 h-5 text-[#7BC4C4] animate-spin mr-2" />
               <span className="text-sm text-gray-400">
                 {t('시간대 불러오는 중...', 'Cargando horarios...')}
               </span>
@@ -398,7 +398,7 @@ export default function CreateMeetModal({ onClose, onCreated }: CreateMeetModalP
                 <Button
                   onClick={handleSubmit}
                   disabled={loading || !title.trim() || (!selectedBlock && !noSlotsAvailable)}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl disabled:opacity-50"
+                  className="flex-1 bg-[#7BC4C4] hover:bg-[#5BA8A8] text-white rounded-xl disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
