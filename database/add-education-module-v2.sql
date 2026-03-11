@@ -18,6 +18,24 @@ UPDATE education_courses
   SET status = 'submitted_for_review'
   WHERE status = 'pending_review';
 
+-- 0.2b Normalizar cualquier otro valor desconocido → 'draft'
+--      Evita que el ADD CONSTRAINT falle si hay filas con estados
+--      no incluidos en la lista nueva (datos fuera de los flujos normales).
+UPDATE education_courses
+  SET status = 'draft'
+  WHERE status NOT IN (
+    'draft',
+    'submitted_for_review',
+    'changes_requested',
+    'approved',
+    'rejected',
+    'published',
+    'in_progress',
+    'completed',
+    'cancelled',
+    'archived'
+  );
+
 -- 0.3 Re-crear el constraint ahora con los nuevos valores permitidos
 ALTER TABLE education_courses
   ADD CONSTRAINT education_courses_status_check
