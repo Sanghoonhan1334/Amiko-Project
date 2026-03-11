@@ -287,7 +287,6 @@ export default function AdminAmikoMeetPage() {
                     <option value="America/Lima">America/Lima (PET)</option>
                     <option value="America/Buenos_Aires">America/Buenos_Aires (ART)</option>
                     <option value="America/Santiago">America/Santiago (CLT)</option>
-                    <option value="Asia/Seoul">Asia/Seoul (KST)</option>
                     <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
                     <option value="Europe/Madrid">Europe/Madrid (CET)</option>
                     <option value="UTC">UTC</option>

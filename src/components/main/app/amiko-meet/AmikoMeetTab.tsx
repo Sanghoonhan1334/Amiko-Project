@@ -63,14 +63,12 @@ export default function AmikoMeetTab() {
   const checkUsage = useCallback(async () => {
     if (!token) return
     try {
-      // Fetch any session to check monthly stats via enrollment check
-      const startOfMonth = new Date()
-      startOfMonth.setDate(1)
-      startOfMonth.setHours(0, 0, 0, 0)
-
-      const res = await fetch('/api/meet/sessions?status=all&limit=100')
+      const res = await fetch('/api/meet/monthly-usage', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       if (!res.ok) return
-      // We'll get exact usage from enrollment attempts
+      const data = await res.json()
+      setMonthlyUsage({ used: data.used ?? 0, max: data.max ?? 2 })
     } catch {
       // non-critical
     }
@@ -161,15 +159,28 @@ export default function AmikoMeetTab() {
           </button>
         </div>
 
-        {user && (
-          <Button
-            onClick={() => setShowCreate(true)}
-            className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl text-xs md:text-sm"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            {t('세션 만들기', 'Crear sesión')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {user && (
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+              monthlyUsage.used >= monthlyUsage.max
+                ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+            }`}>
+              <Video className="w-3.5 h-3.5" />
+              {t(`이번 달: ${monthlyUsage.used}/${monthlyUsage.max}`, `Este mes: ${monthlyUsage.used}/${monthlyUsage.max}`)}
+            </div>
+          )}
+          {user && (
+            <Button
+              onClick={() => setShowCreate(true)}
+              disabled={monthlyUsage.used >= monthlyUsage.max}
+              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              {t('세션 만들기', 'Crear sesión')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ─── Live sessions ─────────────────────────── */}
@@ -222,7 +233,8 @@ export default function AmikoMeetTab() {
           {user && (
             <Button
               onClick={() => setShowCreate(true)}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
+              disabled={monthlyUsage.used >= monthlyUsage.max}
+              className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               {t('세션 만들기', 'Crear sesión')}
@@ -268,6 +280,7 @@ export default function AmikoMeetTab() {
           onCreated={() => {
             setShowCreate(false)
             loadSessions()
+            checkUsage()
             toast.success(t('세션이 생성되었습니다!', '¡Sesión creada!'))
           }}
         />

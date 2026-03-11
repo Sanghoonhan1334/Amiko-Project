@@ -460,6 +460,17 @@ export default function MeetSessionDetail({ session, onBack }: MeetSessionDetail
                 )}
               </div>
             )}
+
+            {/* Session full message */}
+            {!isHost && !isEnrolled && activeSession.current_participants >= activeSession.max_participants && (
+              <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2">
+                <Users className="w-3.5 h-3.5" />
+                {t(
+                  '이 세션은 참가자가 가득 찼습니다.',
+                  'La videollamada alcanzó el número de participantes completos.'
+                )}
+              </div>
+            )}
           </div>
         </Card>
       )}
