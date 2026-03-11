@@ -33,12 +33,19 @@ import {
   AlertTriangle,
   Subtitles,
   Settings,
+  Flag,
+  Loader2,
+  Circle,
+  Square,
+  Shield,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CaptionOverlay from "@/components/videocall/CaptionOverlay";
 import CaptionSettings from "@/components/videocall/CaptionSettings";
+import GlossaryTooltip from "@/components/videocall/GlossaryTooltip";
 import { useBrowserSTT } from "@/hooks/useBrowserSTT";
 import { useCaptionStream } from "@/hooks/useCaptionStream";
 import { useTranslationStream, useTranslationPreferences } from "@/hooks/useTranslationStream";
@@ -119,6 +126,22 @@ export default function VideoRoom({
   // ── Caption state ──
   const [captionsEnabled, setCaptionsEnabled] = useState(false);
   const [showCaptionSettings, setShowCaptionSettings] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+
+  // ── Phase 5: Consent & Recording state ──
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentRecording, setConsentRecording] = useState(false);
+  const [consentTranscription, setConsentTranscription] = useState(false);
+  const [consentTranslation, setConsentTranslation] = useState(false);
+  const [consentSaved, setConsentSaved] = useState(false);
+  const [recordingState, setRecordingState] = useState<"idle" | "requesting" | "recording" | "stopped">("idle");
+  const [recordingId, setRecordingId] = useState<string | null>(null);
+  const [allConsented, setAllConsented] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   const [captionPrefs, setCaptionPrefs] = useState<{
     captions_enabled: boolean;
     font_size: "small" | "medium" | "large";
@@ -140,6 +163,14 @@ export default function VideoRoom({
     audio: IMicrophoneAudioTrack | null;
     video: ICameraVideoTrack | null;
   }>({ audio: null, video: null });
+
+  // ── Glossary state ──
+  const [glossaryMatches, setGlossaryMatches] = useState<
+    Array<{ term: string; translation: string; description?: string; category: string; rule: string }>
+  >([]);
+  const glossaryRef = useRef<
+    Array<{ term_original: string; term_translated: string; description: string; category: string; translation_rule: string; source_language: string }>
+  >([]);
 
   // ── Caption hooks ──
   const { captions: streamCaptions } = useCaptionStream({
@@ -180,6 +211,26 @@ export default function VideoRoom({
     .sort((a, b) => a.timestamp_ms - b.timestamp_ms)
     .slice(-50);
 
+  // ── Glossary matching: scan latest caption for cultural terms ──
+  useEffect(() => {
+    if (!captionsEnabled || allCaptions.length === 0 || glossaryRef.current.length === 0) return;
+    const latest = allCaptions[allCaptions.length - 1];
+    if (!latest?.is_final) return;
+
+    const text = latest.content.toLowerCase();
+    const matches = glossaryRef.current
+      .filter((g) => text.includes(g.term_original.toLowerCase()))
+      .map((g) => ({
+        term: g.term_original,
+        translation: g.term_translated,
+        description: g.description || undefined,
+        category: g.category,
+        rule: g.translation_rule,
+      }));
+
+    if (matches.length > 0) setGlossaryMatches(matches);
+  }, [allCaptions, captionsEnabled]);
+
   // ── Phase 3: Translation hooks ──
   const {
     preferences: translationPrefs,
@@ -208,6 +259,23 @@ export default function VideoRoom({
       }
     };
     loadPrefs();
+  }, []);
+
+  // ── Load cultural glossary on mount ──
+  useEffect(() => {
+    const loadGlossary = async () => {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data } = await supabase
+          .from("amiko_meet_cultural_glossaries")
+          .select("term_original, term_translated, description, category, translation_rule, source_language")
+          .eq("is_active", true);
+        if (data) glossaryRef.current = data;
+      } catch {
+        // Non-critical
+      }
+    };
+    loadGlossary();
   }, []);
 
   // ── Save caption preferences when they change ──
@@ -683,6 +751,197 @@ export default function VideoRoom({
     }
   }, []);
 
+  // ── Phase 5: Consent handlers ──
+  const handleSaveConsent = useCallback(async () => {
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      await fetch(`/api/video/sessions/${sessionId}/consents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          recording_consent: consentRecording,
+          transcription_consent: consentTranscription,
+          translation_consent: consentTranslation,
+        }),
+      });
+      setConsentSaved(true);
+      setShowConsentModal(false);
+
+      // Broadcast consent update
+      supabaseChannelRef.current?.send({
+        type: "broadcast",
+        event: "consent_update",
+        payload: { userId: uid, recording: consentRecording },
+      });
+
+      // Refresh consent status
+      const res = await fetch(`/api/video/sessions/${sessionId}/consents`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAllConsented(data.all_recording_consent);
+      }
+    } catch {
+      // consent save failed
+    }
+  }, [sessionId, uid, consentRecording, consentTranscription, consentTranslation]);
+
+  // Listen for consent broadcasts from other participants
+  useEffect(() => {
+    const channel = supabaseChannelRef.current;
+    if (!channel) return;
+
+    const handleConsentUpdate = async () => {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const res = await fetch(`/api/video/sessions/${sessionId}/consents`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAllConsented(data.all_recording_consent);
+        }
+      } catch {}
+    };
+
+    channel.on("broadcast", { event: "consent_update" }, handleConsentUpdate);
+    return () => {
+      channel.off("broadcast", { event: "consent_update" });
+    };
+  }, [sessionId]);
+
+  // ── Phase 5: Recording handlers ──
+  const handleStartRecording = useCallback(async () => {
+    if (!allConsented) {
+      setShowConsentModal(true);
+      return;
+    }
+
+    setRecordingState("requesting");
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Create server-side recording record
+      const res = await fetch(`/api/video/sessions/${sessionId}/recording/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ recording_type: "audio" }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("[Recording] Start failed:", err.error);
+        setRecordingState("idle");
+        return;
+      }
+
+      const data = await res.json();
+      setRecordingId(data.recording?.id || null);
+
+      // Start browser-side MediaRecorder
+      try {
+        const audioStream = tracksRef.current.audio?.getMediaStreamTrack();
+        if (audioStream) {
+          const stream = new MediaStream([audioStream]);
+          const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+          recordedChunksRef.current = [];
+
+          recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunksRef.current.push(e.data);
+            }
+          };
+
+          recorder.start(1000); // collect data every second
+          mediaRecorderRef.current = recorder;
+          setRecordingState("recording");
+
+          // Notify others
+          supabaseChannelRef.current?.send({
+            type: "broadcast",
+            event: "recording_started",
+            payload: { userId: uid },
+          });
+        }
+      } catch (mediaErr) {
+        console.error("[Recording] MediaRecorder error:", mediaErr);
+        setRecordingState("idle");
+      }
+    } catch {
+      setRecordingState("idle");
+    }
+  }, [sessionId, uid, allConsented]);
+
+  const handleStopRecording = useCallback(async () => {
+    try {
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== "inactive") {
+        recorder.stop();
+      }
+      mediaRecorderRef.current = null;
+
+      setRecordingState("stopped");
+
+      const supabase = createSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Upload recorded audio to Supabase Storage
+      const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+      const fileName = `vc-recordings/${sessionId}/${Date.now()}.webm`;
+
+      const { data: uploadData } = await supabase.storage
+        .from("recordings")
+        .upload(fileName, blob, { contentType: "audio/webm" });
+
+      const storageUrl = uploadData?.path
+        ? supabase.storage.from("recordings").getPublicUrl(uploadData.path).data.publicUrl
+        : undefined;
+
+      // Update server-side recording record
+      await fetch(`/api/video/sessions/${sessionId}/recording/stop`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          recording_id: recordingId,
+          storage_url: storageUrl,
+          storage_path: fileName,
+          file_size_bytes: blob.size,
+          format: "webm",
+        }),
+      });
+
+      // Notify others
+      supabaseChannelRef.current?.send({
+        type: "broadcast",
+        event: "recording_stopped",
+        payload: { userId: uid },
+      });
+
+      recordedChunksRef.current = [];
+    } catch (err) {
+      console.error("[Recording] Stop error:", err);
+    }
+  }, [sessionId, uid, recordingId]);
+
   const isLowTime = timeLeft <= 300;
 
   const totalParticipants = remoteUsers.length + 1;
@@ -809,6 +1068,9 @@ export default function VideoRoom({
         visible={captionsEnabled && captionPrefs.captions_enabled}
         currentUid={uid}
       />
+
+      {/* Cultural glossary tooltip */}
+      <GlossaryTooltip matches={glossaryMatches} />
 
       {/* Caption settings panel */}
       <CaptionSettings
@@ -1037,6 +1299,57 @@ export default function VideoRoom({
           </button>
         )}
 
+        {/* Phase 5: Consent button */}
+        <button
+          onClick={() => setShowConsentModal(true)}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            consentSaved
+              ? "bg-green-600/30 text-green-400 hover:bg-green-600/50"
+              : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+          }`}
+          title={consentSaved ? (t("vcMarketplace.consent.saved") || "Consent saved") : (t("vcMarketplace.consent.title") || "Consents")}
+        >
+          <Shield className="w-4 h-4" />
+        </button>
+
+        {/* Phase 5: Recording button */}
+        {recordingState === "idle" && (
+          <button
+            onClick={handleStartRecording}
+            title={allConsented ? (t("vcMarketplace.recording.start") || "Start recording") : (t("vcMarketplace.recording.needConsent") || "All must consent first")}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              allConsented
+                ? "bg-gray-700 hover:bg-gray-600 text-red-400"
+                : "bg-gray-700 text-gray-500 cursor-not-allowed opacity-50"
+            }`}
+          >
+            <Circle className="w-4 h-4" />
+          </button>
+        )}
+        {recordingState === "requesting" && (
+          <button disabled className="w-10 h-10 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center cursor-not-allowed">
+            <Loader2 className="w-4 h-4 animate-spin" />
+          </button>
+        )}
+        {recordingState === "recording" && (
+          <button
+            onClick={handleStopRecording}
+            title={t("vcMarketplace.recording.stop") || "Stop recording"}
+            className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-colors animate-pulse"
+          >
+            <Square className="w-3 h-3 fill-current" />
+          </button>
+        )}
+
+        {/* Report button */}
+        <button
+          onClick={() => setShowReportModal(true)}
+          className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-yellow-400 flex items-center justify-center transition-colors"
+          title={t("vcMarketplace.moderation.reportButton")}
+        >
+          <Flag className="w-4 h-4" />
+        </button>
+
         <button
           onClick={handleLeave}
           className="w-14 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
@@ -1044,6 +1357,190 @@ export default function VideoRoom({
           <PhoneOff className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Phase 5: Recording indicator */}
+      {recordingState === "recording" && (
+        <div className="absolute top-14 right-4 z-10">
+          <Badge className="bg-red-600 text-white animate-pulse flex items-center gap-1.5 text-xs px-2 py-1">
+            <Circle className="w-2.5 h-2.5 fill-current" />
+            {t("vcMarketplace.recording.active") || "REC"}
+          </Badge>
+        </div>
+      )}
+
+      {/* Phase 5: Consent Modal */}
+      {showConsentModal && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-700">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold text-sm">
+                  {t("vcMarketplace.consent.title") || "Session Consents"}
+                </h3>
+                <p className="text-gray-400 text-xs">
+                  {t("vcMarketplace.consent.subtitle") || "Choose what you agree to"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-700/50 cursor-pointer hover:bg-gray-700/70 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={consentRecording}
+                  onChange={(e) => setConsentRecording(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-500 text-blue-500 focus:ring-blue-500"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">
+                    {t("vcMarketplace.consent.recording") || "Recording"}
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    {t("vcMarketplace.consent.recordingDesc") || "Allow audio recording of this session"}
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-700/50 cursor-pointer hover:bg-gray-700/70 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={consentTranscription}
+                  onChange={(e) => setConsentTranscription(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-500 text-blue-500 focus:ring-blue-500"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">
+                    {t("vcMarketplace.consent.transcription") || "Transcription"}
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    {t("vcMarketplace.consent.transcriptionDesc") || "Allow speech-to-text transcription"}
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-700/50 cursor-pointer hover:bg-gray-700/70 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={consentTranslation}
+                  onChange={(e) => setConsentTranslation(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-500 text-blue-500 focus:ring-blue-500"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">
+                    {t("vcMarketplace.consent.translation") || "Translation"}
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    {t("vcMarketplace.consent.translationDesc") || "Allow real-time translation"}
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConsentModal(false)}
+                className="flex-1 py-2.5 rounded-lg text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+              >
+                {t("vcMarketplace.consent.cancel") || "Cancel"}
+              </button>
+              <button
+                onClick={handleSaveConsent}
+                className="flex-1 py-2.5 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+              >
+                <Check className="w-4 h-4" />
+                {t("vcMarketplace.consent.save") || "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 4: Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white text-sm font-medium flex items-center gap-2">
+                <Flag className="w-4 h-4 text-yellow-400" />
+                {t("vcMarketplace.moderation.reportTitle")}
+              </h3>
+              <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Reason selector */}
+            <div className="space-y-2 mb-3">
+              <label className="text-gray-400 text-xs">{t("vcMarketplace.moderation.reason")}</label>
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                className="w-full bg-gray-700 text-gray-200 text-sm rounded px-3 py-2 border border-gray-600"
+              >
+                <option value="">{t("vcMarketplace.moderation.selectReason")}</option>
+                <option value="harassment">{t("vcMarketplace.moderation.reasons.harassment")}</option>
+                <option value="insults">{t("vcMarketplace.moderation.reasons.insults")}</option>
+                <option value="spam">{t("vcMarketplace.moderation.reasons.spam")}</option>
+                <option value="offensive_content">{t("vcMarketplace.moderation.reasons.offensive")}</option>
+                <option value="inappropriate_behavior">{t("vcMarketplace.moderation.reasons.inappropriate")}</option>
+                <option value="other">{t("vcMarketplace.moderation.reasons.other")}</option>
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2 mb-4">
+              <label className="text-gray-400 text-xs">{t("vcMarketplace.moderation.description")}</label>
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                className="w-full bg-gray-700 text-gray-200 text-sm rounded px-3 py-2 border border-gray-600 resize-none"
+                rows={3}
+                placeholder={t("vcMarketplace.moderation.descriptionPlaceholder")}
+              />
+            </div>
+
+            {/* Submit */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 py-2 rounded text-sm bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+              >
+                {t("vcMarketplace.moderation.cancel")}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!reportReason) return;
+                  setReportSubmitting(true);
+                  try {
+                    const res = await fetch(`/api/video/sessions/${sessionId}/moderation/report`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        reason: reportReason,
+                        description: reportDescription || undefined,
+                      }),
+                    });
+                    if (res.ok) {
+                      setShowReportModal(false);
+                      setReportReason("");
+                      setReportDescription("");
+                    }
+                  } catch {}
+                  setReportSubmitting(false);
+                }}
+                disabled={!reportReason || reportSubmitting}
+                className="flex-1 py-2 rounded text-sm bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+              >
+                {reportSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                {t("vcMarketplace.moderation.submit")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

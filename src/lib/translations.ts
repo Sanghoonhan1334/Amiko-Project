@@ -1333,6 +1333,47 @@ export const translations = {
         error: "번역 오류",
         fallback: "원본 표시 중 (번역 사용 불가)",
       },
+      // Phase 4: Moderation
+      moderation: {
+        reportButton: "신고",
+        reportTitle: "세션 신고",
+        reason: "신고 사유",
+        selectReason: "사유를 선택하세요",
+        description: "상세 설명 (선택)",
+        descriptionPlaceholder: "자세한 내용을 설명해주세요...",
+        cancel: "취소",
+        submit: "신고하기",
+        reasons: {
+          harassment: "괴롭힘",
+          insults: "욕설",
+          spam: "스팸",
+          offensive: "불쾌한 콘텐츠",
+          inappropriate: "부적절한 행동",
+          other: "기타",
+        },
+      },
+      // Phase 5: Consent
+      consent: {
+        title: "세션 동의",
+        subtitle: "동의 항목을 선택하세요",
+        recording: "녹화",
+        recordingDesc: "이 세션의 오디오 녹화를 허용합니다",
+        transcription: "전사",
+        transcriptionDesc: "음성을 텍스트로 변환하는 것을 허용합니다",
+        translation: "번역",
+        translationDesc: "실시간 번역을 허용합니다",
+        cancel: "취소",
+        save: "저장",
+        saved: "동의 저장됨",
+      },
+      // Phase 5: Recording
+      recording: {
+        start: "녹화 시작",
+        stop: "녹화 중지",
+        active: "녹화 중",
+        needConsent: "모든 참가자의 동의가 필요합니다",
+        stopped: "녹화 완료",
+      },
       // Report form
       reportForm: {
         subtitle: "부적절한 행동을 신고해주세요",
@@ -5345,6 +5386,47 @@ export const translations = {
         translating: "Traduciendo...",
         error: "Error de traducción",
         fallback: "Mostrando original (traducción no disponible)",
+      },
+      // Phase 4: Moderation
+      moderation: {
+        reportButton: "Reportar",
+        reportTitle: "Reportar sesión",
+        reason: "Razón del reporte",
+        selectReason: "Selecciona una razón",
+        description: "Descripción (opcional)",
+        descriptionPlaceholder: "Describe los detalles...",
+        cancel: "Cancelar",
+        submit: "Enviar reporte",
+        reasons: {
+          harassment: "Acoso",
+          insults: "Insultos",
+          spam: "Spam",
+          offensive: "Contenido ofensivo",
+          inappropriate: "Comportamiento inapropiado",
+          other: "Otro",
+        },
+      },
+      // Phase 5: Consent
+      consent: {
+        title: "Consentimientos de sesión",
+        subtitle: "Elige qué autorizas",
+        recording: "Grabación",
+        recordingDesc: "Permitir grabación de audio de esta sesión",
+        transcription: "Transcripción",
+        transcriptionDesc: "Permitir conversión de voz a texto",
+        translation: "Traducción",
+        translationDesc: "Permitir traducción en tiempo real",
+        cancel: "Cancelar",
+        save: "Guardar",
+        saved: "Consentimiento guardado",
+      },
+      // Phase 5: Recording
+      recording: {
+        start: "Iniciar grabación",
+        stop: "Detener grabación",
+        active: "Grabando",
+        needConsent: "Se requiere consentimiento de todos",
+        stopped: "Grabación completada",
       },
       // Report form
       reportForm: {

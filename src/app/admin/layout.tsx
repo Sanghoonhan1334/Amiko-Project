@@ -136,6 +136,12 @@ const navSections: NavSection[] = [
         description: { ko: '신고/플래그 관리', es: 'Reportes y flags de contenido' },
       },
       {
+        href: '/admin/mentor/moderation',
+        label: { ko: '멘토 모더레이션', es: 'Moderación Mentor' },
+        icon: ShieldAlert,
+        description: { ko: '멘토 세션 신고/플래그', es: 'Reportes y flags de sesiones mentor' },
+      },
+      {
         href: '/admin/conversation-partners',
         label: { ko: '대화 파트너', es: 'Compañeros de Conversación' },
         icon: Video,

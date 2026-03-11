@@ -131,6 +131,19 @@ export function useTranslationStream({
           }
 
           setTranslations((prev) => {
+            // Deduplicate: replace if same caption_event_id and target_language exists
+            if (translationEvent.caption_event_id) {
+              const existingIdx = prev.findIndex(
+                (t) =>
+                  t.caption_event_id === translationEvent.caption_event_id &&
+                  t.target_language === translationEvent.target_language
+              );
+              if (existingIdx >= 0) {
+                const updated = [...prev];
+                updated[existingIdx] = translationEvent;
+                return updated.slice(-maxTranslations);
+              }
+            }
             return [...prev, translationEvent].slice(-maxTranslations);
           });
         }
@@ -195,21 +208,22 @@ export function useTranslationPreferences() {
 
   const updatePreferences = useCallback(
     async (updates: Partial<TranslationPreferences>) => {
-      const newPrefs = { ...preferences, ...updates };
-      setPreferences(newPrefs);
+      setPreferences((prev) => {
+        const newPrefs = { ...prev, ...updates };
 
-      try {
-        await fetch("/api/users/me/translation-preferences?module=vc", {
+        // Persist in background — revert via functional updater on failure
+        fetch("/api/users/me/translation-preferences?module=vc", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updates),
+        }).catch(() => {
+          setPreferences(prev);
         });
-      } catch {
-        // Revert on failure
-        setPreferences(preferences);
-      }
+
+        return newPrefs;
+      });
     },
-    [preferences]
+    []
   );
 
   return { preferences, updatePreferences, loading };

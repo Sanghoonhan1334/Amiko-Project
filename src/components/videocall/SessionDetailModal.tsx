@@ -193,6 +193,7 @@ export default function SessionDetailModal({
         durationMinutes: s.duration_minutes || 30,
         isHost: data.isHost || false,
         tokenExpiresIn: data.token_expires_in,
+        hostName: host?.display_name || s.title,
       }));
       window.open(`/videocall/room?sid=${s.id}`, "_blank");
     } catch {
@@ -232,6 +233,7 @@ export default function SessionDetailModal({
         durationMinutes: s.duration_minutes || 30,
         isHost: true,
         tokenExpiresIn: data.token_expires_in,
+        hostName: host?.display_name || s.title,
       }));
       window.open(`/videocall/room?sid=${s.id}`, "_blank");
       setSessionDetail((prev: any) => ({

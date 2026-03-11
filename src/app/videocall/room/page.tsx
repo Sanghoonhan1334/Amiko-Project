@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -17,8 +17,15 @@ const VideoRoom = dynamic(() => import("@/components/videocall/VideoRoom"), {
   ),
 });
 
+const VCPostSession = dynamic(() => import("@/components/videocall/VCPostSession"), {
+  ssr: false,
+});
+
 function VideoRoomContent() {
   const searchParams = useSearchParams();
+
+  // Room state: "call" | "post-session"
+  const [roomPhase, setRoomPhase] = useState<"call" | "post-session">("call");
 
   // Read session ID from URL — all sensitive data comes from sessionStorage
   const sid = searchParams.get("sid") || searchParams.get("sessionId") || "";
@@ -36,6 +43,7 @@ function VideoRoomContent() {
   const isHost = roomData?.isHost || false;
   const durationMinutes = roomData?.durationMinutes || 30;
   const tokenExpiresIn = roomData?.tokenExpiresIn || undefined;
+  const hostName = roomData?.hostName || roomData?.title || "Host";
 
   // Clean up sessionStorage after reading (one-time use)
   useEffect(() => {
@@ -63,6 +71,19 @@ function VideoRoomContent() {
     );
   }
 
+  // Phase 5: Show post-session view after leaving the call
+  if (roomPhase === "post-session") {
+    return (
+      <VCPostSession
+        sessionId={sessionId}
+        hostName={hostName}
+        isHost={isHost}
+        durationMinutes={durationMinutes}
+        onClose={() => window.close()}
+      />
+    );
+  }
+
   return (
     <VideoRoom
       channel={channel}
@@ -74,7 +95,7 @@ function VideoRoomContent() {
       isHost={isHost}
       durationMinutes={durationMinutes}
       tokenExpiresIn={tokenExpiresIn}
-      onLeave={() => window.close()}
+      onLeave={() => setRoomPhase("post-session")}
     />
   );
 }

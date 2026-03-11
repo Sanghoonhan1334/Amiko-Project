@@ -95,6 +95,11 @@ export async function POST(
       translateCaptions(admin, sessionId, finalCaptions).catch((err) => {
         console.error("[CAPTIONS_WEBHOOK] Translation background error:", err);
       });
+
+      // ── Phase 4: Auto-flag sensitive content ──
+      flagSensitiveContent(admin, sessionId, finalCaptions).catch((err) => {
+        console.error("[CAPTIONS_WEBHOOK] Auto-flag background error:", err);
+      });
     }
 
     return NextResponse.json({ message: "OK", inserted: validEvents.length });
@@ -106,6 +111,7 @@ export async function POST(
 
 /**
  * Translate final caption events and store in vc_translation_events.
+ * Phase 4: Now uses the glossary pipeline for cultural term preservation.
  * Translates es→ko AND ko→es for each caption so both sides are available.
  * Runs as fire-and-forget from the webhook handler.
  */
@@ -125,6 +131,8 @@ async function translateCaptions(
   const { TranslationService, initializeTranslationService } = await import(
     "@/lib/translation"
   );
+  const { applyGlossaryPipeline } = await import("@/lib/meet-glossary");
+
   initializeTranslationService();
   const translator = TranslationService.getInstance();
   const engine = translator.getProvider();
@@ -144,11 +152,31 @@ async function translateCaptions(
 
     for (const targetLang of targets) {
       try {
-        const translated = await translator.translate(
-          caption.content,
-          targetLang as "ko" | "es",
-          caption.language as "ko" | "es" | undefined
-        );
+        let translated: string;
+        let usedGlossary = false;
+
+        // Use glossary pipeline for ko↔es (supported language pairs)
+        if (
+          (caption.language === "ko" || caption.language === "es") &&
+          (targetLang === "ko" || targetLang === "es")
+        ) {
+          const pipelineResult = await applyGlossaryPipeline(
+            caption.content,
+            caption.language as "ko" | "es",
+            targetLang as "ko" | "es",
+            (text: string) =>
+              translator.translate(text, targetLang as "ko" | "es", caption.language as "ko" | "es")
+          );
+          translated = pipelineResult.result;
+          usedGlossary = pipelineResult.glossaryApplied;
+        } else {
+          // Fallback: direct translation (e.g., en→ko, en→es)
+          translated = await translator.translate(
+            caption.content,
+            targetLang as "ko" | "es",
+            caption.language as "ko" | "es" | undefined
+          );
+        }
 
         translationInserts.push({
           caption_event_id: caption.id,
@@ -157,7 +185,7 @@ async function translateCaptions(
           target_language: targetLang,
           original_content: caption.content,
           translated_content: translated,
-          translation_engine: engine,
+          translation_engine: usedGlossary ? `${engine}+glossary` : engine,
           is_final: true,
           speaker_uid: caption.speaker_uid,
           speaker_name: caption.speaker_name,
@@ -195,6 +223,58 @@ async function translateCaptions(
 
     if (error) {
       console.error("[TRANSLATE] Insert error:", error);
+    }
+  }
+}
+
+/**
+ * Phase 4: Scan final captions for sensitive content and auto-flag.
+ * Runs as fire-and-forget from the webhook handler.
+ */
+async function flagSensitiveContent(
+  admin: ReturnType<typeof createAdminClient>,
+  sessionId: string,
+  captions: Array<{
+    id: string;
+    content: string;
+    language: string;
+    speaker_uid: number | null;
+    speaker_name: string | null;
+    timestamp_ms: number;
+  }>
+) {
+  const { scanContent } = await import("@/lib/content-moderation");
+
+  const flagInserts: any[] = [];
+
+  for (const caption of captions) {
+    const flags = scanContent(caption.content, caption.language);
+
+    for (const flag of flags) {
+      flagInserts.push({
+        session_id: sessionId,
+        flagged_user_id: null, // speaker_uid is Agora UID, not user UUID — resolved later if needed
+        flagged_content: flag.flagged_content,
+        caption_event_id: caption.id,
+        detection_rule: flag.detection_rule,
+        detection_type: flag.detection_type,
+        severity: flag.severity,
+        confidence: flag.confidence,
+        source_language: flag.source_language,
+        status: "active",
+      });
+    }
+  }
+
+  if (flagInserts.length > 0) {
+    const { error } = await admin
+      .from("vc_moderation_flags")
+      .insert(flagInserts);
+
+    if (error) {
+      console.error("[AUTO_FLAG] Insert error:", error);
+    } else {
+      console.log(`[AUTO_FLAG] Flagged ${flagInserts.length} item(s) in session ${sessionId}`);
     }
   }
 }

@@ -44,6 +44,7 @@ export async function GET(
   let closed = false;
   let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   let subscription: any = null;
+  const admin = createAdminClient();
 
   const stream = new ReadableStream({
     start(controller) {
@@ -65,7 +66,6 @@ export async function GET(
       }, 15000);
 
       // Subscribe to Supabase Realtime for new translation events
-      const admin = createAdminClient();
       subscription = admin
         .channel(`vc-translations:${sessionId}`)
         .on(
@@ -109,7 +109,6 @@ export async function GET(
       closed = true;
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       if (subscription) {
-        const admin = createAdminClient();
         admin.removeChannel(subscription);
       }
     },

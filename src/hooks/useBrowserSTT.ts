@@ -205,18 +205,23 @@ export function useBrowserSTT({
 }
 
 /**
- * Simple language detection heuristic based on character ranges.
- * Korean (Hangul) → 'ko', Latin with Spanish chars → 'es', else 'unknown'
+ * Language detection heuristic based on character ranges.
+ * Korean (Hangul) → 'ko', English → 'en', Spanish (Latin with diacritics) → 'es'
  */
 function detectLanguage(text: string): string {
   const hangulRegex = /[\u3131-\u3163\uac00-\ud7a3]/;
+  const spanishChars = /[áéíóúñüÁÉÍÓÚÑÜ¿¡]/;
   const latinRegex = /[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ]/;
 
   const hangulCount = (text.match(new RegExp(hangulRegex.source, "g")) || []).length;
   const latinCount = (text.match(new RegExp(latinRegex.source, "g")) || []).length;
+  const spanishCharCount = (text.match(new RegExp(spanishChars.source, "g")) || []).length;
 
   if (hangulCount > latinCount) return "ko";
-  if (latinCount > hangulCount) return "es";
+  if (latinCount > hangulCount) {
+    // Distinguish Spanish from English by presence of Spanish-specific chars
+    return spanishCharCount > 0 ? "es" : "en";
+  }
   if (hangulCount > 0 && latinCount > 0) return "mixed";
   return "unknown";
 }
