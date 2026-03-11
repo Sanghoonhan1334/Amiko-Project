@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseClient } from '@/lib/supabaseServer';
+import { supabaseClient, supabaseServer } from '@/lib/supabaseServer';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export async function GET(
   request: NextRequest,
@@ -213,5 +214,99 @@ export async function GET(
       },
       { status: 500 }
     );
+  }
+}
+
+// PUT /api/quizzes/[id] — Admin: update quiz metadata
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await requireAdmin(request);
+  if (!auth.authenticated) return auth.response;
+
+  const { id } = await params;
+
+  if (!supabaseServer) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+  }
+
+  try {
+    const body = await request.json();
+    const { title, description, category, thumbnail_url, is_active } = body;
+
+    if (!title?.trim()) {
+      return NextResponse.json({ error: 'El título es obligatorio.' }, { status: 400 });
+    }
+
+    const { data: updated, error } = await supabaseServer
+      .from('quizzes')
+      .update({
+        title: title.trim(),
+        description: description?.trim() || null,
+        category: category || 'personality',
+        thumbnail_url: thumbnail_url?.trim() || null,
+        is_active: is_active !== undefined ? is_active : true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[QUIZ_PUT] Error updating quiz:', error);
+      return NextResponse.json({ error: 'Error al actualizar el test.' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (err) {
+    console.error('[QUIZ_PUT] Exception:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+// DELETE /api/quizzes/[id] — Admin: delete quiz and all related data
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await requireAdmin(request);
+  if (!auth.authenticated) return auth.response;
+
+  const { id } = await params;
+
+  if (!supabaseServer) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+  }
+
+  try {
+    // Delete options first (child of questions)
+    const { data: questions } = await supabaseServer
+      .from('quiz_questions')
+      .select('id')
+      .eq('quiz_id', id);
+
+    if (questions && questions.length > 0) {
+      const questionIds = questions.map((q: { id: string }) => q.id);
+      await supabaseServer.from('quiz_options').delete().in('question_id', questionIds);
+      await supabaseServer.from('quiz_questions').delete().eq('quiz_id', id);
+    }
+
+    // Delete quiz results
+    await supabaseServer.from('quiz_results').delete().eq('quiz_id', id);
+
+    // Delete the quiz itself
+    const { error } = await supabaseServer.from('quizzes').delete().eq('id', id);
+
+    if (error) {
+      console.error('[QUIZ_DELETE] Error deleting quiz:', error);
+      return NextResponse.json({ error: 'Error al eliminar el test.' }, { status: 500 });
+    }
+
+    console.log('[QUIZ_DELETE] Quiz deleted by', auth.user.email, ':', id);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('[QUIZ_DELETE] Exception:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

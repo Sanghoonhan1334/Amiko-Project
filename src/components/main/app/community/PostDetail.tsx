@@ -455,8 +455,8 @@ export default function PostDetail({
     );
   }
 
-  const isAuthor = user && user.id === post.author?.id;
-  const canManage = post.is_notice ? isAdmin : isAuthor || isAdmin; // 공지사항은 운영자만, 일반 게시글은 작성자이거나 운영자
+  // Solo el administrador puede editar o eliminar publicaciones (incluyendo las propias)
+  const canManage = isAdmin;
 
   // console.log('PostDetail 권한 확인:', {
   //   userId: user?.id,
@@ -525,7 +525,7 @@ export default function PostDetail({
                 {/* 수정/삭제 버튼 */}
                 {canManage && (
                   <div className="flex space-x-1">
-                    {(post.is_notice ? isAdmin : isAuthor || isAdmin) &&
+                    {isAdmin &&
                       onEdit && (
                         <Button
                           size="sm"
@@ -544,7 +544,7 @@ export default function PostDetail({
                             : t("freeboard.edit")}
                         </Button>
                       )}
-                    {(post.is_notice ? isAdmin : isAuthor || isAdmin) &&
+                    {isAdmin &&
                       onDelete && (
                         <Button
                           size="sm"
@@ -556,13 +556,11 @@ export default function PostDetail({
                             );
                             onDelete();
                           }}
-                          className={`text-xs px-2 py-1 ${post.is_notice ? "text-red-600 border-red-600 hover:bg-red-50" : isAdmin && !isAuthor ? "text-red-600 border-red-600 hover:bg-red-50" : ""}`}
+                          className="text-xs px-2 py-1 text-red-600 border-red-600 hover:bg-red-50"
                         >
                           {post.is_notice
                             ? t("freeboard.deleteNotice")
-                            : isAdmin && !isAuthor
-                              ? t("freeboard.deleteAsAdmin")
-                              : t("freeboard.delete")}
+                            : t("freeboard.deleteAsAdmin")}
                         </Button>
                       )}
                   </div>

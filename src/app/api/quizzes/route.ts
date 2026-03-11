@@ -18,15 +18,20 @@ export async function GET(request: NextRequest) {
     // URL 파라미터에서 카테고리 가져오기
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
+    const showAll = searchParams.get('showAll') === 'true'; // Admin: show all including inactive
     
-    console.log('[QUIZZES] 카테고리:', category);
+    console.log('[QUIZZES] 카테고리:', category, 'showAll:', showAll);
 
     // 퀴즈 목록 조회 - slug 필드 포함
     let query = supabase
       .from('quizzes')
       .select('id, slug, title, description, category, thumbnail_url, total_questions, total_participants, is_active, created_at, updated_at')
-      .eq('is_active', true)
       .order('created_at', { ascending: false });
+
+    // showAll이 아닌 경우에만 is_active 필터 적용
+    if (!showAll) {
+      query = query.eq('is_active', true);
+    }
 
     // category 필터
     if (category) {

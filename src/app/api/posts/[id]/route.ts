@@ -279,7 +279,7 @@ export async function PUT(
       return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // Check if user is admin
+    // Check if user is admin — only admins may edit published posts
     const { data: adminData } = await supabaseServer
       .from('admin_users')
       .select('id')
@@ -288,8 +288,8 @@ export async function PUT(
       .maybeSingle()
     const isAdmin = !!adminData
 
-    if (existingPost.user_id !== user.id && !isAdmin) {
-      return NextResponse.json({ error: '게시글을 수정할 권한이 없습니다.' }, { status: 403 })
+    if (!isAdmin) {
+      return NextResponse.json({ error: '게시글을 수정할 권한이 없습니다. Solo los administradores pueden editar publicaciones.' }, { status: 403 })
     }
 
     console.log("[POST_PUT] 게시글 수정:", {
