@@ -284,7 +284,7 @@ export default function VideoRoom({
         broadcastSystem(`User ${uid} joined`);
 
         // Report presence join to backend
-        fetch(`/api/meet/sessions/${sessionId}/presence/join`, {
+        fetch(`/api/video/sessions/${sessionId}/presence/join`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -522,7 +522,7 @@ export default function VideoRoom({
 
   const handleLeave = useCallback(async () => {
     // Report presence leave to backend
-    fetch(`/api/meet/sessions/${sessionId}/presence/leave`, {
+    fetch(`/api/video/sessions/${sessionId}/presence/leave`, {
       method: "POST",
     }).catch(() => {});
 

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET /api/video/sessions — List sessions with timezone-aware display
 export async function GET(request: NextRequest) {
@@ -112,47 +111,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create host profile
-    let { data: hostProfile } = await supabase
+    // Get host profile — user must already be approved as mentor/host by admin
+    const { data: hostProfile } = await supabase
       .from("vc_host_profiles")
       .select("*")
       .eq("user_id", user.id)
       .single();
 
     if (!hostProfile) {
-      const adminClient = createAdminClient();
-      const { data: userProfile } = await adminClient
-        .from("users")
-        .select("full_name, country, avatar_url")
-        .eq("id", user.id)
-        .single();
-
-      const { data: newHost, error: createError } = await supabase
-        .from("vc_host_profiles")
-        .insert({
-          user_id: user.id,
-          display_name:
-            userProfile?.full_name || user.email?.split("@")[0] || "Host",
-          country: userProfile?.country || null,
-          avatar_url: userProfile?.avatar_url || null,
-          languages: [],
-          cultural_interests: [],
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        return NextResponse.json(
-          { error: "Failed to create host profile" },
-          { status: 500 },
-        );
-      }
-      hostProfile = newHost;
+      return NextResponse.json(
+        {
+          error:
+            "You must be approved as a mentor to create sessions. Contact an administrator.",
+        },
+        { status: 403 },
+      );
     }
 
-    // Check host suspension
-    if (hostProfile.status === "suspended" && hostProfile.suspension_until) {
-      if (new Date(hostProfile.suspension_until) > new Date()) {
+    // Only verified or expert hosts can create sessions
+    if (!["verified", "expert"].includes(hostProfile.status)) {
+      if (hostProfile.status === "suspended") {
         return NextResponse.json(
           {
             error: "Host is suspended",
@@ -161,6 +139,13 @@ export async function POST(request: NextRequest) {
           { status: 403 },
         );
       }
+      return NextResponse.json(
+        {
+          error:
+            "Your mentor profile is pending approval. An administrator must verify your profile before you can create sessions.",
+        },
+        { status: 403 },
+      );
     }
 
     // If slot_id provided, validate against schedule config
