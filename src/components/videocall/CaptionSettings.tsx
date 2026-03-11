@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { X } from "lucide-react";
+import { X, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { TranslationPreferences, TranslationDisplayMode } from "@/hooks/useTranslationStream";
 
 interface CaptionPreferences {
   captions_enabled: boolean;
@@ -17,19 +18,30 @@ interface CaptionSettingsProps {
   onClose: () => void;
   preferences: CaptionPreferences;
   onUpdate: (prefs: Partial<CaptionPreferences>) => void;
+  // Phase 3: Translation preferences
+  translationPreferences?: TranslationPreferences;
+  onUpdateTranslation?: (prefs: Partial<TranslationPreferences>) => void;
 }
 
+const DISPLAY_MODE_LABELS: Record<TranslationDisplayMode, { ko: string; es: string }> = {
+  original_only: { ko: "원본만", es: "Solo original" },
+  translated_only: { ko: "번역만", es: "Solo traducción" },
+  original_and_translated: { ko: "원본 + 번역", es: "Original + traducción" },
+};
+
 /**
- * Settings panel for caption preferences (font size, position, language).
- * Shown as a popover/modal from the caption toggle button.
+ * Settings panel for caption + translation preferences.
+ * Phase 3 adds translation display mode and target language.
  */
 export default function CaptionSettings({
   visible,
   onClose,
   preferences,
   onUpdate,
+  translationPreferences,
+  onUpdateTranslation,
 }: CaptionSettingsProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   if (!visible) return null;
 
@@ -85,6 +97,65 @@ export default function CaptionSettings({
           ))}
         </div>
       </div>
+
+      {/* ═══ Phase 3: Translation Settings ═══ */}
+      {translationPreferences && onUpdateTranslation && (
+        <>
+          {/* Section divider */}
+          <div className="flex items-center gap-2 pt-3 pb-1">
+            <Languages className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-purple-400 text-xs font-medium">
+              {t("vcMarketplace.translation.title")}
+            </span>
+          </div>
+
+          {/* Display Mode */}
+          <div className="py-2 border-b border-gray-700">
+            <span className="text-gray-300 text-xs block mb-1.5">
+              {t("vcMarketplace.translation.displayMode")}
+            </span>
+            <div className="flex flex-col gap-1">
+              {(["original_only", "translated_only", "original_and_translated"] as const).map(
+                (mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => onUpdateTranslation({ display_mode: mode })}
+                    className={`w-full py-1.5 px-2 rounded text-xs text-left transition-colors ${
+                      translationPreferences.display_mode === mode
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                  >
+                    {DISPLAY_MODE_LABELS[mode][language === "ko" ? "ko" : "es"]}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Target Translation Language */}
+          <div className="py-2 border-b border-gray-700">
+            <span className="text-gray-300 text-xs block mb-1.5">
+              {t("vcMarketplace.translation.targetLanguage")}
+            </span>
+            <div className="flex gap-1.5">
+              {(["ko", "es"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => onUpdateTranslation({ target_language: lang })}
+                  className={`flex-1 py-1 rounded text-xs font-medium transition-colors ${
+                    translationPreferences.target_language === lang
+                      ? "bg-purple-500 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {lang === "ko" ? "한국어" : "Español"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Font Size */}
       <div className="py-2 border-b border-gray-700">

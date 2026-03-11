@@ -41,6 +41,7 @@ import CaptionOverlay from "@/components/videocall/CaptionOverlay";
 import CaptionSettings from "@/components/videocall/CaptionSettings";
 import { useBrowserSTT } from "@/hooks/useBrowserSTT";
 import { useCaptionStream } from "@/hooks/useCaptionStream";
+import { useTranslationStream, useTranslationPreferences } from "@/hooks/useTranslationStream";
 
 interface VideoRoomProps {
   channel: string;
@@ -178,6 +179,18 @@ export default function VideoRoom({
   const allCaptions = [...streamCaptions, ...localCaptions]
     .sort((a, b) => a.timestamp_ms - b.timestamp_ms)
     .slice(-50);
+
+  // ── Phase 3: Translation hooks ──
+  const {
+    preferences: translationPrefs,
+    updatePreferences: updateTranslationPrefs,
+  } = useTranslationPreferences();
+
+  const { translations } = useTranslationStream({
+    sessionId,
+    enabled: captionsEnabled && captionPrefs.captions_enabled && translationPrefs.display_mode !== "original_only",
+    targetLanguage: translationPrefs.target_language,
+  });
 
   // ── Load caption preferences on mount ──
   useEffect(() => {
@@ -789,6 +802,8 @@ export default function VideoRoom({
       {/* Caption overlay */}
       <CaptionOverlay
         captions={allCaptions}
+        translations={translations}
+        displayMode={translationPrefs.display_mode}
         position={captionPrefs.position}
         fontSize={captionPrefs.font_size}
         visible={captionsEnabled && captionPrefs.captions_enabled}
@@ -801,6 +816,8 @@ export default function VideoRoom({
         onClose={() => setShowCaptionSettings(false)}
         preferences={captionPrefs}
         onUpdate={updateCaptionPrefs}
+        translationPreferences={translationPrefs}
+        onUpdateTranslation={updateTranslationPrefs}
       />
 
       {/* Floating reactions */}

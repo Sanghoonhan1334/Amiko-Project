@@ -1321,6 +1321,18 @@ export const translations = {
         top: "상단",
         bottom: "하단",
       },
+      // Phase 3: Translation
+      translation: {
+        title: "실시간 번역",
+        displayMode: "표시 모드",
+        originalOnly: "원본만",
+        translatedOnly: "번역만",
+        originalAndTranslated: "원본 + 번역",
+        targetLanguage: "번역 대상 언어",
+        translating: "번역 중...",
+        error: "번역 오류",
+        fallback: "원본 표시 중 (번역 사용 불가)",
+      },
       // Report form
       reportForm: {
         subtitle: "부적절한 행동을 신고해주세요",
@@ -5321,6 +5333,18 @@ export const translations = {
         position: "Posición",
         top: "Arriba",
         bottom: "Abajo",
+      },
+      // Phase 3: Translation
+      translation: {
+        title: "Traducción en tiempo real",
+        displayMode: "Modo de visualización",
+        originalOnly: "Solo original",
+        translatedOnly: "Solo traducción",
+        originalAndTranslated: "Original + traducción",
+        targetLanguage: "Idioma de traducción",
+        translating: "Traduciendo...",
+        error: "Error de traducción",
+        fallback: "Mostrando original (traducción no disponible)",
       },
       // Report form
       reportForm: {
