@@ -44,6 +44,8 @@ interface VideoRoomProps {
   sessionId: string;
   title: string;
   durationMinutes?: number;
+  isHost?: boolean;
+  tokenExpiresIn?: number;
   onLeave?: () => void;
 }
 

@@ -91,8 +91,9 @@ export default function MyBookingsView({ open, onClose }: MyBookingsViewProps) {
     if (!booking.session?.scheduled_at || booking.status !== "confirmed")
       return false;
     const start = new Date(booking.session.scheduled_at).getTime();
+    const durationMs = (booking.session?.duration_minutes || 30) * 60 * 1000;
     const diff = start - Date.now();
-    return diff <= 15 * 60 * 1000 && diff > -30 * 60 * 1000;
+    return diff <= 15 * 60 * 1000 && diff > -durationMs;
   };
 
   const handleJoin = async (booking: any) => {
@@ -113,6 +114,7 @@ export default function MyBookingsView({ open, onClose }: MyBookingsViewProps) {
           appId: data.appId,
           sessionId: booking.session_id,
           title: data.title || booking.session?.title || "",
+          durationMinutes: (booking.session?.duration_minutes || 30).toString(),
           ...(data.isHost ? { isHost: "true" } : {}),
           ...(data.token_expires_in
             ? { tokenExpiresIn: data.token_expires_in.toString() }

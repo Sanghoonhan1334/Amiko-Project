@@ -183,6 +183,7 @@ export default function SessionDetailModal({
         appId: data.appId,
         sessionId: s.id,
         title: data.title || s.title,
+        durationMinutes: (s.duration_minutes || 30).toString(),
         ...(data.isHost ? { isHost: "true" } : {}),
         ...(data.token_expires_in
           ? { tokenExpiresIn: data.token_expires_in.toString() }
@@ -219,6 +220,7 @@ export default function SessionDetailModal({
         sessionId: s.id,
         title: data.title || s.title,
         isHost: "true",
+        durationMinutes: (s.duration_minutes || 30).toString(),
         ...(data.token_expires_in
           ? { tokenExpiresIn: data.token_expires_in.toString() }
           : {}),

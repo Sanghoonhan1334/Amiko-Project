@@ -109,6 +109,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate duration (15–180 minutes, default 30)
+    const sessionDuration = parseInt(duration_minutes) || 30;
+    if (sessionDuration < 15 || sessionDuration > 180) {
+      return NextResponse.json(
+        { error: "duration_minutes must be between 15 and 180" },
+        { status: 400 },
+      );
+    }
+
     // Get the authenticated user
     const {
       data: { user },
@@ -183,7 +192,7 @@ export async function POST(request: NextRequest) {
       language: language || "es",
       level: level || "basic",
       scheduled_at,
-      duration_minutes: duration_minutes || 30,
+      duration_minutes: sessionDuration,
       price_usd: price_usd ?? 5.0,
       max_participants: max_participants || 10,
       agora_channel: channelName,

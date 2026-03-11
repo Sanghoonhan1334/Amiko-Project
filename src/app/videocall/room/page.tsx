@@ -27,6 +27,9 @@ function VideoRoomContent() {
   const sessionId = searchParams.get("sessionId") || "";
   const title = searchParams.get("title") || "Video Call";
   const isHost = searchParams.get("isHost") === "true";
+  const durationMinutes = searchParams.get("durationMinutes")
+    ? parseInt(searchParams.get("durationMinutes")!)
+    : 30;
   const tokenExpiresIn = searchParams.get("tokenExpiresIn")
     ? parseInt(searchParams.get("tokenExpiresIn")!)
     : undefined;
@@ -59,6 +62,7 @@ function VideoRoomContent() {
       sessionId={sessionId}
       title={title}
       isHost={isHost}
+      durationMinutes={durationMinutes}
       tokenExpiresIn={tokenExpiresIn}
       onLeave={() => window.close()}
     />

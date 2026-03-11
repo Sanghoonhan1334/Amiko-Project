@@ -56,6 +56,7 @@ export default function CreateSessionModal({
   const [level, setLevel] = useState("basic");
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState("30");
   const [priceUsd, setPriceUsd] = useState("5.00");
   const [maxParticipants, setMaxParticipants] = useState("10");
   const [tagsInput, setTagsInput] = useState("");
@@ -121,6 +122,15 @@ export default function CreateSessionModal({
       return;
     }
 
+    const duration = parseInt(durationMinutes);
+    if (isNaN(duration) || duration < 15 || duration > 180) {
+      setError(
+        t("vcMarketplace.createForm.errorDuration") ||
+          "Duration must be between 15 and 180 minutes",
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -140,6 +150,7 @@ export default function CreateSessionModal({
           language,
           level,
           scheduled_at: scheduledAt,
+          duration_minutes: duration,
           price_usd: price,
           max_participants: maxP,
           tags,
@@ -319,8 +330,8 @@ export default function CreateSessionModal({
             </Select>
           </div>
 
-          {/* Date + Time */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Date + Time + Duration */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1 block">
                 {t("vcMarketplace.createForm.date")} *
@@ -364,6 +375,26 @@ export default function CreateSessionModal({
                   className="h-9 text-xs"
                 />
               )}
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1 flex items-center gap-1 block">
+                <Clock className="w-3 h-3" />
+                {t("vcMarketplace.createForm.duration") || "Duración"} *
+              </label>
+              <Select value={durationMinutes} onValueChange={setDurationMinutes}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15" className="text-xs">15 min</SelectItem>
+                  <SelectItem value="30" className="text-xs">30 min</SelectItem>
+                  <SelectItem value="45" className="text-xs">45 min</SelectItem>
+                  <SelectItem value="60" className="text-xs">1 hora</SelectItem>
+                  <SelectItem value="90" className="text-xs">1.5 horas</SelectItem>
+                  <SelectItem value="120" className="text-xs">2 horas</SelectItem>
+                  <SelectItem value="180" className="text-xs">3 horas</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
