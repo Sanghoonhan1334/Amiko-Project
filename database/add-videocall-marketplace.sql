@@ -260,10 +260,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vc_host_profiles_updated ON public.vc_host_profiles;
 CREATE TRIGGER vc_host_profiles_updated BEFORE UPDATE ON public.vc_host_profiles
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_timestamp();
+DROP TRIGGER IF EXISTS vc_sessions_updated ON public.vc_sessions;
 CREATE TRIGGER vc_sessions_updated BEFORE UPDATE ON public.vc_sessions
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_timestamp();
+DROP TRIGGER IF EXISTS vc_bookings_updated ON public.vc_bookings;
 CREATE TRIGGER vc_bookings_updated BEFORE UPDATE ON public.vc_bookings
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_timestamp();
 
@@ -286,6 +289,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vc_rating_inserted ON public.vc_ratings;
 CREATE TRIGGER vc_rating_inserted AFTER INSERT ON public.vc_ratings
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_host_rating();
 
@@ -307,6 +311,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vc_booking_count ON public.vc_bookings;
 CREATE TRIGGER vc_booking_count AFTER INSERT OR UPDATE OR DELETE ON public.vc_bookings
   FOR EACH ROW EXECUTE FUNCTION public.vc_update_participant_count();
 
@@ -347,6 +352,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vc_session_cancellation ON public.vc_sessions;
 CREATE TRIGGER vc_session_cancellation AFTER UPDATE ON public.vc_sessions
   FOR EACH ROW EXECUTE FUNCTION public.vc_check_host_cancellation();
 
