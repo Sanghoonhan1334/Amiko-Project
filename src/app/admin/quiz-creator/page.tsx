@@ -41,7 +41,7 @@ interface Quiz {
   is_active: boolean
 }
 
-function QuizCreatorPage() {
+export default function QuizCreatorPage() {
   const { language } = useLanguage()
   const t = (ko: string, es: string) => language === 'ko' ? ko : es
   const { user, token } = useAuth()
@@ -537,5 +537,3 @@ function QuizCreatorPage() {
     </div>
   )
 }
-
-export default QuizCreatorPage
