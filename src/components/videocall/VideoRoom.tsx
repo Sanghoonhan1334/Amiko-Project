@@ -341,7 +341,7 @@ export default function VideoRoom({
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleLeave();
+          handleLeaveRef.current();
           return 0;
         }
         // Show warning at 5 min and 1 min marks
@@ -364,7 +364,7 @@ export default function VideoRoom({
         const res = await fetch(`/api/video/sessions/${sessionId}/timer`);
         const data = await res.json();
         if (data.status === "completed") {
-          handleLeave();
+          handleLeaveRef.current();
         } else if (typeof data.remaining_seconds === "number") {
           setTimeLeft(data.remaining_seconds);
         }
@@ -535,6 +535,12 @@ export default function VideoRoom({
     if (onLeave) onLeave();
     else window.close();
   }, [onLeave, sessionId]);
+
+  // Keep a ref to the latest handleLeave so timer intervals never capture a stale version
+  const handleLeaveRef = useRef(handleLeave);
+  useEffect(() => {
+    handleLeaveRef.current = handleLeave;
+  }, [handleLeave]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {

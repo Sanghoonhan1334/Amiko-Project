@@ -107,20 +107,20 @@ export default function MyBookingsView({ open, onClose }: MyBookingsViewProps) {
       );
       const data = await res.json();
       if (res.ok) {
-        const params = new URLSearchParams({
+        // Store sensitive Agora credentials in sessionStorage (not URL)
+        const roomKey = `vc_room_${booking.session_id}`;
+        sessionStorage.setItem(roomKey, JSON.stringify({
           channel: data.channel,
           token: data.token,
-          uid: data.uid.toString(),
+          uid: data.uid,
           appId: data.appId,
           sessionId: booking.session_id,
           title: data.title || booking.session?.title || "",
-          durationMinutes: (booking.session?.duration_minutes || 30).toString(),
-          ...(data.isHost ? { isHost: "true" } : {}),
-          ...(data.token_expires_in
-            ? { tokenExpiresIn: data.token_expires_in.toString() }
-            : {}),
-        });
-        window.open(`/videocall/room?${params.toString()}`, "_blank");
+          durationMinutes: booking.session?.duration_minutes || 30,
+          isHost: data.isHost || false,
+          tokenExpiresIn: data.token_expires_in,
+        }));
+        window.open(`/videocall/room?sid=${booking.session_id}`, "_blank");
       }
     } catch (err) {
       console.error("Join error:", err);

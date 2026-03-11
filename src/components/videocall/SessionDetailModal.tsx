@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -95,6 +95,7 @@ export default function SessionDetailModal({
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const actionInFlightRef = useRef(false);  // prevents double-click on any action button
 
   useEffect(() => {
     if (!session?.id) return;
@@ -103,12 +104,11 @@ export default function SessionDetailModal({
       .then((r) => r.json())
       .then((data) => {
         setSessionDetail(data.session || session);
-        // Check if user has a booking for this session
-        if (user?.id && data.session?.bookings) {
-          const userBooking = data.session.bookings.find(
-            (b: any) => b.user_id === user.id && b.status === "confirmed",
-          );
-          setMyBooking(userBooking || null);
+        // Use my_booking from API (server identifies the authenticated user)
+        if (data.my_booking && data.my_booking.status === "confirmed") {
+          setMyBooking(data.my_booking);
+        } else {
+          setMyBooking(null);
         }
       })
       .catch(() => setSessionDetail(session))
@@ -133,6 +133,8 @@ export default function SessionDetailModal({
   })();
 
   const handleFreeBooking = async () => {
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
     try {
       setBooking(true);
       setError("");
@@ -159,10 +161,13 @@ export default function SessionDetailModal({
       setError(t("vcMarketplace.bookingError"));
     } finally {
       setBooking(false);
+      actionInFlightRef.current = false;
     }
   };
 
   const handleJoinSession = async () => {
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
     try {
       setJoining(true);
       setError("");
@@ -176,28 +181,31 @@ export default function SessionDetailModal({
         setError(data.error || t("vcMarketplace.joinError"));
         return;
       }
-      const params = new URLSearchParams({
+      // Store sensitive Agora credentials in sessionStorage (not URL)
+      const roomKey = `vc_room_${s.id}`;
+      sessionStorage.setItem(roomKey, JSON.stringify({
         channel: data.channel,
         token: data.token,
-        uid: data.uid.toString(),
+        uid: data.uid,
         appId: data.appId,
         sessionId: s.id,
         title: data.title || s.title,
-        durationMinutes: (s.duration_minutes || 30).toString(),
-        ...(data.isHost ? { isHost: "true" } : {}),
-        ...(data.token_expires_in
-          ? { tokenExpiresIn: data.token_expires_in.toString() }
-          : {}),
-      });
-      window.open(`/videocall/room?${params.toString()}`, "_blank");
+        durationMinutes: s.duration_minutes || 30,
+        isHost: data.isHost || false,
+        tokenExpiresIn: data.token_expires_in,
+      }));
+      window.open(`/videocall/room?sid=${s.id}`, "_blank");
     } catch {
       setError(t("vcMarketplace.joinError"));
     } finally {
       setJoining(false);
+      actionInFlightRef.current = false;
     }
   };
 
   const handleStartSession = async () => {
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
     try {
       setStarting(true);
       setError("");
@@ -212,20 +220,20 @@ export default function SessionDetailModal({
         return;
       }
       // Open video room
-      const params = new URLSearchParams({
+      // Store sensitive Agora credentials in sessionStorage (not URL)
+      const roomKey = `vc_room_${s.id}`;
+      sessionStorage.setItem(roomKey, JSON.stringify({
         channel: data.channel,
         token: data.token,
-        uid: data.uid.toString(),
+        uid: data.uid,
         appId: data.appId,
         sessionId: s.id,
         title: data.title || s.title,
-        isHost: "true",
-        durationMinutes: (s.duration_minutes || 30).toString(),
-        ...(data.token_expires_in
-          ? { tokenExpiresIn: data.token_expires_in.toString() }
-          : {}),
-      });
-      window.open(`/videocall/room?${params.toString()}`, "_blank");
+        durationMinutes: s.duration_minutes || 30,
+        isHost: true,
+        tokenExpiresIn: data.token_expires_in,
+      }));
+      window.open(`/videocall/room?sid=${s.id}`, "_blank");
       setSessionDetail((prev: any) => ({
         ...prev,
         status: "live",
@@ -236,6 +244,7 @@ export default function SessionDetailModal({
       setError(t("vcMarketplace.startError"));
     } finally {
       setStarting(false);
+      actionInFlightRef.current = false;
     }
   };
 
@@ -629,6 +638,8 @@ export default function SessionDetailModal({
                   <Button
                     size="sm"
                     onClick={async () => {
+                      if (actionInFlightRef.current) return;
+                      actionInFlightRef.current = true;
                       try {
                         setBooking(true);
                         setError("");
@@ -654,6 +665,7 @@ export default function SessionDetailModal({
                         setError(t("vcMarketplace.bookingError"));
                       } finally {
                         setBooking(false);
+                        actionInFlightRef.current = false;
                       }
                     }}
                     disabled={showPaypal || booking}

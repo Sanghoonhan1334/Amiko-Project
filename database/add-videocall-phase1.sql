@@ -64,7 +64,7 @@ CREATE POLICY "vc_paypal_orders_select" ON public.vc_paypal_orders FOR SELECT US
   )
 );
 CREATE POLICY "vc_paypal_orders_insert" ON public.vc_paypal_orders FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "vc_paypal_orders_update" ON public.vc_paypal_orders FOR UPDATE USING (auth.uid() = user_id);
+-- NOTE: No UPDATE policy for vc_paypal_orders — all payment updates must use service role
 
 -- RTC access logs: admin only read (via service role), user can insert own
 CREATE POLICY "vc_rtc_access_logs_insert" ON public.vc_rtc_access_logs FOR INSERT WITH CHECK (auth.uid() = user_id);

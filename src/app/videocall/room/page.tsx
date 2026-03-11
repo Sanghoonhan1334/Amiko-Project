@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -20,19 +20,29 @@ const VideoRoom = dynamic(() => import("@/components/videocall/VideoRoom"), {
 function VideoRoomContent() {
   const searchParams = useSearchParams();
 
-  const channel = searchParams.get("channel") || "";
-  const token = searchParams.get("token") || "";
-  const uid = parseInt(searchParams.get("uid") || "0");
-  const appId = searchParams.get("appId") || "";
-  const sessionId = searchParams.get("sessionId") || "";
-  const title = searchParams.get("title") || "Video Call";
-  const isHost = searchParams.get("isHost") === "true";
-  const durationMinutes = searchParams.get("durationMinutes")
-    ? parseInt(searchParams.get("durationMinutes")!)
-    : 30;
-  const tokenExpiresIn = searchParams.get("tokenExpiresIn")
-    ? parseInt(searchParams.get("tokenExpiresIn")!)
-    : undefined;
+  // Read session ID from URL — all sensitive data comes from sessionStorage
+  const sid = searchParams.get("sid") || searchParams.get("sessionId") || "";
+
+  // Retrieve Agora credentials from sessionStorage (stored before navigation)
+  const roomDataRaw = typeof window !== "undefined" ? sessionStorage.getItem(`vc_room_${sid}`) : null;
+  const roomData = roomDataRaw ? JSON.parse(roomDataRaw) : null;
+
+  const channel = roomData?.channel || "";
+  const token = roomData?.token || "";
+  const uid = roomData?.uid || 0;
+  const appId = roomData?.appId || "";
+  const sessionId = roomData?.sessionId || sid;
+  const title = roomData?.title || "Video Call";
+  const isHost = roomData?.isHost || false;
+  const durationMinutes = roomData?.durationMinutes || 30;
+  const tokenExpiresIn = roomData?.tokenExpiresIn || undefined;
+
+  // Clean up sessionStorage after reading (one-time use)
+  useEffect(() => {
+    if (sid) {
+      sessionStorage.removeItem(`vc_room_${sid}`);
+    }
+  }, [sid]);
 
   if (!channel || !token || !appId) {
     return (

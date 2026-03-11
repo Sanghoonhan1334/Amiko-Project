@@ -1,37 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  const baseUrl =
-    process.env.PAYPAL_API_BASE_URL ||
-    (process.env.NODE_ENV === "production"
-      ? "https://api-m.paypal.com"
-      : "https://api-m.sandbox.paypal.com");
-
-  if (!clientId || !clientSecret) {
-    throw new Error("PayPal credentials not configured");
-  }
-
-  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-    },
-    body: "grant_type=client_credentials",
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(
-      `Failed to get PayPal access token: ${data.error_description || data.error}`,
-    );
-  }
-  return data.access_token;
-}
+import { getPayPalToken, getPayPalBase } from "@/lib/paypal-server";
 
 // POST /api/video/sessions/[sessionId]/payments/paypal/capture
 // Captures (finalizes) a PayPal order after user approval
@@ -92,11 +62,7 @@ export async function POST(
     }
 
     // Capture with PayPal
-    const paypalApiBase =
-      process.env.PAYPAL_API_BASE_URL ||
-      (process.env.NODE_ENV === "production"
-        ? "https://api-m.paypal.com"
-        : "https://api-m.sandbox.paypal.com");
+    const paypalApiBase = getPayPalBase();
 
     const captureResponse = await fetch(
       `${paypalApiBase}/v2/checkout/orders/${paypal_order_id}/capture`,
@@ -104,7 +70,7 @@ export async function POST(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await getPayPalAccessToken()}`,
+          Authorization: `Bearer ${await getPayPalToken()}`,
         },
         body: JSON.stringify({}),
       },

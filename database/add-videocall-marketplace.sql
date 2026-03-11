@@ -206,7 +206,11 @@ CREATE POLICY "vc_bookings_select" ON public.vc_bookings FOR SELECT USING (
   )
 );
 CREATE POLICY "vc_bookings_insert" ON public.vc_bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "vc_bookings_update" ON public.vc_bookings FOR UPDATE USING (auth.uid() = user_id);
+-- Users can only cancel their own non-cancelled bookings (financial fields protected)
+CREATE POLICY "vc_bookings_update" ON public.vc_bookings
+  FOR UPDATE
+  USING (auth.uid() = user_id AND status NOT IN ('cancelled', 'refunded'))
+  WITH CHECK (auth.uid() = user_id AND status = 'cancelled');
 
 -- Ratings: public read, user writes own
 CREATE POLICY "vc_ratings_select" ON public.vc_ratings FOR SELECT USING (true);

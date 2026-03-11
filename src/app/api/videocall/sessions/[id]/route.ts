@@ -20,10 +20,10 @@ export async function GET(
           bio, avatar_url, avg_rating, total_sessions, total_reviews, status
         ),
         bookings:vc_bookings (
-          id, user_id, payment_status, status, created_at
+          id, payment_status, status, created_at
         ),
         ratings:vc_ratings (
-          id, user_id, knowledge_rating, clarity_rating, friendliness_rating,
+          id, knowledge_rating, clarity_rating, friendliness_rating,
           usefulness_rating, overall_rating, comment, created_at
         )
       `,
@@ -36,7 +36,20 @@ export async function GET(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ session: data });
+    // If authenticated, include the caller's own booking so frontend can identify it
+    let myBooking = null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: booking } = await supabase
+        .from("vc_bookings")
+        .select("id, payment_status, status, created_at")
+        .eq("session_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      myBooking = booking;
+    }
+
+    return NextResponse.json({ session: data, my_booking: myBooking });
   } catch (err) {
     console.error("[VC_SESSION_DETAIL] Exception:", err);
     return NextResponse.json(

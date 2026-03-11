@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createSupabaseClient } from "@/lib/supabase";
 import { validateProductAndAmount } from "@/lib/paypal-products";
+import { getPayPalToken, getPayPalBase } from "@/lib/paypal-server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -16,13 +17,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: NextRequest) {
   try {
-    // 세션 검증 — userId는 항상 토큰에서 추출, body에서 절대 신뢰하지 않음
+    // 인증 검증 — getUser()로 JWT를 서버에서 검증 (getSession은 클라이언트 토큰을 신뢰하므로 안전하지 않음)
     const supabaseClient = await createSupabaseClient()
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
-    if (sessionError || !session) {
+    const { data: { user: authUser }, error: authError } = await supabaseClient.auth.getUser()
+    if (authError || !authUser) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
-    const authenticatedUserId = session.user.id
+    const authenticatedUserId = authUser.id
 
     const body = await request.json();
     const {
@@ -80,16 +81,12 @@ export async function POST(request: NextRequest) {
     };
 
     // PayPal API 호출
-    const paypalApiBase =
-      process.env.PAYPAL_API_BASE_URL ||
-      (process.env.NODE_ENV === "production"
-        ? "https://api-m.paypal.com"
-        : "https://api-m.sandbox.paypal.com");
+    const paypalApiBase = getPayPalBase();
     const paypalResponse = await fetch(`${paypalApiBase}/v2/checkout/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${await getPayPalAccessToken()}`,
+        Authorization: `Bearer ${await getPayPalToken()}`,
       },
       body: JSON.stringify(orderData),
     });
@@ -162,38 +159,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
-
-// PayPal Access Token 획득
-async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  const baseUrl =
-    process.env.PAYPAL_API_BASE_URL ||
-    (process.env.NODE_ENV === "production"
-      ? "https://api-m.paypal.com"
-      : "https://api-m.sandbox.paypal.com");
-
-  if (!clientId || !clientSecret) {
-    throw new Error("PayPal client ID or secret is not configured");
-  }
-
-  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-    },
-    body: "grant_type=client_credentials",
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to get PayPal access token: ${data.error_description || data.error}`,
-    );
-  }
-
-  return data.access_token;
 }
