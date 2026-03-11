@@ -180,23 +180,31 @@ ALTER TABLE public.vc_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vc_notifications ENABLE ROW LEVEL SECURITY;
 
 -- Host profiles: public read, owner write
+DROP POLICY IF EXISTS "vc_host_profiles_select" ON public.vc_host_profiles;
 CREATE POLICY "vc_host_profiles_select" ON public.vc_host_profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "vc_host_profiles_insert" ON public.vc_host_profiles;
 CREATE POLICY "vc_host_profiles_insert" ON public.vc_host_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "vc_host_profiles_update" ON public.vc_host_profiles;
 CREATE POLICY "vc_host_profiles_update" ON public.vc_host_profiles FOR UPDATE USING (auth.uid() = user_id);
 
 -- Schedule config: public read, admin only write (handled via service role)
+DROP POLICY IF EXISTS "vc_schedule_config_select" ON public.vc_schedule_config;
 CREATE POLICY "vc_schedule_config_select" ON public.vc_schedule_config FOR SELECT USING (true);
 
 -- Sessions: public read, host write own
+DROP POLICY IF EXISTS "vc_sessions_select" ON public.vc_sessions;
 CREATE POLICY "vc_sessions_select" ON public.vc_sessions FOR SELECT USING (true);
+DROP POLICY IF EXISTS "vc_sessions_insert" ON public.vc_sessions;
 CREATE POLICY "vc_sessions_insert" ON public.vc_sessions FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM public.vc_host_profiles WHERE id = host_id AND user_id = auth.uid())
 );
+DROP POLICY IF EXISTS "vc_sessions_update" ON public.vc_sessions;
 CREATE POLICY "vc_sessions_update" ON public.vc_sessions FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.vc_host_profiles WHERE id = host_id AND user_id = auth.uid())
 );
 
 -- Bookings: user sees own, host sees session bookings
+DROP POLICY IF EXISTS "vc_bookings_select" ON public.vc_bookings;
 CREATE POLICY "vc_bookings_select" ON public.vc_bookings FOR SELECT USING (
   auth.uid() = user_id OR
   EXISTS (
@@ -205,30 +213,40 @@ CREATE POLICY "vc_bookings_select" ON public.vc_bookings FOR SELECT USING (
     WHERE s.id = session_id AND h.user_id = auth.uid()
   )
 );
+DROP POLICY IF EXISTS "vc_bookings_insert" ON public.vc_bookings;
 CREATE POLICY "vc_bookings_insert" ON public.vc_bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
 -- Users can only cancel their own non-cancelled bookings (financial fields protected)
+DROP POLICY IF EXISTS "vc_bookings_update" ON public.vc_bookings;
 CREATE POLICY "vc_bookings_update" ON public.vc_bookings
   FOR UPDATE
   USING (auth.uid() = user_id AND status NOT IN ('cancelled', 'refunded'))
   WITH CHECK (auth.uid() = user_id AND status = 'cancelled');
 
 -- Ratings: public read, user writes own
+DROP POLICY IF EXISTS "vc_ratings_select" ON public.vc_ratings;
 CREATE POLICY "vc_ratings_select" ON public.vc_ratings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "vc_ratings_insert" ON public.vc_ratings;
 CREATE POLICY "vc_ratings_insert" ON public.vc_ratings FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Chat: participants only
+DROP POLICY IF EXISTS "vc_chat_select" ON public.vc_chat_messages;
 CREATE POLICY "vc_chat_select" ON public.vc_chat_messages FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.vc_bookings WHERE session_id = vc_chat_messages.session_id AND user_id = auth.uid()) OR
   EXISTS (SELECT 1 FROM public.vc_sessions s JOIN public.vc_host_profiles h ON s.host_id = h.id WHERE s.id = vc_chat_messages.session_id AND h.user_id = auth.uid())
 );
+DROP POLICY IF EXISTS "vc_chat_insert" ON public.vc_chat_messages;
 CREATE POLICY "vc_chat_insert" ON public.vc_chat_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Reports: user writes own
+DROP POLICY IF EXISTS "vc_reports_insert" ON public.vc_reports;
 CREATE POLICY "vc_reports_insert" ON public.vc_reports FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+DROP POLICY IF EXISTS "vc_reports_select" ON public.vc_reports;
 CREATE POLICY "vc_reports_select" ON public.vc_reports FOR SELECT USING (auth.uid() = reporter_id);
 
 -- Notifications: user sees own
+DROP POLICY IF EXISTS "vc_notifications_select" ON public.vc_notifications;
 CREATE POLICY "vc_notifications_select" ON public.vc_notifications FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "vc_notifications_update" ON public.vc_notifications;
 CREATE POLICY "vc_notifications_update" ON public.vc_notifications FOR UPDATE USING (auth.uid() = user_id);
 
 -- ============================================================
