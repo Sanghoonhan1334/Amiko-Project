@@ -126,12 +126,37 @@ ALTER TABLE education_enrollments
 -- ============================================================
 
 -- 2.1 education_sessions
+-- NOTA: No se puede usar GENERATED ALWAYS AS porque TIMESTAMPTZ + INTERVAL es STABLE
+--       (depende de la zona horaria de la sesión), no IMMUTABLE. Se usa trigger.
 ALTER TABLE education_sessions
   ADD COLUMN IF NOT EXISTS timezone_origin TEXT,
-  ADD COLUMN IF NOT EXISTS scheduled_end_utc TIMESTAMPTZ
-    GENERATED ALWAYS AS (scheduled_at + (duration_minutes || ' minutes')::INTERVAL) STORED,
+  ADD COLUMN IF NOT EXISTS scheduled_end_utc TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS ended_at TIMESTAMPTZ;
+
+-- Rellenar scheduled_end_utc en filas existentes
+UPDATE education_sessions
+  SET scheduled_end_utc = scheduled_at + (duration_minutes * INTERVAL '1 minute')
+  WHERE scheduled_end_utc IS NULL
+    AND scheduled_at IS NOT NULL
+    AND duration_minutes IS NOT NULL;
+
+-- Trigger para mantener scheduled_end_utc sincronizado
+CREATE OR REPLACE FUNCTION trg_compute_session_end_utc()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.scheduled_at IS NOT NULL AND NEW.duration_minutes IS NOT NULL THEN
+    NEW.scheduled_end_utc := NEW.scheduled_at + (NEW.duration_minutes * INTERVAL '1 minute');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS set_session_end_utc ON education_sessions;
+CREATE TRIGGER set_session_end_utc
+  BEFORE INSERT OR UPDATE OF scheduled_at, duration_minutes
+  ON education_sessions
+  FOR EACH ROW EXECUTE FUNCTION trg_compute_session_end_utc();
 
 -- 2.2 education_attendance
 ALTER TABLE education_attendance
